@@ -12,6 +12,14 @@ This provider enables several capabilities with nullstone.
 
 ## Available Resources
 
+### Backend
+
+```
+terraform {
+  backend "ns" {}
+}
+```
+
 ### `ns_workspace`
 
 The nullstone workspace data source provides access to information about the current workspace.
