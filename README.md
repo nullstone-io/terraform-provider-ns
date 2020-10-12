@@ -34,6 +34,9 @@ data "ns_workspace" "this" {}
   - `block_name` - Nullstone Block name
   - `env_name` - Nullstone Environment name
   - `tags` - Workspace tags
+    - `Stack` - Stack name
+    - `Block` - Block name
+    - `Env` - Environment name
   - `name_hyphen` - Unique, interpolated name using `-` as delimiter
   - `name_slash` - Unique, interpolated name using `/` as delimiter
 
