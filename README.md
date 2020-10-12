@@ -1,7 +1,7 @@
 # Nullstone Terraform Provider
 
 - Website: https://nullstone.io
-- [![Gitter chat](https://badges.gitter.im/nullstone-io/community)](https://gitter.im/nullstone-io/community)
+- [![Gitter chat](https://badges.gitter.im/nullstone-io/Lobby.png)](https://gitter.im/nullstone-io/community)
 
 ## Overview
 
