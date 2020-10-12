@@ -6,19 +6,10 @@
 ## Overview
 
 This provider enables several capabilities with nullstone.
-1. This provider enables Terraform users to use nullstone as a backend.
-2. This provider has several data sources to utilize standard block metadata in Terraform plans.
-3. This provider has data sources for connecting to nullstone parent blocks.
+1. This provider has several data sources to utilize standard block metadata in Terraform plans.
+2. This provider has data sources for connecting to nullstone parent blocks.
 
 ## Available Resources
-
-### Backend
-
-```
-terraform {
-  backend "ns" {}
-}
-```
 
 ### `ns_workspace`
 
@@ -37,8 +28,8 @@ data "ns_workspace" "this" {}
     - `Stack` - Stack name
     - `Block` - Block name
     - `Env` - Environment name
-  - `name_hyphen` - Unique, interpolated name using `-` as delimiter
-  - `name_slash` - Unique, interpolated name using `/` as delimiter
+  - `hyphenated_name` - Unique, interpolated name using `-` as delimiter
+  - `slashed_name` - Unique, interpolated name using `/` as delimiter
 
 ### `ns_connection`
 
