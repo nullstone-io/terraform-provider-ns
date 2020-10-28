@@ -1,11 +1,11 @@
-package ns
+package provider
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccNsWorkspaceDataSource(t *testing.T) {
@@ -26,9 +26,9 @@ data "ns_workspace" "this" {
   block = "block0"
 }
 `)
-		resource.Test(t, resource.TestCase{
-			PreCheck:  func() { testAccPreCheck(t) },
-			Providers: testAccProviders,
+		resource.UnitTest(t, resource.TestCase{
+			PreCheck:          func() { testAccPreCheck(t) },
+			ProviderFactories: providerFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: config,
@@ -47,9 +47,9 @@ data "ns_workspace" "this" {}
 		os.Setenv("NULLSTONE_ENV", "env0")
 		os.Setenv("NULLSTONE_BLOCK", "block0")
 
-		resource.Test(t, resource.TestCase{
-			PreCheck:  func() { testAccPreCheck(t) },
-			Providers: testAccProviders,
+		resource.UnitTest(t, resource.TestCase{
+			PreCheck:          func() { testAccPreCheck(t) },
+			ProviderFactories: providerFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: config,
