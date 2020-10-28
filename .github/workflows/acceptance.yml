@@ -18,11 +18,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
       - uses: actions/cache@v2
-          continue-on-error: true
-          timeout-minutes: 2
-          with:
-            path: ~/go/pkg/mod
-            key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
       - name: Acceptance Tests
         env:
           TF_ACC: 1
