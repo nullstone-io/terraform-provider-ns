@@ -1,0 +1,17 @@
+name: Acceptance Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: terraformtesting/acceptance-tests@v2.1.0
+        with:
+          TG_LOG: INFO
+          RUN_ALL: true

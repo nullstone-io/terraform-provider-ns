@@ -7,8 +7,11 @@ import (
 
 func Provider() terraform.ResourceProvider {
 	p := &schema.Provider{
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*schema.Schema{},
+		DataSourcesMap: map[string]*schema.Resource{
+			"ns_workspace": dataSourceNsWorkspace(),
 		},
+		ResourcesMap: map[string]*schema.Resource{},
 	}
 	return p
 }
