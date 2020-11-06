@@ -48,6 +48,12 @@ func dataSourceNsConnection() *schema.Resource {
 				Computed:    true,
 				Description: "The name of the connected workspace.",
 			},
+			"via": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: `Defines this connection is satisfied through another ns_connection.
+Typically, this is set to data.ns_connection.other.workspace.`,
+			},
 		},
 	}
 }
