@@ -15,9 +15,25 @@ During terraform execution, nullstone provides outputs from the connected worksp
 ## Example Usage
 
 ```hcl
+# Simple example
 data "ns_connection" "network" {
   name = "network"
-  type = "aws/network"
+  type = "network/aws"
+}
+```
+
+
+```hcl
+# Example using `via`
+data "ns_connection" "cluster" {
+  name = "cluster"
+  type = "cluster/aws-fargate"
+}
+
+data "ns_connection" "network" {
+  name = "network"
+  type = "network/aws"
+  via  = data.ns_connection.cluster.workspace
 }
 ```
 
@@ -27,3 +43,4 @@ data "ns_connection" "network" {
 * `type` - Type of nullstone module to make connection.
 * `optional` - By default, if this connection has not been configured, this causes an error. Set to true to disable. (Default: `false`)
 * `workspace` - Name of workspace for connection. (Environment variable: `NULLSTONE_CONNECTION_{name}`)
+* `via` - Name of workspace to satisfy this connection through. Typically, this is set to `data.ns_connection.other.workspace`.
