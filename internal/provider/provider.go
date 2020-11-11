@@ -11,7 +11,8 @@ func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
 			DataSourcesMap: map[string]*schema.Resource{
-				"ns_workspace": dataSourceNsWorkspace(),
+				"ns_workspace":  dataSourceNsWorkspace(),
+				"ns_connection": dataSourceNsConnection(),
 			},
 			ResourcesMap: map[string]*schema.Resource{},
 		}
