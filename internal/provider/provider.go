@@ -16,7 +16,7 @@ func New(version string) func() tfprotov5.ProviderServer {
 
 		// data sources
 		s.MustRegisterDataSource("ns_workspace", newDataWorkspace)
-		//s.MustRegisterDataSource("ns_connection", newDataConnection)
+		s.MustRegisterDataSource("ns_connection", newDataConnection)
 
 		return s
 	}

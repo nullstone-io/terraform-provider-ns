@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccNsConnectionDataSource(t *testing.T) {
+func TestDataConnection(t *testing.T) {
 	t.Run("fails when required and connection is not configured", func(t *testing.T) {
 		config := fmt.Sprintf(`
 data "ns_connection" "network" {
@@ -20,8 +20,7 @@ data "ns_connection" "network" {
 		checks := resource.ComposeTestCheckFunc()
 
 		resource.UnitTest(t, resource.TestCase{
-			PreCheck:          func() { testAccPreCheck(t) },
-			ProviderFactories: providerFactories,
+			ProtoV5ProviderFactories: protoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config:      config,
@@ -45,8 +44,7 @@ data "ns_connection" "service" {
 		)
 
 		resource.UnitTest(t, resource.TestCase{
-			PreCheck:          func() { testAccPreCheck(t) },
-			ProviderFactories: providerFactories,
+			ProtoV5ProviderFactories: protoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: config,
@@ -71,8 +69,7 @@ data "ns_connection" "service" {
 		os.Setenv("NULLSTONE_CONNECTION_service", "lycan")
 
 		resource.UnitTest(t, resource.TestCase{
-			PreCheck:          func() { testAccPreCheck(t) },
-			ProviderFactories: providerFactories,
+			ProtoV5ProviderFactories: protoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: config,
