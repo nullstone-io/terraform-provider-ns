@@ -114,13 +114,21 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
 	var (
 		name     string
+		type_    string
 		optional bool
+		via      string
 	)
 
 	if err := config["name"].As(&name); err != nil {
 		return nil, nil, err
 	}
+	if err := config["type"].As(&type_); err != nil {
+		return nil, nil, err
+	}
 	if err := config["optional"].As(&optional); err != nil {
+		return nil, nil, err
+	}
+	if err := config["via"].As(&via); err != nil {
 		return nil, nil, err
 	}
 
@@ -128,6 +136,10 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 
 	return map[string]tftypes.Value{
 		"id":        tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspace)),
+		"name":      tftypes.NewValue(tftypes.String, name),
+		"type":      tftypes.NewValue(tftypes.String, type_),
 		"workspace": tftypes.NewValue(tftypes.String, workspace),
+		"optional":  tftypes.NewValue(tftypes.Bool, optional),
+		"via":       tftypes.NewValue(tftypes.String, via),
 	}, nil, nil
 }
