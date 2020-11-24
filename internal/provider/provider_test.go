@@ -1,25 +1,9 @@
 package provider
 
-import (
-	"testing"
+import "github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-)
-
-var providerFactories = map[string]func() (*schema.Provider, error){
-	"ns": func() (*schema.Provider, error) {
-		return New("test")(), nil
+var protoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){
+	"ns": func() (tfprotov5.ProviderServer, error) {
+		return New("acctest")(), nil
 	},
-}
-
-func TestProvider(t *testing.T) {
-	t.Run("runs internal validation without error", func(t *testing.T) {
-		if err := New("test")().InternalValidate(); err != nil {
-			t.Fatalf("err: %s", err)
-		}
-	})
-}
-
-func testAccPreCheck(t *testing.T) {
-	// NOTE: Add prechecks for all tests here
 }

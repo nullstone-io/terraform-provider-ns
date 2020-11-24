@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccNsWorkspaceDataSource(t *testing.T) {
+func TestDataWorkspace(t *testing.T) {
 	checks := resource.ComposeTestCheckFunc(
 		resource.TestCheckResourceAttr("data.ns_workspace.this", `tags.%`, "3"),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", `tags.Stack`, "stack0"),
@@ -27,8 +27,7 @@ data "ns_workspace" "this" {
 }
 `)
 		resource.UnitTest(t, resource.TestCase{
-			PreCheck:          func() { testAccPreCheck(t) },
-			ProviderFactories: providerFactories,
+			ProtoV5ProviderFactories: protoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: config,
@@ -48,8 +47,7 @@ data "ns_workspace" "this" {}
 		os.Setenv("NULLSTONE_BLOCK", "block0")
 
 		resource.UnitTest(t, resource.TestCase{
-			PreCheck:          func() { testAccPreCheck(t) },
-			ProviderFactories: providerFactories,
+			ProtoV5ProviderFactories: protoV5ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: config,
