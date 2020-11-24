@@ -8,24 +8,21 @@ import (
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 )
 
-func New(version string) func() tfprotov5.ProviderServer {
-	return func() tfprotov5.ProviderServer {
-		s := server.MustNew(func() server.Provider {
-			return &provider{}
-		})
+func New(version string) tfprotov5.ProviderServer {
+	s := server.MustNew(func() server.Provider {
+		return &provider{}
+	})
 
-		// data sources
-		s.MustRegisterDataSource("ns_workspace", newDataWorkspace)
-		s.MustRegisterDataSource("ns_connection", newDataConnection)
+	// data sources
+	s.MustRegisterDataSource("ns_workspace", newDataWorkspace)
+	s.MustRegisterDataSource("ns_connection", newDataConnection)
 
-		return s
-	}
+	return s
 }
 
 var _ server.Provider = (*provider)(nil)
 
 type provider struct {
-
 }
 
 func (p provider) Schema(ctx context.Context) *tfprotov5.Schema {
