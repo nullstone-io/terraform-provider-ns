@@ -27,6 +27,7 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 			Description:     "Data source to configure module based on current nullstone workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Attributes: []*tfprotov5.SchemaAttribute{
+				deprecatedIDAttribute(),
 				{
 					Name: "stack",
 					Type: tftypes.String,
@@ -92,17 +93,22 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	}
 
 	if config["env"].IsNull() {
-		stack = os.Getenv("NULLSTONE_ENV")
+		env = os.Getenv("NULLSTONE_ENV")
 	} else if err := config["env"].As(&env); err != nil {
 		return nil, nil, err
 	}
 
 	if config["block"].IsNull() {
-		stack = os.Getenv("NULLSTONE_BLOCK")
+		block = os.Getenv("NULLSTONE_BLOCK")
 	} else if err := config["block"].As(&block); err != nil {
 		return nil, nil, err
 	}
 
+	tags := map[string]tftypes.Value{
+		"Stack": tftypes.NewValue(tftypes.String, stack),
+		"Env":   tftypes.NewValue(tftypes.String, env),
+		"Block": tftypes.NewValue(tftypes.String, block),
+	}
 	hyphenated := fmt.Sprintf("%s-%s-%s", stack, env, block)
 	slashed := fmt.Sprintf("%s/%s/%s", stack, env, block)
 
@@ -111,6 +117,7 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"stack":           tftypes.NewValue(tftypes.String, stack),
 		"env":             tftypes.NewValue(tftypes.String, env),
 		"block":           tftypes.NewValue(tftypes.String, block),
+		"tags":            tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
 		"hyphenated_name": tftypes.NewValue(tftypes.String, hyphenated),
 		"slashed_name":    tftypes.NewValue(tftypes.String, slashed),
 	}, nil, nil

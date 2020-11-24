@@ -30,6 +30,7 @@ func (*dataConnection) Schema(ctx context.Context) *tfprotov5.Schema {
 			Description:     "Data source to configure a connection to another nullstone workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Attributes: []*tfprotov5.SchemaAttribute{
+				deprecatedIDAttribute(),
 				{
 					Name:            "name",
 					Type:            tftypes.String,
