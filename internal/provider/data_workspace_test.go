@@ -20,14 +20,19 @@ func TestDataWorkspace(t *testing.T) {
 
 	t.Run("sets up attributes properly hard-coded", func(t *testing.T) {
 		config := fmt.Sprintf(`
+provider "ns" {
+  organization = "org0"
+}
 data "ns_workspace" "this" {
   stack = "stack0"
   env   = "env0"
   block = "block0"
 }
 `)
+		getTfeConfig, _ := mockTfe(nil)
+
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories,
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getTfeConfig),
 			Steps: []resource.TestStep{
 				{
 					Config: config,
@@ -39,15 +44,19 @@ data "ns_workspace" "this" {
 
 	t.Run("sets up attributes properly from env vars", func(t *testing.T) {
 		config := fmt.Sprintf(`
+provider "ns" {
+  organization = "org0"
+}
 data "ns_workspace" "this" {}
 `)
+		getTfeConfig, _ := mockTfe(nil)
 
 		os.Setenv("NULLSTONE_STACK", "stack0")
 		os.Setenv("NULLSTONE_ENV", "env0")
 		os.Setenv("NULLSTONE_BLOCK", "block0")
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories,
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getTfeConfig),
 			Steps: []resource.TestStep{
 				{
 					Config: config,

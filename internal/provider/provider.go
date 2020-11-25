@@ -58,6 +58,12 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 			Summary:  err.Error(),
 		})
 	}
+	if p.TfeConfig.Token == "" {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Nullstone API Key is required",
+		})
+	}
 
 	if len(diags) > 0 {
 		return diags, nil

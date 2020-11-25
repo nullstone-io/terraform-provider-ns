@@ -143,14 +143,17 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 
 	workspace := os.Getenv(fmt.Sprintf("NULLSTONE_CONNECTION_%s", name))
 
-	stateFile, err := d.getStateFile(workspace)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error retrieving workspace state file: %w", err)
-	}
+	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
+	if workspace != "" {
+		stateFile, err := d.getStateFile(workspace)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error retrieving workspace state file: %w", err)
+		}
 
-	outputsValue, err := stateFile.Outputs.ToProtov5()
-	if err != nil {
-		return nil, nil, err
+		outputsValue, err = stateFile.Outputs.ToProtov5()
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	return map[string]tftypes.Value{
