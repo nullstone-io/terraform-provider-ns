@@ -20,9 +20,18 @@ provider "ns" {
 
 # Example resource configuration
 resource "ns_workspace" "example" {
-  # ...
 }
 ```
+
+## Server Authentication
+
+This provider communicates with nullstone servers that implement Terraform Cloud compliant protocol for state backends.
+
+Currently, the provider will default the address to `https://api.nullstone.io`. 
+To override, set the environment variable `TFE_ADDRESS`.
+
+A nullstone API key is necessary to communicate as well.
+Set `TFE_TOKEN` to your nullstone API key. 
 
 ## Plan Config
 
