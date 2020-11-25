@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/nullstone-io/terraform-provider-ns/internal/convert"
 )
 
 var validConnectionName = regexp.MustCompile("^[_a-z0-9/-]+$")
@@ -65,6 +66,13 @@ func (*dataConnection) Schema(ctx context.Context) *tfprotov5.Schema {
 					Optional: true,
 					Description: `Defines this connection is satisfied through another ns_connection.
 Typically, this is set to data.ns_connection.other.workspace.`,
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
+				{
+					Name:            "outputs",
+					Type:            tftypes.DynamicPseudoType,
+					Computed:        true,
+					Description:     `An object containing every root-level output in the remote state.`,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 			},
@@ -134,6 +142,13 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 
 	workspace := os.Getenv(fmt.Sprintf("NULLSTONE_CONNECTION_%s", name))
 
+	// TODO: Implement
+	outputs := map[string]interface{}{}
+	_, outputsValue, err := convert.ToProtov5(outputs)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return map[string]tftypes.Value{
 		"id":        tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspace)),
 		"name":      tftypes.NewValue(tftypes.String, name),
@@ -141,5 +156,6 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		"workspace": tftypes.NewValue(tftypes.String, workspace),
 		"optional":  tftypes.NewValue(tftypes.Bool, optional),
 		"via":       tftypes.NewValue(tftypes.String, via),
+		"outputs":   outputsValue,
 	}, nil, nil
 }
