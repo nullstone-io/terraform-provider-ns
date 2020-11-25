@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
-	"os"
 )
 
 func New(version string, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
@@ -15,7 +14,13 @@ func New(version string, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServ
 		if getTfeConfig == nil {
 			getTfeConfig = ns.NewTfeConfig
 		}
-		return &provider{TfeConfig: getTfeConfig()}
+
+		planConfig, _ := PlanConfigFromFile(".nullstone.json")
+
+		return &provider{
+			TfeConfig:  getTfeConfig(),
+			PlanConfig: &planConfig,
+		}
 	})
 
 	// data sources
@@ -30,7 +35,7 @@ var _ server.Provider = (*provider)(nil)
 type provider struct {
 	TfeConfig  *tfe.Config
 	TfeClient  *tfe.Client
-	PlanConfig PlanConfig
+	PlanConfig *PlanConfig
 }
 
 func (p *provider) Schema(ctx context.Context) *tfprotov5.Schema {
@@ -41,6 +46,7 @@ func (p *provider) Schema(ctx context.Context) *tfprotov5.Schema {
 				{
 					Name:            "organization",
 					Type:            tftypes.String,
+					Optional:        true,
 					Description:     "Configure provider with this organization.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
@@ -74,17 +80,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 }
 
 func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Value) (diags []*tfprotov5.Diagnostic, err error) {
-	if planConfig, err := PlanConfigFromFile(".nullstone.json"); err == nil || os.IsNotExist(err) {
-		p.PlanConfig = planConfig
-	} else {
-		return []*tfprotov5.Diagnostic{
-			{
-				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  "Error loading .nullstone.json plan config",
-				Detail:   err.Error(),
-			},
-		}, nil
-	}
+
 
 	if !config["organization"].IsNull() {
 		// This is already checked in Validate, just cast it
