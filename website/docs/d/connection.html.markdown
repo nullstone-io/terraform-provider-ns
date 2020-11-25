@@ -46,3 +46,4 @@ data "ns_connection" "network" {
 * `optional` - By default, if this connection has not been configured, this causes an error. Set to true to disable. (Default: `false`)
 * `workspace` - Name of workspace for connection. (Environment variable: `NULLSTONE_CONNECTION_{name}`)
 * `via` - Name of workspace to satisfy this connection through. Typically, this is set to `data.ns_connection.other.workspace`.
+- `outputs` - An object containing every root-level output in the remote state. This attribute is interchangeable for `data.terraform_remote_state.outputs`.
