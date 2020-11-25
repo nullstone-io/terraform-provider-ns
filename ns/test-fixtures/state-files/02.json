@@ -1,0 +1,21 @@
+{
+  "version": 4,
+  "terraform_version": "0.13.5",
+  "serial": 1,
+  "lineage": "64aef234-2ff9-9d8e-25ae-22fb30b62860",
+  "outputs": {
+    "key1": {
+      "value": "value1",
+      "type": "string"
+    },
+    "key2": {
+      "value": 2,
+      "type": "number"
+    },
+    "key3": {
+      "value": true,
+      "type": "bool"
+    }
+  },
+  "resources": []
+}

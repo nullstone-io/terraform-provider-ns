@@ -2,13 +2,14 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
-	"github.com/nullstone-io/terraform-provider-ns/internal/convert"
+	"github.com/nullstone-io/terraform-provider-ns/ns"
 )
 
 var validConnectionName = regexp.MustCompile("^[_a-z0-9/-]+$")
@@ -142,9 +143,12 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 
 	workspace := os.Getenv(fmt.Sprintf("NULLSTONE_CONNECTION_%s", name))
 
-	// TODO: Implement
-	outputs := map[string]interface{}{}
-	_, outputsValue, err := convert.ToProtov5(outputs)
+	stateFile, err := d.getStateFile(workspace)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error retrieving workspace state file: %w", err)
+	}
+
+	outputsValue, err := stateFile.Outputs.ToProtov5()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -158,4 +162,29 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		"via":       tftypes.NewValue(tftypes.String, via),
 		"outputs":   outputsValue,
 	}, nil, nil
+}
+
+func (d *dataConnection) getStateFile(workspaceName string) (*ns.StateFile, error) {
+	tfeClient, orgName := d.p.TfeClient, d.p.OrgName
+
+	workspace, err := tfeClient.Workspaces.Read(context.Background(), orgName, workspaceName)
+	if err != nil {
+		return nil, fmt.Errorf(`error reading workspace "%s/%s": %w`, orgName, workspaceName, err)
+	}
+
+	sv, err := tfeClient.StateVersions.Current(context.Background(), workspace.ID)
+	if err != nil {
+		return nil, fmt.Errorf(`error reading current state version (workspace=%s/%s): %w`, orgName, workspaceName, err)
+	}
+
+	state, err := tfeClient.StateVersions.Download(context.Background(), sv.DownloadURL)
+	if err != nil {
+		return nil, fmt.Errorf(`error downloading state file (workspace=%s/%s): %w`, orgName, workspaceName, err)
+	}
+
+	var stateFile ns.StateFile
+	if err := json.Unmarshal(state, &stateFile); err != nil {
+		return nil, fmt.Errorf(`error parsing state file (workspace=%s/%s): %w`, orgName, workspaceName, err)
+	}
+	return &stateFile, nil
 }
