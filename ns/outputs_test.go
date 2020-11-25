@@ -12,7 +12,6 @@ import (
 )
 
 func TestOutputs_ToProtov5(t *testing.T) {
-	two := 2
 	tests := []struct {
 		name      string
 		inputFile string
@@ -39,13 +38,11 @@ func TestOutputs_ToProtov5(t *testing.T) {
 			wantValue: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"key1": tftypes.String,
-					"key2": tftypes.Number,
-					"key3": tftypes.Bool,
+					"key2": tftypes.Bool,
 				},
 			}, map[string]tftypes.Value{
 				"key1": tftypes.NewValue(tftypes.String, "value1"),
-				"key2": tftypes.NewValue(tftypes.Number, &two),
-				"key3": tftypes.NewValue(tftypes.Bool, true),
+				"key2": tftypes.NewValue(tftypes.Bool, true),
 			}),
 		},
 		{
@@ -54,8 +51,7 @@ func TestOutputs_ToProtov5(t *testing.T) {
 			wantValue: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
 					"key1": tftypes.String,
-					"key2": tftypes.Number,
-					"key3": tftypes.Object{
+					"key2": tftypes.Object{
 						AttributeTypes: map[string]tftypes.Type{
 							"key1": tftypes.String,
 							"key2": tftypes.String,
@@ -65,8 +61,7 @@ func TestOutputs_ToProtov5(t *testing.T) {
 				},
 			}, map[string]tftypes.Value{
 				"key1": tftypes.NewValue(tftypes.String, "value1"),
-				"key2": tftypes.NewValue(tftypes.Number, &two),
-				"key3": tftypes.NewValue(tftypes.Object{
+				"key2": tftypes.NewValue(tftypes.Object{
 					AttributeTypes: map[string]tftypes.Type{
 						"key1": tftypes.String,
 						"key2": tftypes.String,

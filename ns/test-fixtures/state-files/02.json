@@ -9,10 +9,6 @@
       "type": "string"
     },
     "key2": {
-      "value": 2,
-      "type": "number"
-    },
-    "key3": {
       "value": true,
       "type": "bool"
     }
