@@ -10,6 +10,8 @@ description: |-
 
 Data source to configure module based on current nullstone workspace.
 
+This data source is affected by Plan Config. See [the main provider documentation](../index.html) for more details.
+
 ## Example Usage
 
 ```hcl

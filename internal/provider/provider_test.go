@@ -1,25 +1,32 @@
 package provider
 
 import (
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-tfe"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"net/http"
+	"net/http/httptest"
 )
 
-var providerFactories = map[string]func() (*schema.Provider, error){
-	"ns": func() (*schema.Provider, error) {
-		return New("test")(), nil
-	},
+func protoV5ProviderFactories(getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
+	return map[string]func() (tfprotov5.ProviderServer, error){
+		"ns": func() (tfprotov5.ProviderServer, error) {
+			return New("acctest", getTfeConfig), nil
+		},
+	}
 }
 
-func TestProvider(t *testing.T) {
-	t.Run("runs internal validation without error", func(t *testing.T) {
-		if err := New("test")().InternalValidate(); err != nil {
-			t.Fatalf("err: %s", err)
-		}
-	})
-}
+func mockTfe(handler http.Handler) (func() *tfe.Config, func()) {
+	cfg := ns.NewTfeConfig()
+	cfg.Token = "abcdefgh012345789"
+	fn := func() *tfe.Config {
+		return cfg
+	}
+	if handler == nil {
+		return fn, func() {}
+	}
 
-func testAccPreCheck(t *testing.T) {
-	// NOTE: Add prechecks for all tests here
+	server := httptest.NewServer(handler)
+	cfg.Address = server.URL
+	return fn, server.Close
 }
