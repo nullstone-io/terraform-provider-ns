@@ -12,6 +12,8 @@ Data source to configure connection to another nullstone workspace.
 This stanza defines the name and type of connection we need.
 During terraform execution, nullstone provides outputs from the connected workspace.
 
+This data source is affected by Plan Config. See [the main provider documentation](../index.html) for more details.
+
 ## Example Usage
 
 ```hcl

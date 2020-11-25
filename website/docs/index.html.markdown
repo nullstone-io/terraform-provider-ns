@@ -23,3 +23,31 @@ resource "ns_workspace" "example" {
   # ...
 }
 ```
+
+## Plan Config
+
+When running inside a Nullstone runner, Nullstone will automatically configure the plan configuration all resources in this provider.
+However, if you want to run locally, you may configure the current organization, workspace, and connections through a plan config.
+This plan config is loaded by environment variables or from `.nullstone.json`.
+
+The following is an example `.nullstone.json`.
+```json
+{
+  "org": "nullstone",
+  "stack": "core",
+  "env": "prod",
+  "block": "fargate0",
+  "connections": {
+    "network": "network0"
+  }
+}
+```
+
+The following environment file describes the same information as above.
+```
+NULLSTONE_ORG=nullstone
+NULLSTONE_BLOCK=core
+NULLSTONE_ENV=prod
+NULLSTONE_STACK=fargate0
+NULLSTONE_CONNECTION_network=network0
+```
