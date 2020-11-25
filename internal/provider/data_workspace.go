@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
@@ -29,23 +28,20 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 			Attributes: []*tfprotov5.SchemaAttribute{
 				deprecatedIDAttribute(),
 				{
-					Name: "stack",
-					Type: tftypes.String,
-					//DefaultFunc: schema.EnvDefaultFunc("NULLSTONE_STACK", ""),
+					Name:            "stack",
+					Type:            tftypes.String,
 					Description:     "The name of the stack in nullstone that owns this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
-					Name: "env",
-					Type: tftypes.String,
-					//DefaultFunc: schema.EnvDefaultFunc("NULLSTONE_ENV", ""),
+					Name:            "env",
+					Type:            tftypes.String,
 					Description:     "The name of the environment in nullstone associated with this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
-					Name: "block",
-					Type: tftypes.String,
-					//DefaultFunc: schema.EnvDefaultFunc("NULLSTONE_BLOCK", ""),
+					Name:            "block",
+					Type:            tftypes.String,
 					Description:     "The name of the block in nullstone associated with this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
@@ -76,32 +72,56 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 }
 
 func (d *dataWorkspace) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
+	diags := make([]*tfprotov5.Diagnostic, 0)
+
+	if !config["stack"].IsNull() {
+		var stack string
+		if err := config["stack"].As(&stack); err != nil {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  err.Error(),
+			})
+		}
+	}
+	if !config["env"].IsNull() {
+		var env string
+		if err := config["env"].As(&env); err != nil {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  err.Error(),
+			})
+		}
+	}
+	if !config["block"].IsNull() {
+		var block string
+		if err := config["block"].As(&block); err != nil {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  err.Error(),
+			})
+		}
+	}
+
+	if len(diags) > 0 {
+		return diags, nil
+	}
 	return nil, nil
 }
 
 func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	var (
-		stack string
-		env   string
-		block string
-	)
+	stack := d.p.PlanConfig.Stack
+	env := d.p.PlanConfig.Env
+	block := d.p.PlanConfig.Block
 
-	if config["stack"].IsNull() {
-		stack = os.Getenv("NULLSTONE_STACK")
-	} else if err := config["stack"].As(&stack); err != nil {
-		return nil, nil, err
+	// We have already validated these conversions, let's load up the values
+	if !config["stack"].IsNull() {
+		config["stack"].As(&stack)
 	}
-
-	if config["env"].IsNull() {
-		env = os.Getenv("NULLSTONE_ENV")
-	} else if err := config["env"].As(&env); err != nil {
-		return nil, nil, err
+	if !config["env"].IsNull() {
+		config["env"].As(&env)
 	}
-
-	if config["block"].IsNull() {
-		block = os.Getenv("NULLSTONE_BLOCK")
-	} else if err := config["block"].As(&block); err != nil {
-		return nil, nil, err
+	if !config["block"].IsNull() {
+		config["block"].As(&block)
 	}
 
 	tags := map[string]tftypes.Value{

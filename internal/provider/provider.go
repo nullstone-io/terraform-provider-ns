@@ -2,14 +2,12 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"os"
-
 	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"os"
 )
 
 func New(version string, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
@@ -30,9 +28,9 @@ func New(version string, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServ
 var _ server.Provider = (*provider)(nil)
 
 type provider struct {
-	TfeConfig *tfe.Config
-	TfeClient *tfe.Client
-	OrgName   string
+	TfeConfig  *tfe.Config
+	TfeClient  *tfe.Client
+	PlanConfig PlanConfig
 }
 
 func (p *provider) Schema(ctx context.Context) *tfprotov5.Schema {
@@ -52,11 +50,14 @@ func (p *provider) Schema(ctx context.Context) *tfprotov5.Schema {
 }
 
 func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value) (diags []*tfprotov5.Diagnostic, err error) {
-	if _, err := p.getOrg(config); err != nil {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  err.Error(),
-		})
+	if !config["organization"].IsNull() {
+		var orgName string
+		if err := config["organization"].As(&orgName); err != nil {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "organization must be a string",
+			})
+		}
 	}
 	if p.TfeConfig.Token == "" {
 		diags = append(diags, &tfprotov5.Diagnostic{
@@ -73,8 +74,21 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 }
 
 func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Value) (diags []*tfprotov5.Diagnostic, err error) {
-	if p.OrgName, err = p.getOrg(config); err != nil {
-		return nil, err
+	if planConfig, err := PlanConfigFromFile(".nullstone.json"); err == nil || os.IsNotExist(err) {
+		p.PlanConfig = planConfig
+	} else {
+		return []*tfprotov5.Diagnostic{
+			{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Error loading .nullstone.json plan config",
+				Detail:   err.Error(),
+			},
+		}, nil
+	}
+
+	if !config["organization"].IsNull() {
+		// This is already checked in Validate, just cast it
+		config["organization"].As(&p.PlanConfig.Org)
 	}
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)
@@ -83,16 +97,4 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	}
 
 	return nil, nil
-}
-
-func (p *provider) getOrg(config map[string]tftypes.Value) (string, error) {
-	var orgName string
-	if err := config["organization"].As(&orgName); err != nil {
-		return "", fmt.Errorf("organization must be a string")
-	} else if orgName == "" {
-		if orgName = os.Getenv("NULLSTONE_ORG"); orgName == "" {
-			return "", fmt.Errorf("ns provider organization is required")
-		}
-	}
-	return orgName, nil
 }

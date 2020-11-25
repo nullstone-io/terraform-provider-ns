@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -105,7 +104,7 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 		})
 	}
 
-	workspace := os.Getenv(fmt.Sprintf("NULLSTONE_CONNECTION_%s", name))
+	workspace := d.p.PlanConfig.GetConnection(name)
 	if workspace == "" && !optional {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -141,9 +140,8 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		return nil, nil, err
 	}
 
-	workspace := os.Getenv(fmt.Sprintf("NULLSTONE_CONNECTION_%s", name))
-
 	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
+	workspace := d.p.PlanConfig.GetConnection(name)
 	if workspace != "" {
 		stateFile, err := d.getStateFile(workspace)
 		if err != nil {
@@ -168,7 +166,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 }
 
 func (d *dataConnection) getStateFile(workspaceName string) (*ns.StateFile, error) {
-	tfeClient, orgName := d.p.TfeClient, d.p.OrgName
+	tfeClient, orgName := d.p.TfeClient, d.p.PlanConfig.Org
 
 	workspace, err := tfeClient.Workspaces.Read(context.Background(), orgName, workspaceName)
 	if err != nil {
