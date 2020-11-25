@@ -60,7 +60,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 	}
 
 	if len(diags) > 0 {
-		return  diags, nil
+		return diags, nil
 	}
 
 	return nil, nil
