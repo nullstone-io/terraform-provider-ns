@@ -1,0 +1,9 @@
+{
+  "org": "nullstone",
+  "stack": "demo",
+  "env": "dev",
+  "block": "fargate0",
+  "connections": {
+    "network": "network0"
+  }
+}
