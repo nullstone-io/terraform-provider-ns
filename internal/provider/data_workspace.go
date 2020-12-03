@@ -109,19 +109,17 @@ func (d *dataWorkspace) Validate(ctx context.Context, config map[string]tftypes.
 }
 
 func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	stack := d.p.PlanConfig.Stack
-	env := d.p.PlanConfig.Env
-	block := d.p.PlanConfig.Block
-
-	// We have already validated these conversions, let's load up the values
-	if !config["stack"].IsNull() {
-		config["stack"].As(&stack)
+	stack := stringFromConfig(config, "stack")
+	if stack == "" {
+		stack = d.p.PlanConfig.Stack
 	}
-	if !config["env"].IsNull() {
-		config["env"].As(&env)
+	env := stringFromConfig(config, "env")
+	if env == "" {
+		env = d.p.PlanConfig.Env
 	}
-	if !config["block"].IsNull() {
-		config["block"].As(&block)
+	block := stringFromConfig(config, "block")
+	if block == "" {
+		block = d.p.PlanConfig.Block
 	}
 
 	tags := map[string]tftypes.Value{

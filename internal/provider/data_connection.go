@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
@@ -120,37 +121,24 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 }
 
 func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	var (
-		name     string
-		type_    string
-		optional bool
-		via      string
-	)
-
-	if err := config["name"].As(&name); err != nil {
-		return nil, nil, err
-	}
-	if err := config["type"].As(&type_); err != nil {
-		return nil, nil, err
-	}
-	if err := config["optional"].As(&optional); err != nil {
-		return nil, nil, err
-	}
-	if err := config["via"].As(&via); err != nil {
-		return nil, nil, err
-	}
+	name := stringFromConfig(config, "name")
+	type_ := stringFromConfig(config, "type")
+	optional := boolFromConfig(config, "optional")
+	via := stringFromConfig(config, "via")
 
 	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
 	workspace := d.p.PlanConfig.GetConnection(name)
 	if workspace != "" {
 		stateFile, err := d.getStateFile(workspace)
 		if err != nil {
-			return nil, nil, fmt.Errorf("error retrieving workspace state file: %w", err)
-		}
-
-		outputsValue, err = stateFile.Outputs.ToProtov5()
-		if err != nil {
-			return nil, nil, err
+			if err != tfe.ErrResourceNotFound {
+				return nil, nil, fmt.Errorf("error retrieving workspace state file: %w", err)
+			}
+		} else {
+			outputsValue, err = stateFile.Outputs.ToProtov5()
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 	}
 

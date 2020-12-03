@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+
 	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
@@ -80,8 +81,6 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 }
 
 func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Value) (diags []*tfprotov5.Diagnostic, err error) {
-
-
 	if !config["organization"].IsNull() {
 		// This is already checked in Validate, just cast it
 		config["organization"].As(&p.PlanConfig.Org)
