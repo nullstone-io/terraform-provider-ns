@@ -13,6 +13,6 @@ func NewTfeConfig() *tfe.Config {
 	if cfg.Address == "" {
 		cfg.Address = DefaultAddress
 	}
-	cfg.BasePath = "/state/terraform/v2/"
+	cfg.BasePath = "/terraform/v2/"
 	return cfg
 }
