@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
@@ -126,18 +125,27 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	optional := boolFromConfig(config, "optional")
 	via := stringFromConfig(config, "via")
 
+	diags := make([]*tfprotov5.Diagnostic, 0)
+
 	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
 	workspace := d.p.PlanConfig.GetConnection(name)
 	if workspace != "" {
 		stateFile, err := d.getStateFile(workspace)
 		if err != nil {
-			if err != tfe.ErrResourceNotFound {
-				return nil, nil, fmt.Errorf("error retrieving workspace state file: %w", err)
-			}
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity:  tfprotov5.DiagnosticSeverityWarning,
+				Summary:   fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
+				Detail:    err.Error(),
+			})
 		} else {
-			outputsValue, err = stateFile.Outputs.ToProtov5()
-			if err != nil {
-				return nil, nil, err
+			if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
+				diags = append(diags, &tfprotov5.Diagnostic{
+					Severity:  tfprotov5.DiagnosticSeverityWarning,
+					Summary:   fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+					Detail:    err.Error(),
+				})
+			} else {
+				outputsValue = ov
 			}
 		}
 	}
