@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"log"
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -90,6 +91,8 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("[DEBUG] Configured TFE client (Address=%s, BasePath=%s)\n", p.TfeConfig.Address, p.TfeConfig.BasePath)
 
 	return nil, nil
 }
