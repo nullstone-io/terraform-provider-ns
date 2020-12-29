@@ -17,15 +17,14 @@ type PlanConfig struct {
 }
 
 func (c PlanConfig) GetConnectionWorkspace(name string) string {
+	connValue := os.Getenv(fmt.Sprintf(`NULLSTONE_CONNECTION_%s`, name))
 	if value, ok := c.Connections[name]; ok {
-		return c.FullyQualifiedConnection(value)
-	} else {
-		value := os.Getenv(fmt.Sprintf(`NULLSTONE_CONNECTION_%s`, name))
-		if value == "" {
-			return ""
-		}
-		return c.FullyQualifiedConnection(value)
+		connValue = value
 	}
+	if connValue == "" {
+		return ""
+	}
+	return c.FullyQualifiedConnection(connValue)
 }
 
 func (c PlanConfig) FullyQualifiedConnection(name string) string {

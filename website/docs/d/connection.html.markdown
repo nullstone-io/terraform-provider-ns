@@ -49,7 +49,7 @@ data "ns_connection" "network" {
   Utilizes environment variable `NULLSTONE_CONNECTION_{name}` to resolve.
   This value can be one of the following formats:
     * `{stack}.{env}.{block}`
-    * `{env}.{block}`
-    * `{block}`
+    * `{env}.{block}` - (`stack` is pulled from the current workspace)
+    * `{block}` - (`stack` and `env` are pulled from the current workspace)
 * `via` - Name of workspace to satisfy this connection through. Typically, this is set to `data.ns_connection.other.workspace`.
 - `outputs` - An object containing every root-level output in the remote state. This attribute is interchangeable for `data.terraform_remote_state.outputs`.
