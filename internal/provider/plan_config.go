@@ -21,6 +21,9 @@ func (c PlanConfig) GetConnectionWorkspace(name string) string {
 		return c.FullyQualifiedConnection(value)
 	} else {
 		value := os.Getenv(fmt.Sprintf(`NULLSTONE_CONNECTION_%s`, name))
+		if value == "" {
+			return ""
+		}
 		return c.FullyQualifiedConnection(value)
 	}
 }

@@ -86,7 +86,11 @@ data "ns_connection" "service" {
 			resource.TestCheckResourceAttr("data.ns_connection.service", `outputs.test3.key3`, "value3"),
 		)
 
-		os.Setenv("NULLSTONE_CONNECTION_service", "stack0-env0-lycan")
+		os.Setenv("NULLSTONE_ORG", "")
+		os.Setenv("NULLSTONE_STACK", "stack0")
+		os.Setenv("NULLSTONE_ENV", "env0")
+		os.Setenv("NULLSTONE_BLOCK", "faceless")
+		os.Setenv("NULLSTONE_CONNECTION_service", "lycan")
 
 		getTfeConfig, closeFn := mockTfe(mockServerWithLycan())
 		defer closeFn()
