@@ -86,7 +86,10 @@ data "ns_connection" "service" {
 			resource.TestCheckResourceAttr("data.ns_connection.service", `outputs.test3.key3`, "value3"),
 		)
 
-		os.Setenv("NULLSTONE_CONNECTION_service", "stack0-env0-lycan")
+		os.Setenv("NULLSTONE_STACK", "stack0")
+		os.Setenv("NULLSTONE_ENV", "env0")
+		os.Setenv("NULLSTONE_BLOCK", "faceless")
+		os.Setenv("NULLSTONE_CONNECTION_service", "lycan")
 
 		getTfeConfig, closeFn := mockTfe(mockServerWithLycan())
 		defer closeFn()
@@ -132,7 +135,7 @@ func mockServerWithLycan() http.Handler {
       "name": "stack0-env0-lycan",
       "serial": 1,
       "lineage": "64aef234-2ff9-9d8e-25ae-22fb30b62860",
-      "hosted-state-download-url": "/state/terraform/v2/state-versions/53516a9e-ffd7-4834-8234-63fd070d064f/download"
+      "hosted-state-download-url": "/terraform/v2/state-versions/53516a9e-ffd7-4834-8234-63fd070d064f/download"
     },
     "relationships": {}
   }
@@ -179,7 +182,7 @@ func mockTfeStatePull(workspaces map[string]json.RawMessage, currentStateVersion
 	router := mux.NewRouter()
 	router.
 		Methods(http.MethodGet).
-		Path("/state/terraform/v2/organizations/{orgName}/workspaces/{workspaceName}").
+		Path("/terraform/v2/organizations/{orgName}/workspaces/{workspaceName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
 			_, workspaceName := vars["orgName"], vars["workspaceName"]
@@ -191,7 +194,7 @@ func mockTfeStatePull(workspaces map[string]json.RawMessage, currentStateVersion
 		})
 	router.
 		Methods(http.MethodGet).
-		Path("/state/terraform/v2/workspaces/{workspaceId}/current-state-version").
+		Path("/terraform/v2/workspaces/{workspaceId}/current-state-version").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			workspaceId := mux.Vars(r)["workspaceId"]
 			if msg, ok := currentStateVersions[workspaceId]; ok {
@@ -202,7 +205,7 @@ func mockTfeStatePull(workspaces map[string]json.RawMessage, currentStateVersion
 		})
 	router.
 		Methods(http.MethodGet).
-		Path("/state/terraform/v2/state-versions/{stateVersionId}/download").
+		Path("/terraform/v2/state-versions/{stateVersionId}/download").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			stateVersionId := mux.Vars(r)["stateVersionId"]
 			if msg, ok := stateFiles[stateVersionId]; ok {

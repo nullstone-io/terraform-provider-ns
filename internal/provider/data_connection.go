@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"regexp"
 
-	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
@@ -105,7 +105,7 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 		})
 	}
 
-	workspace := d.p.PlanConfig.GetConnection(name)
+	workspace := d.p.PlanConfig.GetConnectionWorkspace(name)
 	if workspace == "" && !optional {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -126,18 +126,27 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	optional := boolFromConfig(config, "optional")
 	via := stringFromConfig(config, "via")
 
+	diags := make([]*tfprotov5.Diagnostic, 0)
+
 	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
-	workspace := d.p.PlanConfig.GetConnection(name)
+	workspace := d.p.PlanConfig.GetConnectionWorkspace(name)
 	if workspace != "" {
 		stateFile, err := d.getStateFile(workspace)
 		if err != nil {
-			if err != tfe.ErrResourceNotFound {
-				return nil, nil, fmt.Errorf("error retrieving workspace state file: %w", err)
-			}
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity:  tfprotov5.DiagnosticSeverityWarning,
+				Summary:   fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
+				Detail:    err.Error(),
+			})
 		} else {
-			outputsValue, err = stateFile.Outputs.ToProtov5()
-			if err != nil {
-				return nil, nil, err
+			if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
+				diags = append(diags, &tfprotov5.Diagnostic{
+					Severity:  tfprotov5.DiagnosticSeverityWarning,
+					Summary:   fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+					Detail:    err.Error(),
+				})
+			} else {
+				outputsValue = ov
 			}
 		}
 	}
@@ -150,30 +159,33 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		"optional":  tftypes.NewValue(tftypes.Bool, optional),
 		"via":       tftypes.NewValue(tftypes.String, via),
 		"outputs":   outputsValue,
-	}, nil, nil
+	}, diags, nil
 }
 
 func (d *dataConnection) getStateFile(workspaceName string) (*ns.StateFile, error) {
 	tfeClient, orgName := d.p.TfeClient, d.p.PlanConfig.Org
+	log.Printf("[DEBUG] Retrieving state file (org=%s, workspace=%s)\n", orgName, workspaceName)
 
 	workspace, err := tfeClient.Workspaces.Read(context.Background(), orgName, workspaceName)
 	if err != nil {
-		return nil, fmt.Errorf(`error reading workspace "%s/%s": %w`, orgName, workspaceName, err)
+		return nil, fmt.Errorf(`error reading workspace (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}
 
 	sv, err := tfeClient.StateVersions.Current(context.Background(), workspace.ID)
 	if err != nil {
-		return nil, fmt.Errorf(`error reading current state version (workspace=%s/%s): %w`, orgName, workspaceName, err)
+		return nil, fmt.Errorf(`error reading current state version (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}
 
 	state, err := tfeClient.StateVersions.Download(context.Background(), sv.DownloadURL)
 	if err != nil {
-		return nil, fmt.Errorf(`error downloading state file (workspace=%s/%s): %w`, orgName, workspaceName, err)
+		return nil, fmt.Errorf(`error downloading state file (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}
+
+	log.Printf("[DEBUG] Retrieved state file (org=%s, workspace=%s): size=%d\n", orgName, workspaceName, len(state))
 
 	var stateFile ns.StateFile
 	if err := json.Unmarshal(state, &stateFile); err != nil {
-		return nil, fmt.Errorf(`error parsing state file (workspace=%s/%s): %w`, orgName, workspaceName, err)
+		return nil, fmt.Errorf(`error parsing state file (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}
 	return &stateFile, nil
 }

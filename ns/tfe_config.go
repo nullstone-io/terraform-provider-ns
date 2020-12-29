@@ -1,6 +1,8 @@
 package ns
 
 import (
+	"os"
+	
 	"github.com/hashicorp/go-tfe"
 )
 
@@ -10,9 +12,10 @@ var (
 
 func NewTfeConfig() *tfe.Config {
 	cfg := tfe.DefaultConfig()
-	if cfg.Address == "" {
-		cfg.Address = DefaultAddress
+	cfg.Address = DefaultAddress
+	if val := os.Getenv("TFE_ADDRESS"); val != "" {
+		cfg.Address = val
 	}
-	cfg.BasePath = "/state/terraform/v2/"
+	cfg.BasePath = "/terraform/v2/"
 	return cfg
 }
