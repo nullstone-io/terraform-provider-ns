@@ -170,12 +170,14 @@ func (d *dataConnection) getStateFile(workspaceName string) (*ns.StateFile, erro
 	if err != nil {
 		return nil, fmt.Errorf(`error reading workspace (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}
+	log.Printf("[DEBUG] Found workspace (org=%s, workspace=%s), workspace id=%s", orgName, workspaceName, workspace.ID)
 
 	sv, err := tfeClient.StateVersions.Current(context.Background(), workspace.ID)
 	if err != nil {
 		return nil, fmt.Errorf(`error reading current state version (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}
 
+	log.Printf("[DEBUG] Downloading state file (org=%s, workspace=%s) from %s", orgName, workspaceName, sv.DownloadURL)
 	state, err := tfeClient.StateVersions.Download(context.Background(), sv.DownloadURL)
 	if err != nil {
 		return nil, fmt.Errorf(`error downloading state file (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
