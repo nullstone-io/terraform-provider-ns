@@ -2,17 +2,17 @@ package ns
 
 import (
 	"os"
-	
+
 	"github.com/hashicorp/go-tfe"
 )
 
 var (
-	DefaultAddress = "https://api.nullstone.io"
+	DefaultTfeAddress = "https://api.nullstone.io"
 )
 
 func NewTfeConfig() *tfe.Config {
 	cfg := tfe.DefaultConfig()
-	cfg.Address = DefaultAddress
+	cfg.Address = DefaultTfeAddress
 	if val := os.Getenv("TFE_ADDRESS"); val != "" {
 		cfg.Address = val
 	}
