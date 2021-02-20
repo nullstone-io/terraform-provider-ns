@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/nullstone-io/terraform-provider-ns/ns"
 )
 
 type dataWorkspace struct {
@@ -27,6 +28,13 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Attributes: []*tfprotov5.SchemaAttribute{
 				deprecatedIDAttribute(),
+				{
+					Name:            "workspace_id",
+					Computed:        true,
+					Description:     "The fully qualified workspace ID. This follows the form `<stack>/<env>/<block>`.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+					Type:            tftypes.String,
+				},
 				{
 					Name:            "stack",
 					Type:            tftypes.String,
@@ -109,17 +117,23 @@ func (d *dataWorkspace) Validate(ctx context.Context, config map[string]tftypes.
 }
 
 func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
+	envCurWorkspace := ns.WorkspaceLocationFromEnv()
 	stack := stringFromConfig(config, "stack")
 	if stack == "" {
-		stack = d.p.PlanConfig.Stack
+		stack = envCurWorkspace.Stack
 	}
 	env := stringFromConfig(config, "env")
 	if env == "" {
-		env = d.p.PlanConfig.Env
+		env = envCurWorkspace.Env
 	}
 	block := stringFromConfig(config, "block")
 	if block == "" {
-		block = d.p.PlanConfig.Block
+		block = envCurWorkspace.Block
+	}
+	destWorkspace := &ns.WorkspaceLocation{
+		Stack: stack,
+		Env:   env,
+		Block: block,
 	}
 
 	tags := map[string]tftypes.Value{
@@ -131,7 +145,8 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	slashed := fmt.Sprintf("%s/%s/%s", stack, env, block)
 
 	return map[string]tftypes.Value{
-		"id":              tftypes.NewValue(tftypes.String, hyphenated),
+		"id":              tftypes.NewValue(tftypes.String, slashed),
+		"workspace_id":    tftypes.NewValue(tftypes.String, destWorkspace.Id()),
 		"stack":           tftypes.NewValue(tftypes.String, stack),
 		"env":             tftypes.NewValue(tftypes.String, env),
 		"block":           tftypes.NewValue(tftypes.String, block),
