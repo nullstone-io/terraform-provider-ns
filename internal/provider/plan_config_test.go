@@ -13,7 +13,7 @@ func TestPlanConfigFromFile(t *testing.T) {
 	got, err := PlanConfigFromFile(filepath.Join("test-fixtures", ".nullstone.json"))
 	require.NoError(t, err, "unexpected error")
 	want := PlanConfig{
-		Org:   "nullstone",
+		Org: "nullstone",
 		WorkspaceLocation: ns.WorkspaceLocation{
 			Stack: "demo",
 			Env:   "dev",

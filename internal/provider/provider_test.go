@@ -16,6 +16,21 @@ func protoV5ProviderFactories(getNsConfig func() ns.Config, getTfeConfig func() 
 	}
 }
 
+func mockNs(handler http.Handler) (func() ns.Config, func()) {
+	cfg := ns.NewConfig()
+	cfg.ApiKey = "abcdefgh012345789"
+	fn := func() ns.Config {
+		return cfg
+	}
+	if handler == nil {
+		return fn, func() {}
+	}
+
+	server := httptest.NewServer(handler)
+	cfg.BaseAddress = server.URL
+	return fn, server.Close
+}
+
 func mockTfe(handler http.Handler) (func() *tfe.Config, func()) {
 	cfg := ns.NewTfeConfig()
 	cfg.Token = "abcdefgh012345789"

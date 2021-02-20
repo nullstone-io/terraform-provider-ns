@@ -124,7 +124,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf(`Unable to find nullstone workspace %q.`, workspace),
+			Summary:  "Unable to find nullstone workspace.",
 			Detail:   err.Error(),
 		})
 	} else if workspace != nil {
@@ -183,7 +183,7 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.Wo
 		viaWorkspace := ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, viaWorkspaceConn.Target)
 		viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, *viaWorkspace)
 		if err != nil {
-			return nil, fmt.Errorf("error retrieving connections for `via` workspace (%s=%q)", via, viaWorkspaceConn.Target)
+			return nil, fmt.Errorf("error retrieving connections for `via` workspace (via=%s, workspace=%s): %w", via, viaWorkspace.Id(), err)
 		}
 		runConfig = viaRunConfig
 	}

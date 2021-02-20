@@ -29,10 +29,11 @@ data "ns_workspace" "this" {
   block = "block0"
 }
 `)
+		getNsConfig, _ := mockNs(nil)
 		getTfeConfig, _ := mockTfe(nil)
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
 			Steps: []resource.TestStep{
 				{
 					Config: config,
@@ -49,6 +50,7 @@ provider "ns" {
 }
 data "ns_workspace" "this" {}
 `)
+		getNsConfig, _ := mockNs(nil)
 		getTfeConfig, _ := mockTfe(nil)
 
 		os.Setenv("NULLSTONE_STACK", "stack0")
@@ -56,7 +58,7 @@ data "ns_workspace" "this" {}
 		os.Setenv("NULLSTONE_BLOCK", "block0")
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
 			Steps: []resource.TestStep{
 				{
 					Config: config,

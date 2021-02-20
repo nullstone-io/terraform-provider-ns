@@ -26,11 +26,11 @@ type Workspace struct {
 }
 
 type RunConfig struct {
-	WorkspaceUid  uuid.UUID   `json:"workspaceUid"`
-	Source        string      `json:"source"`
-	SourceVersion string      `json:"sourceVersion"`
+	WorkspaceUid  uuid.UUID `json:"workspaceUid"`
+	Source        string    `json:"source"`
+	SourceVersion string    `json:"sourceVersion"`
 	//Variables     Variables   `json:"variables"`
-	Connections   Connections `json:"connections"`
+	Connections Connections `json:"connections"`
 	//Providers     Providers   `json:"providers"`
 }
 
