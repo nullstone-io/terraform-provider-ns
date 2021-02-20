@@ -57,7 +57,7 @@ func (*dataConnection) Schema(ctx context.Context) *tfprotov5.Schema {
 					Type:     tftypes.String,
 					Optional: true,
 					Description: `Defines this connection is satisfied through another ns_connection.
-Typically, this is set to data.ns_connection.other.workspace_id`,
+Typically, this is set to data.ns_connection.other.name`,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
