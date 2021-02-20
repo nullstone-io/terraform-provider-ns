@@ -52,5 +52,5 @@ type apiKeyTransport struct {
 
 func (t *apiKeyTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	r.Header.Set("Authorization", "Bearer "+t.ApiKey)
-	return t.RoundTrip(r)
+	return t.BaseTransport.RoundTrip(r)
 }
