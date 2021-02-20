@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 )
 
-func protoV5ProviderFactories(getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
+func protoV5ProviderFactories(getNsConfig func() ns.Config, getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){
 		"ns": func() (tfprotov5.ProviderServer, error) {
-			return New("acctest", getTfeConfig), nil
+			return New("acctest", getNsConfig, getTfeConfig), nil
 		},
 	}
 }

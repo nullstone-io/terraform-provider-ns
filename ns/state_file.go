@@ -1,6 +1,8 @@
 package ns
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/go-tfe"
 	"log"
@@ -14,7 +16,9 @@ type StateFile struct {
 	Outputs          Outputs `json:"outputs"`
 }
 
-func GetStateFile(tfeClient *tfe.Client, orgName string, workspace *WorkspaceLocation) (*StateFile, error) {
+func GetStateFile(tfeClient *tfe.Client, orgName string, workspaceLoc *WorkspaceLocation) (*StateFile, error) {
+	workspaceName := fmt.Sprintf("%s-%s-%s", workspaceLoc.Stack, workspaceLoc.Env, workspaceLoc.Block)
+
 	log.Printf("[DEBUG] Retrieving state file (org=%s, workspace=%s)\n", orgName, workspaceName)
 
 	workspace, err := tfeClient.Workspaces.Read(context.Background(), orgName, workspaceName)
@@ -36,7 +40,7 @@ func GetStateFile(tfeClient *tfe.Client, orgName string, workspace *WorkspaceLoc
 
 	log.Printf("[DEBUG] Retrieved state file (org=%s, workspace=%s): size=%d\n", orgName, workspaceName, len(state))
 
-	var stateFile ns.StateFile
+	var stateFile StateFile
 	if err := json.Unmarshal(state, &stateFile); err != nil {
 		return nil, fmt.Errorf(`error parsing state file (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}

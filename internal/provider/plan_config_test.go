@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -13,11 +14,10 @@ func TestPlanConfigFromFile(t *testing.T) {
 	require.NoError(t, err, "unexpected error")
 	want := PlanConfig{
 		Org:   "nullstone",
-		Stack: "demo",
-		Env:   "dev",
-		Block: "fargate0",
-		Connections: map[string]string{
-			"network": "network0",
+		WorkspaceLocation: ns.WorkspaceLocation{
+			Stack: "demo",
+			Env:   "dev",
+			Block: "fargate0",
 		},
 	}
 	assert.Equal(t, want, got)
