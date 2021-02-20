@@ -2,9 +2,7 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -55,18 +53,18 @@ func (*dataConnection) Schema(ctx context.Context) *tfprotov5.Schema {
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
-					Name:            "workspace",
-					Type:            tftypes.String,
-					Computed:        true,
-					Description:     "The name of the connected workspace.",
-					DescriptionKind: tfprotov5.StringKindMarkdown,
-				},
-				{
 					Name:     "via",
 					Type:     tftypes.String,
 					Optional: true,
 					Description: `Defines this connection is satisfied through another ns_connection.
-Typically, this is set to data.ns_connection.other.workspace.`,
+Typically, this is set to data.ns_connection.other.workspace_id`,
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
+				{
+					Name:            "workspace_id",
+					Type:            tftypes.String,
+					Computed:        true,
+					Description:     "The ID of the destination workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
@@ -105,14 +103,6 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 		})
 	}
 
-	workspace := d.p.PlanConfig.GetConnectionWorkspace(name)
-	if workspace == "" && !optional {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("The connection %q is missing. It is required to use this plan.", name),
-		})
-	}
-
 	if len(diags) > 0 {
 		return diags, nil
 	}
@@ -125,69 +115,85 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	type_ := stringFromConfig(config, "type")
 	optional := boolFromConfig(config, "optional")
 	via := stringFromConfig(config, "via")
+	workspaceId := ""
 
 	diags := make([]*tfprotov5.Diagnostic, 0)
-
 	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
-	workspace := d.p.PlanConfig.GetConnectionWorkspace(name)
-	if workspace != "" {
-		stateFile, err := d.getStateFile(workspace)
+
+	workspace, err := d.getConnectionWorkspace(name, type_, via)
+	if err != nil {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf(`Unable to find nullstone workspace %q.`, workspace),
+			Detail:   err.Error(),
+		})
+	} else if workspace != nil {
+		workspaceId = workspace.Id()
+		stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.Org, workspace)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
-				Severity:  tfprotov5.DiagnosticSeverityWarning,
-				Summary:   fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
-				Detail:    err.Error(),
+				Severity: tfprotov5.DiagnosticSeverityWarning,
+				Summary:  fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
+				Detail:   err.Error(),
 			})
 		} else {
 			if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
 				diags = append(diags, &tfprotov5.Diagnostic{
-					Severity:  tfprotov5.DiagnosticSeverityWarning,
-					Summary:   fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
-					Detail:    err.Error(),
+					Severity: tfprotov5.DiagnosticSeverityWarning,
+					Summary:  fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+					Detail:   err.Error(),
 				})
 			} else {
 				outputsValue = ov
 			}
 		}
+	} else if !optional {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("The connection %q is missing. It is required to use this plan.", name),
+		})
 	}
 
 	return map[string]tftypes.Value{
-		"id":        tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspace)),
-		"name":      tftypes.NewValue(tftypes.String, name),
-		"type":      tftypes.NewValue(tftypes.String, type_),
-		"workspace": tftypes.NewValue(tftypes.String, workspace),
-		"optional":  tftypes.NewValue(tftypes.Bool, optional),
-		"via":       tftypes.NewValue(tftypes.String, via),
-		"outputs":   outputsValue,
+		"id":           tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspace)),
+		"name":         tftypes.NewValue(tftypes.String, name),
+		"type":         tftypes.NewValue(tftypes.String, type_),
+		"workspace_id": tftypes.NewValue(tftypes.String, workspaceId),
+		"optional":     tftypes.NewValue(tftypes.Bool, optional),
+		"via":          tftypes.NewValue(tftypes.String, via),
+		"outputs":      outputsValue,
 	}, diags, nil
 }
 
-func (d *dataConnection) getStateFile(workspaceName string) (*ns.StateFile, error) {
-	tfeClient, orgName := d.p.TfeClient, d.p.PlanConfig.Org
-	log.Printf("[DEBUG] Retrieving state file (org=%s, workspace=%s)\n", orgName, workspaceName)
+func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.WorkspaceLocation, error) {
+	sourceWorkspace := ns.WorkspaceLocationFromEnv()
 
-	workspace, err := tfeClient.Workspaces.Read(context.Background(), orgName, workspaceName)
+	runConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, sourceWorkspace)
 	if err != nil {
-		return nil, fmt.Errorf(`error reading workspace (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
-	}
-	log.Printf("[DEBUG] Found workspace (org=%s, workspace=%s), workspace id=%s", orgName, workspaceName, workspace.ID)
-
-	sv, err := tfeClient.StateVersions.Current(context.Background(), workspace.ID)
-	if err != nil {
-		return nil, fmt.Errorf(`error reading current state version (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
+		return nil, err
 	}
 
-	log.Printf("[DEBUG] Downloading state file (org=%s, workspace=%s) from %s", orgName, workspaceName, sv.DownloadURL)
-	state, err := tfeClient.StateVersions.Download(context.Background(), sv.DownloadURL)
-	if err != nil {
-		return nil, fmt.Errorf(`error downloading state file (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
+	// If this data_connection has `via` specified, then we need to
+	//   get the connections for *that* workspace instead of the current workspace
+	if via != "" {
+		viaWorkspaceConn, ok := runConfig.Connections[via]
+		if !ok {
+			return nil, nil
+		}
+		viaWorkspace := ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, viaWorkspaceConn.Target)
+		viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, *viaWorkspace)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving connections for `via` workspace (%s=%q)", via, viaWorkspaceConn.Target)
+		}
+		runConfig = viaRunConfig
 	}
 
-	log.Printf("[DEBUG] Retrieved state file (org=%s, workspace=%s): size=%d\n", orgName, workspaceName, len(state))
-
-	var stateFile ns.StateFile
-	if err := json.Unmarshal(state, &stateFile); err != nil {
-		return nil, fmt.Errorf(`error parsing state file (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
+	conn, ok := runConfig.Connections[name]
+	if !ok {
+		return nil, nil
 	}
-	return &stateFile, nil
+	if conn.Type != type_ {
+		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
+	}
+	return ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, conn.Target), nil
 }
