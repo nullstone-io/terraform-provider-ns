@@ -10,5 +10,6 @@ require (
 	github.com/hashicorp/go-tfe v0.11.1
 	github.com/hashicorp/terraform-plugin-go v0.2.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.3.0
+	github.com/nullstone-io/module v0.2.3
 	github.com/stretchr/testify v1.5.1
 )
