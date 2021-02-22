@@ -16,8 +16,9 @@ This data source is affected by Plan Config. See [the main provider documentatio
 
 ## Example Usage
 
+#### Basic example
+
 ```hcl
-# Simple example
 data "ns_connection" "network" {
   name = "network"
   type = "network/aws"
@@ -25,8 +26,10 @@ data "ns_connection" "network" {
 ```
 
 
+#### Example using `via`
+
 ```hcl
-# Example using `via`
+# top-level configuration
 data "ns_connection" "cluster" {
   name = "cluster"
   type = "cluster/aws-fargate"
@@ -35,7 +38,15 @@ data "ns_connection" "cluster" {
 data "ns_connection" "network" {
   name = "network"
   type = "network/aws"
-  via  = data.ns_connection.cluster.workspace
+  via  = data.ns_connection.cluster.name
+}
+```
+
+```hcl
+# cluster configuration
+data "ns_connection" "network" {
+  name = "network"
+  type = "network/aws"
 }
 ```
 
@@ -44,12 +55,6 @@ data "ns_connection" "network" {
 * `name` - Name of nullstone connection.
 * `type` - Type of nullstone module to make connection.
 * `optional` - By default, if this connection has not been configured, this causes an error. Set to true to disable. (Default: `false`)
-* `workspace` - This refers to the exact workspace used for state files in nullstone.
-  This value will always be of the form `{stack}-{env}-{block}`.
-  Utilizes environment variable `NULLSTONE_CONNECTION_{name}` to resolve.
-  This value can be one of the following formats:
-    * `{stack}.{env}.{block}`
-    * `{env}.{block}` - (`stack` is pulled from the current workspace)
-    * `{block}` - (`stack` and `env` are pulled from the current workspace)
-* `via` - Name of workspace to satisfy this connection through. Typically, this is set to `data.ns_connection.other.workspace`.
+* `via` - Name of connection to satisfy this connection through. Typically, this is set to `data.ns_connection.other.name`.
+* `workspace_id` - This refers to the workspace in nullstone. This follows the form `{stack}/{env}/{block}`.
 - `outputs` - An object containing every root-level output in the remote state. This attribute is interchangeable for `data.terraform_remote_state.outputs`.

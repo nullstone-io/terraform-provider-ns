@@ -8,12 +8,27 @@ import (
 	"net/http/httptest"
 )
 
-func protoV5ProviderFactories(getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
+func protoV5ProviderFactories(getNsConfig func() ns.Config, getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){
 		"ns": func() (tfprotov5.ProviderServer, error) {
-			return New("acctest", getTfeConfig), nil
+			return New("acctest", getNsConfig, getTfeConfig), nil
 		},
 	}
+}
+
+func mockNs(handler http.Handler) (func() ns.Config, func()) {
+	cfg := ns.NewConfig()
+	cfg.ApiKey = "abcdefgh012345789"
+	fn := func() ns.Config {
+		return cfg
+	}
+	if handler == nil {
+		return fn, func() {}
+	}
+
+	server := httptest.NewServer(handler)
+	cfg.BaseAddress = server.URL
+	return fn, server.Close
 }
 
 func mockTfe(handler http.Handler) (func() *tfe.Config, func()) {

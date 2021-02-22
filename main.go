@@ -15,7 +15,7 @@ var (
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
 		GRPCProviderFunc: func() tfprotov5.ProviderServer {
-			return provider.New(version, nil)
+			return provider.New(version, nil, nil)
 		},
 	})
 }
