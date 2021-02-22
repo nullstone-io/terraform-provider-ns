@@ -21,6 +21,7 @@ data "ns_workspace" "this" {
 
 ## Attributes Reference
 
+* `workspace_id` - The fully qualified workspace ID. This follows the form `{stack}/{env}/{block}`.
 * `stack` - Workspace stack name. (Environment variable: `NULLSTONE_STACK`)
 * `env` - Workspace env name. (Environment variable: `NULLSTONE_ENV`)
 * `block` - Workspace block name. (Environment variable: `NULLSTONE_BLOCK`)

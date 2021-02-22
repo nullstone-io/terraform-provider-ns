@@ -64,7 +64,7 @@ Typically, this is set to data.ns_connection.other.name`,
 					Name:            "workspace_id",
 					Type:            tftypes.String,
 					Computed:        true,
-					Description:     "The ID of the destination workspace.",
+					Description:     "This refers to the workspace in nullstone. This follows the form `{stack}/{env}/{block}`.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
