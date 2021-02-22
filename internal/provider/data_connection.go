@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -168,6 +169,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.WorkspaceLocation, error) {
 	sourceWorkspace := d.p.PlanConfig.WorkspaceLocation
 
+	log.Printf("(getConnectionWorkspace) Pulling connections for @ %s", sourceWorkspace.Id())
 	runConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, sourceWorkspace)
 	if err != nil {
 		return nil, err
@@ -177,23 +179,29 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.Wo
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
 		viaWorkspaceConn, ok := runConfig.Connections[via]
-		if !ok {
+		if !ok || viaWorkspaceConn.Target == "" {
+			log.Printf("via connection (%s) was not found in %s", via, sourceWorkspace.Id())
 			return nil, nil
 		}
 		viaWorkspace := ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, viaWorkspaceConn.Target)
+		log.Printf("(getConnectionWorkspace) Pulling (via=%s) connections for %s", via, viaWorkspace.Id())
 		viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, *viaWorkspace)
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving connections for `via` workspace (via=%s, workspace=%s): %w", via, viaWorkspace.Id(), err)
 		}
+		sourceWorkspace = *viaWorkspace
 		runConfig = viaRunConfig
 	}
 
 	conn, ok := runConfig.Connections[name]
-	if !ok {
+	if !ok || conn.Target == "" {
+		log.Printf("connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
 	}
 	if conn.Type != type_ {
 		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
 	}
-	return ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, conn.Target), nil
+	found := ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, conn.Target)
+	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
+	return found, nil
 }
