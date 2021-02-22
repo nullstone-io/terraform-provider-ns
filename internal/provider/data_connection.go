@@ -166,7 +166,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 }
 
 func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.WorkspaceLocation, error) {
-	sourceWorkspace := ns.WorkspaceLocationFromEnv()
+	sourceWorkspace := d.p.PlanConfig.WorkspaceLocation
 
 	runConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, sourceWorkspace)
 	if err != nil {
