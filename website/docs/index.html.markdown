@@ -25,10 +25,16 @@ resource "ns_workspace" "example" {
 
 ## Server Authentication
 
-This provider communicates with nullstone servers that implement Terraform Cloud compliant protocol for state backends.
+This provider communicates with Nullstone APIs using an API Key.
+To configure, set the `NULLSTONE_API_KEY` environment variable.
+Visit your [Nullstone profile](https://app.nullstone.io/profile) to create API Keys in Nullstone.
 
-Currently, the provider will default the address to `https://api.nullstone.io`. 
-To override, set the environment variable `TFE_ADDRESS`.
+By default, this provider will use `https://api.nullstone.io`.
+To override, set the `NULLSTONE_ADDR` environment variable.
+
+Nullstone implements the state backend protocol for Terraform Cloud.
+This provider will default the address to `https://api.nullstone.io`.
+To override, set the `TFE_ADDRESS` environment variable.
 
 A nullstone API key is necessary to communicate as well.
 Set `TFE_TOKEN` to your nullstone API key. 
@@ -36,7 +42,7 @@ Set `TFE_TOKEN` to your nullstone API key.
 ## Plan Config
 
 When running inside a Nullstone runner, Nullstone will automatically configure the plan configuration all resources in this provider.
-However, if you want to run locally, you may configure the current organization, workspace, and connections through a plan config.
+However, if you want to run locally, you may configure the current organization and workspace through a plan config.
 This plan config is loaded by environment variables or from `.nullstone.json`.
 
 The following is an example `.nullstone.json`.
@@ -45,10 +51,7 @@ The following is an example `.nullstone.json`.
   "org": "nullstone",
   "stack": "core",
   "env": "prod",
-  "block": "fargate0",
-  "connections": {
-    "network": "network0"
-  }
+  "block": "fargate0"
 }
 ```
 
@@ -58,5 +61,4 @@ NULLSTONE_ORG=nullstone
 NULLSTONE_BLOCK=core
 NULLSTONE_ENV=prod
 NULLSTONE_STACK=fargate0
-NULLSTONE_CONNECTION_network=network0
 ```
