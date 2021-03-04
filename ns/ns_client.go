@@ -123,3 +123,8 @@ func (c *Client) GetLatestConfig(stackName string, workspaceUid uuid.UUID) (*Run
 	}
 	return &runConfig, nil
 }
+
+func (c *Client) GetAutogenSubdomain(subdomainName string) (*AutogenSubdomain, error) {
+	// GET /orgs/autogen_subdomains/:subdomainName
+	return nil, nil
+}
