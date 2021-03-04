@@ -128,3 +128,13 @@ func (c *Client) GetAutogenSubdomain(subdomainName string) (*AutogenSubdomain, e
 	// GET /orgs/autogen_subdomains/:subdomainName
 	return nil, nil
 }
+
+func (c *Client) GetAutogenSubdomainDelegation(subdomainName string) (*AutogenSubdomainDelegation, error) {
+	// GET /orgs/autogen_subdomains/:subdomainName/delegation
+	return nil, nil
+}
+
+func (c *Client) UpdateAutogenSubdomainDelegation(subdomainName string, delegation *AutogenSubdomainDelegation) (*AutogenSubdomainDelegation, error) {
+	// PUT /orgs/autogen_subdomains/:subdomainId/delegation ...
+	return nil, nil
+}

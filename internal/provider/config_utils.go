@@ -19,3 +19,24 @@ func boolFromConfig(config map[string]tftypes.Value, key string) bool {
 	config[key].As(&val)
 	return val
 }
+
+func stringSliceFromConfig(config map[string]tftypes.Value, key string) ([]string, error) {
+	if config[key].IsNull() {
+		return make([]string, 0), nil
+	}
+
+	tfslice := make([]tftypes.Value, 0)
+	if err := config[key].As(&tfslice); err != nil {
+		return nil, err
+	}
+
+	slice := make([]string, 0)
+	for _, tfitem := range tfslice {
+		var item string
+		if err := tfitem.As(&item); err != nil {
+			return nil, err
+		}
+		slice = append(slice, item)
+	}
+	return slice, nil
+}
