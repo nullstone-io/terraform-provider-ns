@@ -83,7 +83,7 @@ func (d *dataAutogenSubdomain) Read(ctx context.Context, config map[string]tftyp
 	} else if subdomain == nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "autogen subdomain does not exist",
+			Summary:  fmt.Sprintf("The autogen_subdomain %q is missing.", name),
 		})
 	} else {
 		state["domain_name"] = tftypes.NewValue(tftypes.String, subdomain.DomainName)

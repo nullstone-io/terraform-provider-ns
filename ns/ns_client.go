@@ -124,17 +124,44 @@ func (c *Client) GetLatestConfig(stackName string, workspaceUid uuid.UUID) (*Run
 	return &runConfig, nil
 }
 
+// GET /orgs/autogen_subdomains/:subdomainName
 func (c *Client) GetAutogenSubdomain(subdomainName string) (*AutogenSubdomain, error) {
-	// GET /orgs/autogen_subdomains/:subdomainName
-	return nil, nil
+	client := &http.Client{
+		Transport: c.Config.CreateTransport(http.DefaultTransport),
+	}
+
+	u, err := c.Config.ConstructUrl(path.Join("orgs", c.Org, "autogen_subdomains", subdomainName))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.Get(u.String())
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	raw, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting autogen subdomain (%d): %s", res.StatusCode, string(raw))
+	}
+
+	var subdomain AutogenSubdomain
+	if err := json.Unmarshal(raw, &subdomain); err != nil {
+		return nil, fmt.Errorf("invalid response getting autogen subdomain: %w", err)
+	}
+	return &subdomain, nil
 }
 
+// GET /orgs/autogen_subdomains/:subdomainName/delegation
 func (c *Client) GetAutogenSubdomainDelegation(subdomainName string) (*AutogenSubdomainDelegation, error) {
-	// GET /orgs/autogen_subdomains/:subdomainName/delegation
 	return nil, nil
 }
 
+// PUT /orgs/autogen_subdomains/:subdomainId/delegation ...
 func (c *Client) UpdateAutogenSubdomainDelegation(subdomainName string, delegation *AutogenSubdomainDelegation) (*AutogenSubdomainDelegation, error) {
-	// PUT /orgs/autogen_subdomains/:subdomainId/delegation ...
 	return nil, nil
 }
