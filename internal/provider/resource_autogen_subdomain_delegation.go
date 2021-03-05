@@ -110,16 +110,6 @@ func (r *resourceSubdomainDelegation) Read(ctx context.Context, config map[strin
 	return state, diags, nil
 }
 
-func (r *resourceSubdomainDelegation) Destroy(ctx context.Context, prior map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
-	planned := map[string]tftypes.Value{}
-	config := map[string]tftypes.Value{
-		"subdomain":   prior["subdomain"],
-		"nameservers": ns.Nameservers{}.ToProtov5(),
-	}
-	_, diags, err := r.Update(ctx, planned, config, prior)
-	return diags, err
-}
-
 func (r *resourceSubdomainDelegation) Create(ctx context.Context, planned map[string]tftypes.Value, config map[string]tftypes.Value, prior map[string]tftypes.Value) (state map[string]tftypes.Value, diags []*tfprotov5.Diagnostic, err error) {
 	return r.Update(ctx, planned, config, prior)
 }
@@ -150,4 +140,24 @@ func (r *resourceSubdomainDelegation) Update(ctx context.Context, planned map[st
 	}
 
 	return state, diags, nil
+}
+
+func (r *resourceSubdomainDelegation) Destroy(ctx context.Context, prior map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
+	diags := make([]*tfprotov5.Diagnostic, 0)
+
+	subdomain := stringFromConfig(prior, "subdomain")
+	if found, err := r.p.NsClient.DestroyAutogenSubdomainDelegation(subdomain); err != nil {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "error destroying autogen subdomain delegation",
+			Detail:   err.Error(),
+		})
+	} else if !found {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("The autogen_subdomain_delegation %q is missing.", subdomain),
+		})
+	}
+
+	return diags, nil
 }

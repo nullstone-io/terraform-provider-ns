@@ -9,16 +9,16 @@ import (
 )
 
 func TestDataAutogenSubdomain(t *testing.T) {
-	subdomains := map[string]map[string]ns.AutogenSubdomain{
+	subdomains := map[string]map[string]*ns.AutogenSubdomain{
 		"org0": {
-			"api": ns.AutogenSubdomain{
+			"api": {
 				Id:         1,
 				Name:       "api",
 				DomainName: "nullstone.app",
 			},
 		},
 	}
-	delegations := map[string]map[string]ns.AutogenSubdomainDelegation{}
+	delegations := map[string]map[string]*ns.AutogenSubdomainDelegation{}
 
 	t.Run("fails to find non-existent autogen_subdomain", func(t *testing.T) {
 		tfconfig := fmt.Sprintf(`

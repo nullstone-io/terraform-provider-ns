@@ -9,7 +9,7 @@ import (
 )
 
 func TestResourceSubdomainDelegation(t *testing.T) {
-	subdomains := map[string]map[string]ns.AutogenSubdomain{
+	subdomains := map[string]map[string]*ns.AutogenSubdomain{
 		"org0": {
 			"api": {
 				Id:         1,
@@ -23,10 +23,10 @@ func TestResourceSubdomainDelegation(t *testing.T) {
 			},
 		},
 	}
-	delegations := map[string]map[string]ns.AutogenSubdomainDelegation{
+	delegations := map[string]map[string]*ns.AutogenSubdomainDelegation{
 		"org0": {
 			"docs": {
-				Nameservers: []string{"2.2.2.2","3.3.3.3", "4.4.4.4"},
+				Nameservers: []string{"2.2.2.2", "3.3.3.3", "4.4.4.4"},
 			},
 		},
 	}

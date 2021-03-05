@@ -226,3 +226,36 @@ func (c *Client) UpdateAutogenSubdomainDelegation(subdomainName string, delegati
 	}
 	return &updatedDelegation, nil
 }
+
+// DELETE /orgs/autogen_subdomains/:subdomainId/delegation ...
+func (c *Client) DestroyAutogenSubdomainDelegation(subdomainName string) (found bool, err error) {
+	client := &http.Client{
+		Transport: c.Config.CreateTransport(http.DefaultTransport),
+	}
+
+	u, err := c.Config.ConstructUrl(path.Join("orgs", c.Org, "autogen_subdomains", subdomainName, "delegation"))
+	if err != nil {
+		return false, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, u.String(), nil)
+	if err != nil {
+		return false, err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return false, err
+	}
+	raw, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusNoContent {
+		return false, fmt.Errorf("error destroying autogen subdomain delegation (%d): %s", res.StatusCode, string(raw))
+	}
+
+	return true, nil
+}

@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]ns.AutogenSubdomain, delegations map[string]map[string]ns.AutogenSubdomainDelegation) http.Handler {
+func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.AutogenSubdomain, delegations map[string]map[string]*ns.AutogenSubdomainDelegation) http.Handler {
 	findSubdomain := func(orgName, subdomainName string) *ns.AutogenSubdomain {
 		orgSubdomains, ok := subdomains[orgName]
 		if !ok {
@@ -18,7 +18,7 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]ns.Autog
 		if !ok {
 			return nil
 		}
-		return &subdomain
+		return subdomain
 	}
 	findDelegation := func(orgName, subdomainName string) *ns.AutogenSubdomainDelegation {
 		orgDelegations, ok := delegations[orgName]
@@ -29,7 +29,7 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]ns.Autog
 		if !ok {
 			return nil
 		}
-		return &delegation
+		return delegation
 	}
 
 	router := mux.NewRouter()
@@ -73,7 +73,7 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]ns.Autog
 				return
 			}
 			if _, ok := delegations[orgName]; !ok {
-				delegations[orgName] = map[string]ns.AutogenSubdomainDelegation{}
+				delegations[orgName] = map[string]*ns.AutogenSubdomainDelegation{}
 			}
 
 			if r.Body == nil {
@@ -88,9 +88,26 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]ns.Autog
 				return
 			}
 
-			delegations[orgName][subdomainName] = delegation
+			delegations[orgName][subdomainName] = &delegation
 			raw, _ := json.Marshal(delegation)
 			w.Write(raw)
+		})
+	router.
+		Methods(http.MethodDelete).
+		Path("/orgs/{orgName}/autogen_subdomains/{subdomainName}/delegation").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			vars := mux.Vars(r)
+			orgName, subdomainName := vars["orgName"], vars["subdomainName"]
+			if subdomain := findSubdomain(orgName, subdomainName); subdomain == nil {
+				http.NotFound(w, r)
+				return
+			}
+			if _, ok := delegations[orgName]; !ok {
+				delegations[orgName] = map[string]*ns.AutogenSubdomainDelegation{}
+			}
+
+			delegations[orgName][subdomainName] = &ns.AutogenSubdomainDelegation{Nameservers: []string{}}
+			w.WriteHeader(http.StatusNoContent)
 		})
 	return router
 }
