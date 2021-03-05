@@ -29,6 +29,7 @@ func (r *resourceSubdomainDelegation) Schema(ctx context.Context) *tfprotov5.Sch
 	return &tfprotov5.Schema{
 		Block: &tfprotov5.SchemaBlock{
 			Attributes: []*tfprotov5.SchemaAttribute{
+				deprecatedIDAttribute(),
 				{
 					Name:            "subdomain",
 					Required:        true,
@@ -101,6 +102,8 @@ func (r *resourceSubdomainDelegation) Read(ctx context.Context, config map[strin
 			Detail:   err.Error(),
 		})
 	} else {
+		state["id"] = config["subdomain"]
+		state["subdomain"] = config["subdomain"]
 		state["nameservers"] = delegation.Nameservers.ToProtov5()
 	}
 
@@ -135,7 +138,13 @@ func (r *resourceSubdomainDelegation) Update(ctx context.Context, planned map[st
 			Summary:  "error updating autogen subdomain delegation",
 			Detail:   err.Error(),
 		})
+	} else if result == nil {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("The autogen_subdomain_delegation %q is missing.", subdomain),
+		})
 	} else {
+		state["id"] = tftypes.NewValue(tftypes.String, subdomain)
 		state["subdomain"] = tftypes.NewValue(tftypes.String, subdomain)
 		state["nameservers"] = result.Nameservers.ToProtov5()
 	}

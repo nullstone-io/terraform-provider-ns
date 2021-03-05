@@ -1,6 +1,7 @@
 package ns
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -158,10 +159,70 @@ func (c *Client) GetAutogenSubdomain(subdomainName string) (*AutogenSubdomain, e
 
 // GET /orgs/autogen_subdomains/:subdomainName/delegation
 func (c *Client) GetAutogenSubdomainDelegation(subdomainName string) (*AutogenSubdomainDelegation, error) {
-	return nil, nil
+	client := &http.Client{
+		Transport: c.Config.CreateTransport(http.DefaultTransport),
+	}
+
+	u, err := c.Config.ConstructUrl(path.Join("orgs", c.Org, "autogen_subdomains", subdomainName, "delegation"))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.Get(u.String())
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	raw, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting autogen subdomain delegation (%d): %s", res.StatusCode, string(raw))
+	}
+
+	var delegation AutogenSubdomainDelegation
+	if err := json.Unmarshal(raw, &delegation); err != nil {
+		return nil, fmt.Errorf("invalid response getting autogen subdomain delegation: %w", err)
+	}
+	return &delegation, nil
 }
 
 // PUT /orgs/autogen_subdomains/:subdomainId/delegation ...
 func (c *Client) UpdateAutogenSubdomainDelegation(subdomainName string, delegation *AutogenSubdomainDelegation) (*AutogenSubdomainDelegation, error) {
-	return nil, nil
+	client := &http.Client{
+		Transport: c.Config.CreateTransport(http.DefaultTransport),
+	}
+
+	u, err := c.Config.ConstructUrl(path.Join("orgs", c.Org, "autogen_subdomains", subdomainName, "delegation"))
+	if err != nil {
+		return nil, err
+	}
+
+	rawPayload, _ := json.Marshal(delegation)
+	req, err := http.NewRequest(http.MethodPut, u.String(), bytes.NewReader(rawPayload))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	raw, _ := ioutil.ReadAll(res.Body)
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error updating autogen subdomain delegation (%d): %s", res.StatusCode, string(raw))
+	}
+
+	var updatedDelegation AutogenSubdomainDelegation
+	if err := json.Unmarshal(raw, &updatedDelegation); err != nil {
+		return nil, fmt.Errorf("invalid response updating autogen subdomain delegation: %w", err)
+	}
+	return &updatedDelegation, nil
 }

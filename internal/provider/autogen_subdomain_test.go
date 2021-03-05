@@ -2,6 +2,7 @@ package provider
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"net/http"
@@ -67,6 +68,10 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]ns.Autog
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
 			orgName, subdomainName := vars["orgName"], vars["subdomainName"]
+			if subdomain := findSubdomain(orgName, subdomainName); subdomain == nil {
+				http.NotFound(w, r)
+				return
+			}
 			if _, ok := delegations[orgName]; !ok {
 				delegations[orgName] = map[string]ns.AutogenSubdomainDelegation{}
 			}
@@ -77,15 +82,12 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]ns.Autog
 			}
 			defer r.Body.Close()
 			decoder := json.NewDecoder(r.Body)
-			var nameservers []string
-			if err := decoder.Decode(&nameservers); err != nil {
-				http.Error(w, "invalid body", http.StatusInternalServerError)
+			var delegation ns.AutogenSubdomainDelegation
+			if err := decoder.Decode(&delegation); err != nil {
+				http.Error(w, fmt.Sprintf("invalid body: %s", err), http.StatusInternalServerError)
 				return
 			}
 
-			delegation := ns.AutogenSubdomainDelegation{
-				Nameservers: nameservers,
-			}
 			delegations[orgName][subdomainName] = delegation
 			raw, _ := json.Marshal(delegation)
 			w.Write(raw)
