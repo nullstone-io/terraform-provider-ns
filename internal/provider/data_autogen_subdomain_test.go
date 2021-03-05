@@ -59,6 +59,7 @@ data "ns_autogen_subdomain" "subdomain" {
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_autogen_subdomain.subdomain", `name`, "api"),
 			resource.TestCheckResourceAttr("data.ns_autogen_subdomain.subdomain", `domain_name`, "nullstone.app"),
+			resource.TestCheckResourceAttr("data.ns_autogen_subdomain.subdomain", `fqdn`, "api.nullstone.app"),
 		)
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWithAutogenSubdomains(subdomains, delegations))
