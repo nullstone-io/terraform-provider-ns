@@ -80,39 +80,6 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 }
 
 func (d *dataWorkspace) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
-	diags := make([]*tfprotov5.Diagnostic, 0)
-
-	if !config["stack"].IsNull() {
-		var stack string
-		if err := config["stack"].As(&stack); err != nil {
-			diags = append(diags, &tfprotov5.Diagnostic{
-				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  err.Error(),
-			})
-		}
-	}
-	if !config["env"].IsNull() {
-		var env string
-		if err := config["env"].As(&env); err != nil {
-			diags = append(diags, &tfprotov5.Diagnostic{
-				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  err.Error(),
-			})
-		}
-	}
-	if !config["block"].IsNull() {
-		var block string
-		if err := config["block"].As(&block); err != nil {
-			diags = append(diags, &tfprotov5.Diagnostic{
-				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  err.Error(),
-			})
-		}
-	}
-
-	if len(diags) > 0 {
-		return diags, nil
-	}
 	return nil, nil
 }
 

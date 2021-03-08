@@ -2,7 +2,9 @@ package ns
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"path"
@@ -12,6 +14,7 @@ var (
 	ApiKeyEnvVar   = "NULLSTONE_API_KEY"
 	AddressEnvVar  = "NULLSTONE_ADDR"
 	DefaultAddress = "https://api.nullstone.io"
+	TraceEnvVar    = "NULLSTONE_TRACE"
 )
 
 func NewConfig() Config {
@@ -22,12 +25,16 @@ func NewConfig() Config {
 	if val := os.Getenv(AddressEnvVar); val != "" {
 		cfg.BaseAddress = val
 	}
+	if val := os.Getenv(TraceEnvVar); val != "" {
+		cfg.IsTraceEnabled = true
+	}
 	return cfg
 }
 
 type Config struct {
-	BaseAddress string
-	ApiKey      string
+	BaseAddress    string
+	ApiKey         string
+	IsTraceEnabled bool
 }
 
 func (c *Config) ConstructUrl(reqPath string) (*url.URL, error) {
@@ -40,7 +47,23 @@ func (c *Config) ConstructUrl(reqPath string) (*url.URL, error) {
 }
 
 func (c *Config) CreateTransport(baseTransport http.RoundTripper) http.RoundTripper {
-	return &apiKeyTransport{BaseTransport: baseTransport, ApiKey: c.ApiKey}
+	bt := baseTransport
+	if c.IsTraceEnabled {
+		bt = &tracingTransport{BaseTransport: bt}
+	}
+	return &apiKeyTransport{BaseTransport: bt, ApiKey: c.ApiKey}
+}
+
+var _ http.RoundTripper = &tracingTransport{}
+
+type tracingTransport struct {
+	BaseTransport http.RoundTripper
+}
+
+func (t *tracingTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	raw, _ := httputil.DumpRequestOut(r, true)
+	log.Printf("[DEBUG] %s", string(raw))
+	return t.BaseTransport.RoundTrip(r)
 }
 
 var _ http.RoundTripper = &apiKeyTransport{}

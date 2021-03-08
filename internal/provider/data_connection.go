@@ -81,33 +81,6 @@ Typically, this is set to data.ns_connection.other.name`,
 }
 
 func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
-	diags := make([]*tfprotov5.Diagnostic, 0)
-
-	var name string
-	if err := config["name"].As(&name); err != nil {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "ns_connection.name must be a string",
-		})
-	} else if !validConnectionName.Match([]byte(name)) {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "ns_connection.name can only contain the characters 'a'-'z', '0'-'9', '-', '_'",
-		})
-	}
-
-	var optional bool
-	if err := config["optional"].As(&optional); err != nil {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  err.Error(),
-		})
-	}
-
-	if len(diags) > 0 {
-		return diags, nil
-	}
-
 	return nil, nil
 }
 
@@ -119,6 +92,16 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	workspaceId := ""
 
 	diags := make([]*tfprotov5.Diagnostic, 0)
+	if !validConnectionName.Match([]byte(name)) {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("name (%s) can only contain the characters 'a'-'z', '0'-'9', '-', '_'", name),
+		})
+	}
+	if len(diags) > 0 {
+		return nil, diags, nil
+	}
+
 	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
 
 	workspace, err := d.getConnectionWorkspace(name, type_, via)
