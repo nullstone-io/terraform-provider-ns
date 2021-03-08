@@ -87,12 +87,12 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 	if err := config["name"].As(&name); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "ns_connection.name must be a string",
+			Summary:  "name must be a string",
 		})
 	} else if !validConnectionName.Match([]byte(name)) {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "ns_connection.name can only contain the characters 'a'-'z', '0'-'9', '-', '_'",
+			Summary:  "name can only contain the characters 'a'-'z', '0'-'9', '-', '_'",
 		})
 	}
 
