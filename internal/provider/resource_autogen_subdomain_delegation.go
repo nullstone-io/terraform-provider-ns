@@ -50,24 +50,7 @@ func (r *resourceSubdomainDelegation) Schema(ctx context.Context) *tfprotov5.Sch
 }
 
 func (r *resourceSubdomainDelegation) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
-	diags := make([]*tfprotov5.Diagnostic, 0)
-
-	var subdomain string
-	if err := config["subdomain"].As(&subdomain); err != nil {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "subdomain must be a string",
-		})
-	}
-	if _, err := stringSliceFromConfig(config, "nameservers"); err != nil {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "invalid nameservers, must be list(string)",
-			Detail:   err.Error(),
-		})
-	}
-
-	return diags, nil
+	return nil, nil
 }
 
 func (r *resourceSubdomainDelegation) PlanCreate(ctx context.Context, proposed map[string]tftypes.Value, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {

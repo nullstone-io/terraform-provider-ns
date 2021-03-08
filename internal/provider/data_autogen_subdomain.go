@@ -58,17 +58,7 @@ func (*dataAutogenSubdomain) Schema(ctx context.Context) *tfprotov5.Schema {
 }
 
 func (d *dataAutogenSubdomain) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
-	diags := make([]*tfprotov5.Diagnostic, 0)
-
-	var name string
-	if err := config["name"].As(&name); err != nil {
-		diags = append(diags, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "name must be a string",
-		})
-	}
-
-	return diags, nil
+	return nil, nil
 }
 
 func (d *dataAutogenSubdomain) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
