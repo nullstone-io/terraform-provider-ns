@@ -14,7 +14,7 @@ var (
 	ApiKeyEnvVar   = "NULLSTONE_API_KEY"
 	AddressEnvVar  = "NULLSTONE_ADDR"
 	DefaultAddress = "https://api.nullstone.io"
-	TraceEnvVar = "NULLSTONE_TRACE"
+	TraceEnvVar    = "NULLSTONE_TRACE"
 )
 
 func NewConfig() Config {
