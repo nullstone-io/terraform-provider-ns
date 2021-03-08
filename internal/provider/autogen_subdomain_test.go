@@ -65,6 +65,7 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.Auto
 	router.
 		Methods(http.MethodPut).
 		Path("/orgs/{orgName}/autogen_subdomains/{subdomainName}/delegation").
+		Headers("Content-Type", "application/json").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
 			orgName, subdomainName := vars["orgName"], vars["subdomainName"]
