@@ -208,11 +208,11 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 	router := mux.NewRouter()
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/stacks/{stackName}/workspaces").
+		Path("/orgs/{orgName}/stacks/{stackName}/blocks/{blockName}/envs/{envName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
 			orgName, stackName := vars["orgName"], vars["stackName"]
-			blockName, envName := r.URL.Query().Get("blockName"), r.URL.Query().Get("envName")
+			blockName, envName := vars["blockName"], vars["envName"]
 			matched := make([]types.Workspace, 0)
 			for _, workspace := range workspaces {
 				if workspace.OrgName == orgName && workspace.StackName == stackName {
