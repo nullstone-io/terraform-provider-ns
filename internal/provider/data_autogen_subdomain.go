@@ -63,7 +63,7 @@ func (d *dataAutogenSubdomain) Validate(ctx context.Context, config map[string]t
 }
 
 func (d *dataAutogenSubdomain) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	name := stringFromConfig(config, "name")
+	name := extractStringFromConfig(config, "name")
 
 	state := map[string]tftypes.Value{
 		"id":   tftypes.NewValue(tftypes.String, name),

@@ -85,10 +85,10 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 }
 
 func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	name := stringFromConfig(config, "name")
-	type_ := stringFromConfig(config, "type")
-	optional := boolFromConfig(config, "optional")
-	via := stringFromConfig(config, "via")
+	name := extractStringFromConfig(config, "name")
+	type_ := extractStringFromConfig(config, "type")
+	optional := extractBoolFromConfig(config, "optional")
+	via := extractStringFromConfig(config, "via")
 	workspaceId := ""
 
 	diags := make([]*tfprotov5.Diagnostic, 0)

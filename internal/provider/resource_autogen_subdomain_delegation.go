@@ -62,7 +62,7 @@ func (r *resourceSubdomainDelegation) PlanUpdate(ctx context.Context, proposed m
 }
 
 func (r *resourceSubdomainDelegation) plan(ctx context.Context, proposed map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	subdomainName := stringFromConfig(proposed, "subdomain")
+	subdomainName := extractStringFromConfig(proposed, "subdomain")
 
 	return map[string]tftypes.Value{
 		"id":          tftypes.NewValue(tftypes.String, subdomainName),
@@ -75,7 +75,7 @@ func (r *resourceSubdomainDelegation) Read(ctx context.Context, config map[strin
 	state := map[string]tftypes.Value{}
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomainName := stringFromConfig(config, "subdomain")
+	subdomainName := extractStringFromConfig(config, "subdomain")
 
 	delegation, err := r.p.NsClient.GetAutogenSubdomainDelegation(subdomainName)
 	if err != nil {
@@ -101,8 +101,8 @@ func (r *resourceSubdomainDelegation) Update(ctx context.Context, planned map[st
 	state := map[string]tftypes.Value{}
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomain := stringFromConfig(planned, "subdomain")
-	nameservers, _ := stringSliceFromConfig(planned, "nameservers")
+	subdomain := extractStringFromConfig(planned, "subdomain")
+	nameservers, _ := extractStringSliceFromConfig(planned, "nameservers")
 	delegation := &ns.AutogenSubdomainDelegation{Nameservers: ns.Nameservers(nameservers)}
 
 	if result, err := r.p.NsClient.UpdateAutogenSubdomainDelegation(subdomain, delegation); err != nil {
@@ -128,7 +128,7 @@ func (r *resourceSubdomainDelegation) Update(ctx context.Context, planned map[st
 func (r *resourceSubdomainDelegation) Destroy(ctx context.Context, prior map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomain := stringFromConfig(prior, "subdomain")
+	subdomain := extractStringFromConfig(prior, "subdomain")
 	if found, err := r.p.NsClient.DestroyAutogenSubdomainDelegation(subdomain); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,

@@ -2,7 +2,7 @@ package provider
 
 import "github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 
-func stringFromConfig(config map[string]tftypes.Value, key string) string {
+func extractStringFromConfig(config map[string]tftypes.Value, key string) string {
 	if config[key].IsNull() {
 		return ""
 	}
@@ -11,7 +11,7 @@ func stringFromConfig(config map[string]tftypes.Value, key string) string {
 	return val
 }
 
-func boolFromConfig(config map[string]tftypes.Value, key string) bool {
+func extractBoolFromConfig(config map[string]tftypes.Value, key string) bool {
 	if config[key].IsNull() {
 		return false
 	}
@@ -20,7 +20,7 @@ func boolFromConfig(config map[string]tftypes.Value, key string) bool {
 	return val
 }
 
-func stringSliceFromConfig(config map[string]tftypes.Value, key string) ([]string, error) {
+func extractStringSliceFromConfig(config map[string]tftypes.Value, key string) ([]string, error) {
 	if config[key].IsNull() {
 		return make([]string, 0), nil
 	}

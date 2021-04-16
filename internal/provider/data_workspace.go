@@ -85,15 +85,15 @@ func (d *dataWorkspace) Validate(ctx context.Context, config map[string]tftypes.
 
 func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
 	envCurWorkspace := d.p.PlanConfig.WorkspaceLocation
-	stack := stringFromConfig(config, "stack")
+	stack := extractStringFromConfig(config, "stack")
 	if stack == "" {
 		stack = envCurWorkspace.Stack
 	}
-	env := stringFromConfig(config, "env")
+	env := extractStringFromConfig(config, "env")
 	if env == "" {
 		env = envCurWorkspace.Env
 	}
-	block := stringFromConfig(config, "block")
+	block := extractStringFromConfig(config, "block")
 	if block == "" {
 		block = envCurWorkspace.Block
 	}
