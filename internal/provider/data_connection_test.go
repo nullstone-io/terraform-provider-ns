@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/nullstone-io/module/config"
-	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"net/http"
 	"os"
 	"regexp"
@@ -20,26 +20,26 @@ func TestDataConnection(t *testing.T) {
 	os.Setenv("NULLSTONE_BLOCK", "faceless")
 	uid1 := uuid.New()
 	uid2 := uuid.New()
-	workspaces := []ns.Workspace{
+	workspaces := []types.Workspace{
 		{
-			Uid:       uid1,
+			UidCreatedModel:types.UidCreatedModel{Uid: uid1},
 			OrgName:   "org0",
 			StackName: "stack0",
 			EnvName:   "env0",
 			BlockName: "faceless",
 		},
 		{
-			Uid:       uid2,
+			UidCreatedModel:types.UidCreatedModel{Uid: uid2},
 			OrgName:   "org0",
 			StackName: "stack0",
 			EnvName:   "env0",
 			BlockName: "lycan",
 		},
 	}
-	runConfigs := map[string]ns.RunConfig{
+	runConfigs := map[string]types.RunConfig{
 		uid1.String(): {
 			WorkspaceUid: uid1,
-			Connections: map[string]ns.Connection{
+			Connections: map[string]types.Connection{
 				"cluster": {
 					Connection: config.Connection{
 						Type:     "cluster/aws-fargate",
@@ -52,7 +52,7 @@ func TestDataConnection(t *testing.T) {
 		},
 		uid2.String(): {
 			WorkspaceUid: uid2,
-			Connections: map[string]ns.Connection{
+			Connections: map[string]types.Connection{
 				"network": {
 					Connection: config.Connection{
 						Type:     "network/aws",
@@ -204,7 +204,7 @@ data "ns_connection" "network" {
 	})
 }
 
-func mockNsServerWith(workspaces []ns.Workspace, runConfigs map[string]ns.RunConfig) http.Handler {
+func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.RunConfig) http.Handler {
 	router := mux.NewRouter()
 	router.
 		Methods(http.MethodGet).
@@ -213,7 +213,7 @@ func mockNsServerWith(workspaces []ns.Workspace, runConfigs map[string]ns.RunCon
 			vars := mux.Vars(r)
 			orgName, stackName := vars["orgName"], vars["stackName"]
 			blockName, envName := r.URL.Query().Get("blockName"), r.URL.Query().Get("envName")
-			matched := make([]ns.Workspace, 0)
+			matched := make([]types.Workspace, 0)
 			for _, workspace := range workspaces {
 				if workspace.OrgName == orgName && workspace.StackName == stackName {
 					if envName == "" || workspace.EnvName == envName {

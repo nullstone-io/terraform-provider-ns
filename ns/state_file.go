@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/go-tfe"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"log"
 )
 
@@ -16,8 +17,8 @@ type StateFile struct {
 	Outputs          Outputs `json:"outputs"`
 }
 
-func GetStateFile(tfeClient *tfe.Client, orgName string, workspaceLoc *WorkspaceLocation) (*StateFile, error) {
-	workspaceName := fmt.Sprintf("%s-%s-%s", workspaceLoc.Stack, workspaceLoc.Env, workspaceLoc.Block)
+func GetStateFile(tfeClient *tfe.Client, orgName string, target types.WorkspaceTarget) (*StateFile, error) {
+	workspaceName := fmt.Sprintf("%s-%s-%s", target.StackName, target.EnvName, target.BlockName)
 
 	log.Printf("[DEBUG] Retrieving state file (org=%s, workspace=%s)\n", orgName, workspaceName)
 

@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
+	"gopkg.in/nullstone-io/go-api-client.v0"
 	"strings"
 )
 
@@ -71,7 +72,8 @@ func (d *dataAutogenSubdomain) Read(ctx context.Context, config map[string]tftyp
 	}
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomain, err := d.p.NsClient.GetAutogenSubdomain(name)
+	nsClient := api.Client{Config: d.p.NsConfig}
+	subdomain, err := nsClient.AutogenSubdomains().Get(name)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,

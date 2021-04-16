@@ -3,19 +3,19 @@ package provider
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0"
+	"log"
 )
 
-func New(version string, getNsConfig func() ns.Config, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
+func New(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
 	s := server.MustNew(func() server.Provider {
 		if getNsConfig == nil {
-			getNsConfig = ns.NewConfig
+			getNsConfig = api.DefaultConfig
 		}
 		if getTfeConfig == nil {
 			getTfeConfig = ns.NewTfeConfig
@@ -44,8 +44,7 @@ var _ server.Provider = (*provider)(nil)
 type provider struct {
 	TfeConfig  *tfe.Config
 	TfeClient  *tfe.Client
-	NsConfig   ns.Config
-	NsClient   *ns.Client
+	NsConfig   api.Config
 	PlanConfig *PlanConfig
 }
 
@@ -79,7 +78,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 	if p.NsConfig.ApiKey == "" {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("Nullstone API Key is required (Set %q environment variable)", ns.ApiKeyEnvVar),
+			Summary:  fmt.Sprintf("Nullstone API Key is required (Set %q environment variable)", api.ApiKeyEnvVar),
 		})
 	}
 	if p.TfeConfig.Token == "" {
@@ -102,7 +101,7 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 		config["organization"].As(&p.PlanConfig.Org)
 	}
 
-	p.NsClient = &ns.Client{Config: p.NsConfig, Org: p.PlanConfig.Org}
+	p.NsConfig.OrgName = p.PlanConfig.Org
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)

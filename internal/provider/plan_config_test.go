@@ -1,10 +1,10 @@
 package provider
 
 import (
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"path/filepath"
 	"testing"
 
-	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,10 +14,10 @@ func TestPlanConfigFromFile(t *testing.T) {
 	require.NoError(t, err, "unexpected error")
 	want := PlanConfig{
 		Org: "nullstone",
-		WorkspaceLocation: ns.WorkspaceLocation{
-			Stack: "demo",
-			Env:   "dev",
-			Block: "fargate0",
+		WorkspaceTarget: types.WorkspaceTarget{
+			StackName: "demo",
+			EnvName:   "dev",
+			BlockName: "fargate0",
 		},
 	}
 	assert.Equal(t, want, got)

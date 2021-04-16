@@ -2,20 +2,24 @@ package provider
 
 import (
 	"encoding/json"
-	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"io/ioutil"
 	"os"
 )
 
 type PlanConfig struct {
-	ns.WorkspaceLocation
+	types.WorkspaceTarget
 	Org string `json:"org"`
 }
 
 func PlanConfigFromEnv() PlanConfig {
 	return PlanConfig{
-		WorkspaceLocation: ns.WorkspaceLocationFromEnv(),
-		Org:               os.Getenv("NULLSTONE_ORG"),
+		WorkspaceTarget: types.WorkspaceTarget{
+			StackName: os.Getenv("NULLSTONE_STACK"),
+			EnvName:   os.Getenv("NULLSTONE_ENV"),
+			BlockName: os.Getenv("NULLSTONE_BLOCK"),
+		},
+		Org: os.Getenv("NULLSTONE_ORG"),
 	}
 }
 

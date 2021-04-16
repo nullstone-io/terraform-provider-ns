@@ -3,10 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
-	"github.com/nullstone-io/terraform-provider-ns/ns"
 )
 
 type dataWorkspace struct {
@@ -84,23 +84,23 @@ func (d *dataWorkspace) Validate(ctx context.Context, config map[string]tftypes.
 }
 
 func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	envCurWorkspace := d.p.PlanConfig.WorkspaceLocation
+	envCurWorkspace := d.p.PlanConfig.WorkspaceTarget
 	stack := extractStringFromConfig(config, "stack")
 	if stack == "" {
-		stack = envCurWorkspace.Stack
+		stack = envCurWorkspace.StackName
 	}
 	env := extractStringFromConfig(config, "env")
 	if env == "" {
-		env = envCurWorkspace.Env
+		env = envCurWorkspace.EnvName
 	}
 	block := extractStringFromConfig(config, "block")
 	if block == "" {
-		block = envCurWorkspace.Block
+		block = envCurWorkspace.BlockName
 	}
-	destWorkspace := &ns.WorkspaceLocation{
-		Stack: stack,
-		Env:   env,
-		Block: block,
+	destWorkspace := types.WorkspaceTarget{
+		StackName: stack,
+		EnvName:   env,
+		BlockName: block,
 	}
 
 	tags := map[string]tftypes.Value{

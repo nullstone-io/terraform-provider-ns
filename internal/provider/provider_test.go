@@ -4,11 +4,12 @@ import (
 	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0"
 	"net/http"
 	"net/http/httptest"
 )
 
-func protoV5ProviderFactories(getNsConfig func() ns.Config, getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
+func protoV5ProviderFactories(getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){
 		"ns": func() (tfprotov5.ProviderServer, error) {
 			return New("acctest", getNsConfig, getTfeConfig), nil
@@ -16,10 +17,10 @@ func protoV5ProviderFactories(getNsConfig func() ns.Config, getTfeConfig func() 
 	}
 }
 
-func mockNs(handler http.Handler) (func() ns.Config, func()) {
-	cfg := ns.NewConfig()
+func mockNs(handler http.Handler) (func() api.Config, func()) {
+	cfg := api.DefaultConfig()
 	cfg.ApiKey = "abcdefgh012345789"
-	fn := func() ns.Config {
+	fn := func() api.Config {
 		return cfg
 	}
 	if handler == nil {
