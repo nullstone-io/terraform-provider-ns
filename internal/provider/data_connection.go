@@ -113,7 +113,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		})
 	} else if workspace != nil {
 		workspaceId = workspace.Id()
-		stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.Org, *workspace)
+		stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.OrgName, *workspace)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityWarning,

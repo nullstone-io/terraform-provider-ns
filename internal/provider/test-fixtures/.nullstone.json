@@ -1,6 +1,6 @@
 {
-  "org": "nullstone",
-  "stack": "demo",
-  "env": "dev",
-  "block": "fargate0"
+  "orgName": "nullstone",
+  "stackName": "demo",
+  "envName": "dev",
+  "blockName": "fargate0"
 }

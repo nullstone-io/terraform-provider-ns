@@ -98,10 +98,10 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Value) (diags []*tfprotov5.Diagnostic, err error) {
 	if !config["organization"].IsNull() {
 		// This is already checked in Validate, just cast it
-		config["organization"].As(&p.PlanConfig.Org)
+		config["organization"].As(&p.PlanConfig.OrgName)
 	}
 
-	p.NsConfig.OrgName = p.PlanConfig.Org
+	p.NsConfig.OrgName = p.PlanConfig.OrgName
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)

@@ -9,17 +9,16 @@ import (
 
 type PlanConfig struct {
 	types.WorkspaceTarget
-	Org string `json:"org"`
 }
 
 func PlanConfigFromEnv() PlanConfig {
 	return PlanConfig{
 		WorkspaceTarget: types.WorkspaceTarget{
+			OrgName:   os.Getenv("NULLSTONE_ORG"),
 			StackName: os.Getenv("NULLSTONE_STACK"),
 			EnvName:   os.Getenv("NULLSTONE_ENV"),
 			BlockName: os.Getenv("NULLSTONE_BLOCK"),
 		},
-		Org: os.Getenv("NULLSTONE_ORG"),
 	}
 }
 
