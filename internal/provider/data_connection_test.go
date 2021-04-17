@@ -136,7 +136,7 @@ data "ns_connection" "cluster" {
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "stack0/env0/lycan"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "org0/stack0/lycan/env0"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
@@ -177,13 +177,13 @@ data "ns_connection" "network" {
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "stack0/env0/lycan"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "org0/stack0/lycan/env0"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key2`, "value2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
-			resource.TestCheckResourceAttr("data.ns_connection.network", `workspace_id`, "stack0/env0/rikimaru"),
+			resource.TestCheckResourceAttr("data.ns_connection.network", `workspace_id`, "org0/stack0/rikimaru/env0"),
 			resource.TestCheckResourceAttr("data.ns_connection.network", `outputs.placeholder`, "value"),
 		)
 
@@ -213,18 +213,15 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 			vars := mux.Vars(r)
 			orgName, stackName := vars["orgName"], vars["stackName"]
 			blockName, envName := vars["blockName"], vars["envName"]
-			matched := make([]types.Workspace, 0)
 			for _, workspace := range workspaces {
-				if workspace.OrgName == orgName && workspace.StackName == stackName {
-					if envName == "" || workspace.EnvName == envName {
-						if blockName == "" || workspace.BlockName == blockName {
-							matched = append(matched, workspace)
-						}
-					}
+
+				if workspace.OrgName == orgName && workspace.StackName == stackName &&
+					workspace.EnvName == envName && workspace.BlockName == blockName {
+					raw, _ := json.Marshal(workspace)
+					w.Write(raw)
+					return
 				}
 			}
-			raw, _ := json.Marshal(matched)
-			w.Write(raw)
 		})
 	router.
 		Methods(http.MethodGet).
