@@ -34,6 +34,28 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*types.A
 
 	router := mux.NewRouter()
 	router.
+		Methods(http.MethodPost).
+		Path("/orgs/{orgName}/autogen_subdomains").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			orgName := mux.Vars(r)["orgName"]
+			// NOTE: We're going to always return the same one we created instead of being random
+			autogenSubdomain := types.AutogenSubdomain{
+				IdModel:     types.IdModel{Id: 1},
+				Name:        "xyz123",
+				OrgName:     orgName,
+				DomainName:  "nullstone.app",
+				Nameservers: []string{},
+			}
+			raw, _ := json.Marshal(autogenSubdomain)
+			w.Write(raw)
+		})
+	router.
+		Methods(http.MethodDelete).
+		Path("/orgs/{orgName}/autogen_subdomains/{subdomainName}").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
+	router.
 		Methods(http.MethodGet).
 		Path("/orgs/{orgName}/autogen_subdomains/{subdomainName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
