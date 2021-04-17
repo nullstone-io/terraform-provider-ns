@@ -203,8 +203,8 @@ github.com/hashicorp/terraform-exec v0.10.0/go.mod h1:tOT8j1J8rP05bZBGWXfMyU3HkL
 github.com/hashicorp/terraform-json v0.5.0 h1:7TV3/F3y7QVSuN4r9BEXqnWqrAyeOtON8f0wvREtyzs=
 github.com/hashicorp/terraform-json v0.5.0/go.mod h1:eAbqb4w0pSlRmdvl8fOyHAi/+8jnkVYN28gJkSJrLhU=
 github.com/hashicorp/terraform-plugin-go v0.1.0/go.mod h1:10V6F3taeDWVAoLlkmArKttR3IULlRWFAGtQIQTIDr4=
-github.com/hashicorp/terraform-plugin-go v0.2.0 h1:zV9OdhCKKXem+LdNi7Vt2Znz6oeED2rI0jmfRDcWLc0=
-github.com/hashicorp/terraform-plugin-go v0.2.0/go.mod h1:10V6F3taeDWVAoLlkmArKttR3IULlRWFAGtQIQTIDr4=
+github.com/hashicorp/terraform-plugin-go v0.2.1 h1:EW/R8bB2Zbkjmugzsy1d27yS8/0454b3MtYHkzOknqA=
+github.com/hashicorp/terraform-plugin-go v0.2.1/go.mod h1:10V6F3taeDWVAoLlkmArKttR3IULlRWFAGtQIQTIDr4=
 github.com/hashicorp/terraform-plugin-sdk/v2 v2.3.0 h1:Egv+R1tOOjPNz643KBTx3tLT6RdFGGYJcZlyLvrPcEU=
 github.com/hashicorp/terraform-plugin-sdk/v2 v2.3.0/go.mod h1:+12dJQebYjuU/yiq94iZUPuC66abfRBrXdpVJia3ojk=
 github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb/go.mod h1:+NfK9FKeTrX5uv1uIXGdwYDTeHna2qgaIlx54MXqjAM=
@@ -572,8 +572,6 @@ gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f h1:BLraFXnmrev5lT+xlilqcH8X
 gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/cheggaaa/pb.v1 v1.0.27/go.mod h1:V/YB90LKu/1FcN3WVnfiiE5oMCibMjukxqG/qStrOgw=
 gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210413123244-de7dbcaa6381 h1:dBXF8kvkss6iN42Rfk1mjXnlXU9wE+eO99GJPR8NYmQ=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210413123244-de7dbcaa6381/go.mod h1:6z3xyBE0tWngWi5equdUPGtEKClza3g5hpSkQKWLid8=
 gopkg.in/warnings.v0 v0.1.2 h1:wFXVbFY8DY5/xOe1ECiWdKCzZlxgshcYVNkBHstARME=
 gopkg.in/warnings.v0 v0.1.2/go.mod h1:jksf8JmL6Qr/oQM2OXTHunEvvTAsrWBLb6OOjuVWRNI=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=

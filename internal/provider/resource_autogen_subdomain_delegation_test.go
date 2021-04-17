@@ -12,12 +12,12 @@ func TestResourceSubdomainDelegation(t *testing.T) {
 	subdomains := map[string]map[string]*types.AutogenSubdomain{
 		"org0": {
 			"api": {
-				IdModel: types.IdModel{Id:1},
+				IdModel:    types.IdModel{Id: 1},
 				Name:       "api",
 				DomainName: "nullstone.app",
 			},
 			"docs": {
-				IdModel: types.IdModel{Id:2},
+				IdModel:    types.IdModel{Id: 2},
 				Name:       "docs",
 				DomainName: "nullstone.app",
 			},

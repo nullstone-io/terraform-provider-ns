@@ -22,18 +22,18 @@ func TestDataConnection(t *testing.T) {
 	uid2 := uuid.New()
 	workspaces := []types.Workspace{
 		{
-			UidCreatedModel:types.UidCreatedModel{Uid: uid1},
-			OrgName:   "org0",
-			StackName: "stack0",
-			EnvName:   "env0",
-			BlockName: "faceless",
+			UidCreatedModel: types.UidCreatedModel{Uid: uid1},
+			OrgName:         "org0",
+			StackName:       "stack0",
+			EnvName:         "env0",
+			BlockName:       "faceless",
 		},
 		{
-			UidCreatedModel:types.UidCreatedModel{Uid: uid2},
-			OrgName:   "org0",
-			StackName: "stack0",
-			EnvName:   "env0",
-			BlockName: "lycan",
+			UidCreatedModel: types.UidCreatedModel{Uid: uid2},
+			OrgName:         "org0",
+			StackName:       "stack0",
+			EnvName:         "env0",
+			BlockName:       "lycan",
 		},
 	}
 	runConfigs := map[string]types.RunConfig{

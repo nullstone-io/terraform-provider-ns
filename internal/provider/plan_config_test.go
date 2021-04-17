@@ -1,11 +1,11 @@
 package provider
 
 import (
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"path/filepath"
 	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPlanConfigFromFile(t *testing.T) {
@@ -13,7 +13,7 @@ func TestPlanConfigFromFile(t *testing.T) {
 	require.NoError(t, err, "unexpected error")
 	want := PlanConfig{
 		WorkspaceTarget: types.WorkspaceTarget{
-			OrgName: "nullstone",
+			OrgName:   "nullstone",
 			StackName: "demo",
 			EnvName:   "dev",
 			BlockName: "fargate0",
