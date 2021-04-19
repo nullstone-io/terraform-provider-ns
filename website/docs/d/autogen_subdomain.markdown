@@ -8,8 +8,8 @@ description: |-
 
 # ns_autogen_subdomain
 
-Nullstone can generate autogen subdomains for users that look like `random-subdomain.nullstone.app`.
-This data source allows users to read information about that subdomain.
+Nullstone can create and manage auto-generated subdomains for users that look like `random-subdomain.nullstone.app`.
+This data source allows users to read information about that auto-generated subdomain.
 
 ## Example Usage
 

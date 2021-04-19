@@ -8,8 +8,8 @@ description: |-
 
 # ns_autogen_subdomain
 
-Nullstone can generate autogen subdomains for users that look like `random-subdomain.nullstone.app`.
-This resource allows users to delegate that subdomain to their own DNS zone.
+Nullstone can create and manage auto-generated subdomains for users that look like `random-subdomain.nullstone.app`.
+This resource allows users to delegate DNS records provisioned via Nullstone to a user-managed DNS zone.
 
 ## Example Usage
 
