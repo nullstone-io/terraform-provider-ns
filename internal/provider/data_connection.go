@@ -139,7 +139,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	}
 
 	return map[string]tftypes.Value{
-		"id":           tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspace)),
+		"id":           tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspaceId)),
 		"name":         tftypes.NewValue(tftypes.String, name),
 		"type":         tftypes.NewValue(tftypes.String, type_),
 		"workspace_id": tftypes.NewValue(tftypes.String, workspaceId),
