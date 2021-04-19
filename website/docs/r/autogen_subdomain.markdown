@@ -20,7 +20,7 @@ resource "ns_autogen_subdomain" "subdomain" {
 }
 
 resource "aws_route53_zone" "this" {
-  name = data.ns_autogen_subdomain.subdomain.fqdn
+  name = ns_autogen_subdomain.subdomain.fqdn
 }
 
 resource "ns_autogen_subdomain_delegation" "to_aws" {
