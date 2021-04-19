@@ -34,5 +34,5 @@ resource "ns_autogen_subdomain_delegation" "to_aws" {
 ## Attributes Reference
 
 - `name` - Name of created auto-generated subdomain. This does not include the domain name (typically `nullstone.app`).
-- `domain_name` - The domain name configured for this autogen subdomain. Typically this is `nullstone.app`.
+- `domain_name` - The domain name configured for this autogen subdomain. Typically, this is `nullstone.app`.
 - `fqdn` - The fully-qualified domain name for this auto-generated subdomain. This is composed of `{name}.{domain_name}.`.
