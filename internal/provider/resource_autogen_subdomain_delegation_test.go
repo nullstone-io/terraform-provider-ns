@@ -3,27 +3,27 @@ package provider
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"regexp"
 	"testing"
 )
 
 func TestResourceSubdomainDelegation(t *testing.T) {
-	subdomains := map[string]map[string]*ns.AutogenSubdomain{
+	subdomains := map[string]map[string]*types.AutogenSubdomain{
 		"org0": {
 			"api": {
-				Id:         1,
+				IdModel:    types.IdModel{Id: 1},
 				Name:       "api",
 				DomainName: "nullstone.app",
 			},
 			"docs": {
-				Id:         2,
+				IdModel:    types.IdModel{Id: 2},
 				Name:       "docs",
 				DomainName: "nullstone.app",
 			},
 		},
 	}
-	delegations := map[string]map[string]*ns.AutogenSubdomainDelegation{
+	delegations := map[string]map[string]*types.AutogenSubdomainDelegation{
 		"org0": {
 			"docs": {
 				Nameservers: []string{"2.2.2.2", "3.3.3.3", "4.4.4.4"},

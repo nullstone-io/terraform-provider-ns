@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"net/http"
 )
 
-func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.AutogenSubdomain, delegations map[string]map[string]*ns.AutogenSubdomainDelegation) http.Handler {
-	findSubdomain := func(orgName, subdomainName string) *ns.AutogenSubdomain {
+func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*types.AutogenSubdomain, delegations map[string]map[string]*types.AutogenSubdomainDelegation) http.Handler {
+	findSubdomain := func(orgName, subdomainName string) *types.AutogenSubdomain {
 		orgSubdomains, ok := subdomains[orgName]
 		if !ok {
 			return nil
@@ -20,7 +20,7 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.Auto
 		}
 		return subdomain
 	}
-	findDelegation := func(orgName, subdomainName string) *ns.AutogenSubdomainDelegation {
+	findDelegation := func(orgName, subdomainName string) *types.AutogenSubdomainDelegation {
 		orgDelegations, ok := delegations[orgName]
 		if !ok {
 			return nil
@@ -33,6 +33,28 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.Auto
 	}
 
 	router := mux.NewRouter()
+	router.
+		Methods(http.MethodPost).
+		Path("/orgs/{orgName}/autogen_subdomains").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			orgName := mux.Vars(r)["orgName"]
+			// NOTE: We're going to always return the same one we created instead of being random
+			autogenSubdomain := types.AutogenSubdomain{
+				IdModel:     types.IdModel{Id: 1},
+				Name:        "xyz123",
+				OrgName:     orgName,
+				DomainName:  "nullstone.app",
+				Nameservers: []string{},
+			}
+			raw, _ := json.Marshal(autogenSubdomain)
+			w.Write(raw)
+		})
+	router.
+		Methods(http.MethodDelete).
+		Path("/orgs/{orgName}/autogen_subdomains/{subdomainName}").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
 	router.
 		Methods(http.MethodGet).
 		Path("/orgs/{orgName}/autogen_subdomains/{subdomainName}").
@@ -74,7 +96,7 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.Auto
 				return
 			}
 			if _, ok := delegations[orgName]; !ok {
-				delegations[orgName] = map[string]*ns.AutogenSubdomainDelegation{}
+				delegations[orgName] = map[string]*types.AutogenSubdomainDelegation{}
 			}
 
 			if r.Body == nil {
@@ -83,7 +105,7 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.Auto
 			}
 			defer r.Body.Close()
 			decoder := json.NewDecoder(r.Body)
-			var delegation ns.AutogenSubdomainDelegation
+			var delegation types.AutogenSubdomainDelegation
 			if err := decoder.Decode(&delegation); err != nil {
 				http.Error(w, fmt.Sprintf("invalid body: %s", err), http.StatusInternalServerError)
 				return
@@ -104,10 +126,10 @@ func mockNsServerWithAutogenSubdomains(subdomains map[string]map[string]*ns.Auto
 				return
 			}
 			if _, ok := delegations[orgName]; !ok {
-				delegations[orgName] = map[string]*ns.AutogenSubdomainDelegation{}
+				delegations[orgName] = map[string]*types.AutogenSubdomainDelegation{}
 			}
 
-			delegations[orgName][subdomainName] = &ns.AutogenSubdomainDelegation{Nameservers: []string{}}
+			delegations[orgName][subdomainName] = &types.AutogenSubdomainDelegation{Nameservers: []string{}}
 			w.WriteHeader(http.StatusNoContent)
 		})
 	return router

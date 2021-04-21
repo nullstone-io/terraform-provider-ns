@@ -3,12 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
-	"log"
-	"regexp"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
+	"log"
+	"regexp"
 )
 
 var validConnectionName = regexp.MustCompile("^[_a-z0-9/-]+$")
@@ -85,10 +85,10 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 }
 
 func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	name := stringFromConfig(config, "name")
-	type_ := stringFromConfig(config, "type")
-	optional := boolFromConfig(config, "optional")
-	via := stringFromConfig(config, "via")
+	name := extractStringFromConfig(config, "name")
+	type_ := extractStringFromConfig(config, "type")
+	optional := extractBoolFromConfig(config, "optional")
+	via := extractStringFromConfig(config, "via")
 	workspaceId := ""
 
 	diags := make([]*tfprotov5.Diagnostic, 0)
@@ -113,7 +113,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		})
 	} else if workspace != nil {
 		workspaceId = workspace.Id()
-		stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.Org, workspace)
+		stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.OrgName, *workspace)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityWarning,
@@ -139,7 +139,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	}
 
 	return map[string]tftypes.Value{
-		"id":           tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspace)),
+		"id":           tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspaceId)),
 		"name":         tftypes.NewValue(tftypes.String, name),
 		"type":         tftypes.NewValue(tftypes.String, type_),
 		"workspace_id": tftypes.NewValue(tftypes.String, workspaceId),
@@ -149,11 +149,11 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	}, diags, nil
 }
 
-func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.WorkspaceLocation, error) {
-	sourceWorkspace := d.p.PlanConfig.WorkspaceLocation
+func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types.WorkspaceTarget, error) {
+	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget
 
 	log.Printf("(getConnectionWorkspace) Pulling connections for @ %s", sourceWorkspace.Id())
-	runConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, sourceWorkspace)
+	runConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, sourceWorkspace)
 	if err != nil {
 		return nil, err
 	}
@@ -166,13 +166,13 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.Wo
 			log.Printf("via connection (%s) was not found in %s", via, sourceWorkspace.Id())
 			return nil, nil
 		}
-		viaWorkspace := ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, viaWorkspaceConn.Target)
+		viaWorkspace := sourceWorkspace.FindRelativeConnection(viaWorkspaceConn.Target)
 		log.Printf("(getConnectionWorkspace) Pulling (via=%s) connections for %s", via, viaWorkspace.Id())
-		viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsClient, *viaWorkspace)
+		viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, viaWorkspace)
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving connections for `via` workspace (via=%s, workspace=%s): %w", via, viaWorkspace.Id(), err)
 		}
-		sourceWorkspace = *viaWorkspace
+		sourceWorkspace = viaWorkspace
 		runConfig = viaRunConfig
 	}
 
@@ -184,7 +184,7 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*ns.Wo
 	if conn.Type != type_ {
 		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
 	}
-	found := ns.FullyQualifiedWorkspace(sourceWorkspace.Stack, sourceWorkspace.Env, conn.Target)
+	found := sourceWorkspace.FindRelativeConnection(conn.Target)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
-	return found, nil
+	return &found, nil
 }

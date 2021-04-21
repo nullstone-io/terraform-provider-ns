@@ -333,7 +333,7 @@ func (s *Server) ReadResource(ctx context.Context, req *tfprotov5.ReadResourceRe
 
 	newStateValue, err := tfprotov5.NewDynamicValue(schemaObjectType, tftypes.NewValue(schemaObjectType, newState))
 	if err != nil {
-		return nil, fmt.Errorf("ApplyResourceChange - error NewDynamicValue: %w", err)
+		return nil, fmt.Errorf("ReadResource - error NewDynamicValue: %w", err)
 	}
 
 	return &tfprotov5.ReadResourceResponse{
@@ -412,7 +412,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanReso
 
 	plannedValue, err := tfprotov5.NewDynamicValue(schemaObjectType, tftypes.NewValue(schemaObjectType, planned))
 	if err != nil {
-		return nil, fmt.Errorf("ApplyResourceChange - error NewDynamicValue: %w", err)
+		return nil, fmt.Errorf("PlanResourceChange - error NewDynamicValue: %w", err)
 	}
 
 	return &tfprotov5.PlanResourceChangeResponse{

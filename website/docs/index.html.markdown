@@ -34,10 +34,10 @@ To override, set the `NULLSTONE_ADDR` environment variable.
 
 Nullstone implements the state backend protocol for Terraform Cloud.
 This provider will default the address to `https://api.nullstone.io`.
-To override, set the `TFE_ADDRESS` environment variable.
+To override, set the `NULLSTONE_ADDR` environment variable.
 
 A nullstone API key is necessary to communicate as well.
-Set `TFE_TOKEN` to your nullstone API key. 
+Set `NULSTONE_API_KEY` to your nullstone API key. 
 
 ## Plan Config
 
@@ -48,10 +48,10 @@ This plan config is loaded by environment variables or from `.nullstone.json`.
 The following is an example `.nullstone.json`.
 ```json
 {
-  "org": "nullstone",
-  "stack": "core",
-  "env": "prod",
-  "block": "fargate0"
+  "orgName": "nullstone",
+  "stackName": "core",
+  "envName": "prod",
+  "blockName": "fargate0"
 }
 ```
 
