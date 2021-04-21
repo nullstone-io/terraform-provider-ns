@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"gopkg.in/nullstone-io/go-api-client.v0"
+	"strconv"
 )
 
 type dataAppEnv struct {
@@ -84,7 +85,7 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 	}
 
 	return map[string]tftypes.Value{
-		"id":      tftypes.NewValue(tftypes.Number, appEnvId),
+		"id":      tftypes.NewValue(tftypes.String, strconv.Itoa(appEnvId)),
 		"app":     tftypes.NewValue(tftypes.String, app),
 		"env":     tftypes.NewValue(tftypes.String, env),
 		"version": tftypes.NewValue(tftypes.String, appEnvVersion),
