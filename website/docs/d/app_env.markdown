@@ -28,8 +28,11 @@ locals {
 }
 ```
 
+## Arguments Reference
+
+* `app` - (Required) Name of application in nullstone.
+* `env` - (Required) Name of environment in nullstone.
+
 ## Attributes Reference
 
-* `app_name` - Name of application.
-* `env_name` - Name of environment.
 * `version` - The version configured in nullstone for the application in the specific environment.
