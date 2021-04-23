@@ -7,17 +7,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"net/http"
+	"strconv"
 	"testing"
 )
 
 func TestDataAppEnv(t *testing.T) {
+	core := &types.Stack{
+		IdModel:     types.IdModel{
+			Id: 2,
+		},
+		Name:        "core",
+		OrgName:     "org0",
+	}
 	app1 := &types.Application{
 		IdModel: types.IdModel{
 			Id: 1,
 		},
 		Name:      "app1",
 		OrgName:   "org0",
-		StackName: "core",
+		StackName: core.Name,
 	}
 	dev := &types.Environment{
 		IdModel: types.IdModel{
@@ -25,7 +33,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "dev",
 		OrgName:   "org0",
-		StackName: "core",
+		StackName: core.Name,
 	}
 	prod := &types.Environment{
 		IdModel: types.IdModel{
@@ -33,7 +41,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "prod",
 		OrgName:   "org0",
-		StackName: "core",
+		StackName: core.Name,
 	}
 
 	appEnvs := []*types.AppEnv{
@@ -41,8 +49,8 @@ func TestDataAppEnv(t *testing.T) {
 			IdModel: types.IdModel{
 				Id: 5,
 			},
-			AppId:   1,
-			EnvId:   2,
+			AppId:   app1.Id,
+			EnvId:   dev.Id,
 			Version: "1.0.0",
 			App:     app1,
 			Env:     prod,
@@ -64,13 +72,15 @@ data "ns_workspace" "this" {
 }
 
 data "ns_app_env" "this" {
-  app = data.ns_workspace.this.block
-  env = data.ns_workspace.this.env
+  app   = data.ns_workspace.this.block
+  stack = data.ns_workspace.this.stack
+  env   = data.ns_workspace.this.env
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "10"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `app`, "app1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack`, "core"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `env`, "dev"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, ""),
 		)
@@ -104,13 +114,15 @@ data "ns_workspace" "this" {
 }
 
 data "ns_app_env" "this" {
-  app = data.ns_workspace.this.block
-  env = data.ns_workspace.this.env
+  app   = data.ns_workspace.this.block
+  stack = data.ns_workspace.this.stack
+  env   = data.ns_workspace.this.env
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "5"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `app`, "app1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack`, "core"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `env`, "prod"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, "1.0.0"),
 		)
@@ -133,9 +145,9 @@ data "ns_app_env" "this" {
 }
 
 func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, envs []*types.Environment) http.Handler {
-	findApp := func(orgName, appName string) *types.Application {
+	findApp := func(orgName, appIdStr string) *types.Application {
 		for _, app := range apps {
-			if app.OrgName == orgName && app.Name == appName {
+			if app.OrgName == orgName && strconv.Itoa(app.Id) == appIdStr {
 				return app
 			}
 		}
@@ -149,17 +161,17 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		}
 		return nil
 	}
-	getAppEnv := func(orgName, appName, envName string) *types.AppEnv {
+	getAppEnv := func(orgName, appIdStr, envName string) *types.AppEnv {
 		for _, existing := range *appEnvs {
-			if existing.App.OrgName == orgName && existing.App.Name == appName &&
+			if existing.App.OrgName == orgName && strconv.Itoa(existing.App.Id) == appIdStr &&
 				existing.Env.OrgName == orgName && existing.Env.Name == envName {
 				return existing
 			}
 		}
 		return nil
 	}
-	addAppEnv := func(orgName, appName, envName string) *types.AppEnv {
-		app := findApp(orgName, appName)
+	addAppEnv := func(orgName, appIdStr, envName string) *types.AppEnv {
+		app := findApp(orgName, appIdStr)
 		env := findEnv(orgName, envName)
 		if app == nil || env == nil {
 			return nil
@@ -180,11 +192,11 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 	}
 	findOrCreateEnv := func(r *http.Request) *types.AppEnv {
 		vars := mux.Vars(r)
-		orgName, appName, envName := vars["orgName"], vars["appName"], vars["envName"]
+		orgName, appId, envName := vars["orgName"], vars["appId"], vars["envName"]
 
-		appEnv := getAppEnv(orgName, appName, envName)
+		appEnv := getAppEnv(orgName, appId, envName)
 		if appEnv == nil {
-			appEnv = addAppEnv(orgName, appName, envName)
+			appEnv = addAppEnv(orgName, appId, envName)
 		}
 		return appEnv
 	}
@@ -192,7 +204,14 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 	router := mux.NewRouter()
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/apps/{appName}/envs/{envName}").
+		Path("/orgs/{orgName}/apps").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			raw, _ := json.Marshal(apps)
+			w.Write(raw)
+		})
+	router.
+		Methods(http.MethodGet).
+		Path("/orgs/{orgName}/apps/{appId}/envs/{envName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if appEnv := findOrCreateEnv(r); appEnv == nil {
 				http.NotFound(w, r)
@@ -203,7 +222,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		})
 	router.
 		Methods(http.MethodPut).
-		Path("/orgs/{orgName}/apps/{appName}/envs/{envName}").
+		Path("/orgs/{orgName}/apps/{appId}/envs/{envName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			payload := struct{
 				Version string `json:"version"`
