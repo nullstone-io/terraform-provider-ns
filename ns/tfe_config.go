@@ -9,12 +9,13 @@ import (
 
 func NewTfeConfig() *tfe.Config {
 	cfg := tfe.DefaultConfig()
-	// If TFE_ADDRESS is missing, we will look at NULLSTONE_ADDR, then use the default address
+	// Priority: NULLSTONE_ADDR > TFE_ADDRESS > DefaultAddress
+	cfg.Address = os.Getenv(api.AddressEnvVar)
+	if cfg.Address == "" {
+		cfg.Address = os.Getenv("TFE_ADDRESS")
+	}
 	if cfg.Address == "" {
 		cfg.Address = api.DefaultAddress
-		if val := os.Getenv(api.AddressEnvVar); val != "" {
-			cfg.Address = val
-		}
 	}
 	cfg.BasePath = "/terraform/v2/"
 	// If TFE_TOKEN is missing, we will look at NULLSTONE_API_KEY
