@@ -33,6 +33,10 @@ func New(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe
 	// data sources
 	s.MustRegisterDataSource("ns_workspace", newDataWorkspace)
 	s.MustRegisterDataSource("ns_connection", newDataConnection)
+	s.MustRegisterDataSource("ns_subdomain", newDataSubdomain)
+	s.MustRegisterDataSource("ns_domain", newDataDomain)
+
+	// resources
 	s.MustRegisterDataSource("ns_autogen_subdomain", newDataAutogenSubdomain)
 	s.MustRegisterResource("ns_autogen_subdomain", newResourceAutogenSubdomain)
 	s.MustRegisterResource("ns_autogen_subdomain_delegation", newResourceAutogenSubdomainDelegation)
