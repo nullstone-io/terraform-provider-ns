@@ -16,23 +16,31 @@ This resource allows users to delegate DNS records provisioned via Nullstone to 
 #### AWS Example
 
 ```hcl
-resource "ns_autogen_subdomain" "subdomain" {
+resource "ns_autogen_subdomain" "autogen_subdomain" {
+  subdomain_id = data.ns_subdomain.id
+  env = data.ns_workspace.this.env
 }
 
 resource "aws_route53_zone" "this" {
-  name = ns_autogen_subdomain.subdomain.fqdn
+  name = ns_autogen_subdomain.autogen_subdomain.fqdn
+  tags = data.ns_workspace.this.tags
 }
 
 resource "ns_autogen_subdomain_delegation" "to_aws" {
-  subdomain   = var.subdomain
+  subdomain_id = data.ns_subdomain.id
+  env = data.ns_workspace.this.env
   nameservers = aws_route53_zone.this.name_servers
 }
 ```
 
 ## Argument Reference
 
+- `subdomain_id` - (Required) Id of the subdomain that already exists in Nullstone system.
+  The subdomain in Nullstone represents the block. This represents the subdomain name created for each environment.
+- `env` - (Required) Name of the environment to create an autogen_subdomain in.
+
 ## Attributes Reference
 
-- `name` - Name of created auto-generated subdomain. This does not include the domain name (typically `nullstone.app`).
-- `domain_name` - The domain name configured for this auto-generated subdomain. Typically, this is `nullstone.app`.
-- `fqdn` - The fully-qualified domain name for this auto-generated subdomain. This is composed of `{name}.{domain_name}.`.
+* `dns_name` - The random portion of the autogen_subdomain. This is the first part of the fully-qualified domain name (FQDN) that comes before the domain name.
+* `domain_name` - The name of the domain that Nullstone administers for this auto-generated subdomain.
+* `fqdn` - The fully-qualified domain name (FQDN) for this auto-generated subdomain. It is composed as `{dns_name}.{domain_name}.`.
