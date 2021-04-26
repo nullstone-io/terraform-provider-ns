@@ -20,6 +20,15 @@ func extractBoolFromConfig(config map[string]tftypes.Value, key string) bool {
 	return val
 }
 
+func extractIntFromConfig(config map[string]tftypes.Value, key string) int {
+	if config[key].IsNull() {
+		return -1
+	}
+	val := 0
+	config[key].As(&val)
+	return val
+}
+
 func extractStringSliceFromConfig(config map[string]tftypes.Value, key string) ([]string, error) {
 	if config[key].IsNull() {
 		return make([]string, 0), nil
