@@ -8,10 +8,7 @@ import (
 )
 
 func TestResourceAutogenSubdomain(t *testing.T) {
-	subdomains := map[string]map[string]*types.AutogenSubdomain{
-		"org0": {},
-	}
-	delegations := map[string]map[string]*types.AutogenSubdomainDelegation{
+	autogenSubdomains := map[string]map[string]map[string]*types.AutogenSubdomain{
 		"org0": {},
 	}
 
@@ -20,17 +17,20 @@ func TestResourceAutogenSubdomain(t *testing.T) {
 provider "ns" {
   organization = "org0"
 }
-resource "ns_autogen_subdomain" "subdomain" {}
+resource "ns_autogen_subdomain" "autogen_subdomain" {
+  subdomain_id 	= 99
+  env 			= "prod"
+}
 `)
 
-		getNsConfig, closeNsFn := mockNs(mockNsServerWithAutogenSubdomains(subdomains, delegations))
+		getNsConfig, closeNsFn := mockNs(mockNsServerWithAutogenSubdomains(autogenSubdomains))
 		defer closeNsFn()
 		getTfeConfig, _ := mockTfe(nil)
 
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("ns_autogen_subdomain.subdomain", `name`, "xyz123"),
-			resource.TestCheckResourceAttr("ns_autogen_subdomain.subdomain", `domain_name`, "nullstone.app"),
-			resource.TestCheckResourceAttr("ns_autogen_subdomain.subdomain", `fqdn`, "xyz123.nullstone.app."),
+			resource.TestCheckResourceAttr("ns_autogen_subdomain.autogen_subdomain", `dns_name`, "xyz123"),
+			resource.TestCheckResourceAttr("ns_autogen_subdomain.autogen_subdomain", `domain_name`, "nullstone.app"),
+			resource.TestCheckResourceAttr("ns_autogen_subdomain.autogen_subdomain", `fqdn`, "xyz123.nullstone.app."),
 		)
 		resource.UnitTest(t, resource.TestCase{
 			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
