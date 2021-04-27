@@ -1,6 +1,9 @@
 package provider
 
-import "github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+import (
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"math/big"
+)
 
 func extractStringFromConfig(config map[string]tftypes.Value, key string) string {
 	if config[key].IsNull() {
@@ -18,6 +21,16 @@ func extractBoolFromConfig(config map[string]tftypes.Value, key string) bool {
 	val := false
 	config[key].As(&val)
 	return val
+}
+
+func extractIntFromConfig(config map[string]tftypes.Value, key string) int {
+	if config[key].IsNull() {
+		return -1
+	}
+	val := new(big.Float)
+	config[key].As(&val)
+	i,_ := val.Int64()
+	return int(i)
 }
 
 func extractStringSliceFromConfig(config map[string]tftypes.Value, key string) ([]string, error) {

@@ -11,30 +11,33 @@ description: |-
 Nullstone can generate autogen subdomains for users that look like `random-subdomain.nullstone.app`.
 This resource allows users to delegate that subdomain to their own DNS zone.
 
-The subdomain must be auto-generated through the Nullstone UI/API before delegating the subdomain.
-
 ## Example Usage
 
 #### AWS Example
 
 ```hcl
-data "ns_autogen_subdomain" "subdomain" {
-  name = var.subdomain
+resource "ns_autogen_subdomain" "autogen_subdomain" {
+  subdomain_id = data.ns_subdomain.id
+  env = data.ns_workspace.this.env
 }
 
 resource "aws_route53_zone" "this" {
-  name = data.ns_autogen_subdomain.subdomain.fqdn
+  name = ns_autogen_subdomain.autogen_subdomain.fqdn
+  tags = data.ns_workspace.this.tags
 }
 
 resource "ns_autogen_subdomain_delegation" "to_aws" {
-  subdomain   = var.subdomain
+  subdomain_id = data.ns_subdomain.id
+  env = data.ns_workspace.this.env
   nameservers = aws_route53_zone.this.name_servers
 }
 ```
 
 ## Argument Reference
 
-- `subdomain` - (Required) Name of auto-generated subdomain that already exists in Nullstone system. This should not include `nullstone.app`.
+- `subdomain_id` - (Required) Id of the subdomain that already exists in Nullstone system.
+  The subdomain in Nullstone represents the block. This represents the subdomain name created for each environment.
+- `env` - (Required) Name of the environment to create an autogen_subdomain in.
 - `nameservers` - (Required) A list of nameservers that refer to a DNS zone where this subdomain can delegate.
 
 ## Attributes Reference

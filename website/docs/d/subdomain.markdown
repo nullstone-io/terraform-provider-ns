@@ -34,4 +34,5 @@ output "subdomain_fqdn" {
 
 ## Attributes Reference
 
+* `id` - The id of the subdomain.
 * `dns_name` - The subdomain name that has been configured for this domain. An example would be `api`.
