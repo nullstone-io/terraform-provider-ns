@@ -64,23 +64,8 @@ func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]m
 			}
 		})
 	router.
-		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/subdomains/{subdomainId}/envs/{envName}/autogen_subdomain_delegation").
-		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			vars := mux.Vars(r)
-			orgName, subdomainId, env := vars["orgName"], vars["subdomainId"], vars["envName"]
-			delegation := findAutogenSubdomain(orgName, subdomainId, env)
-			if delegation != nil {
-				raw, _ := json.Marshal(delegation)
-				w.Write(raw)
-				return
-			} else {
-				http.NotFound(w, r)
-			}
-		})
-	router.
 		Methods(http.MethodPut).
-		Path("/orgs/{orgName}/subdomains/{subdomainId}/envs/{envName}/autogen_subdomain_delegation").
+		Path("/orgs/{orgName}/subdomains/{subdomainId}/envs/{envName}/autogen_subdomain/delegation").
 		Headers("Content-Type", "application/json").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
@@ -109,7 +94,7 @@ func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]m
 		})
 	router.
 		Methods(http.MethodDelete).
-		Path("/orgs/{orgName}/subdomains/{subdomainId}/envs/{envName}/autogen_subdomain_delegation").
+		Path("/orgs/{orgName}/subdomains/{subdomainId}/envs/{envName}/autogen_subdomain/delegation").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
 			orgName, subdomainId, env := vars["orgName"], vars["subdomainId"], vars["envName"]
