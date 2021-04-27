@@ -90,7 +90,7 @@ func (r *resourceAutogenSubdomainDelegation) Read(ctx context.Context, config ma
 	envName := extractStringFromConfig(config,"env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
-	autogenSubdomain, err := nsClient.AutogenSubdomainDelegation().Get(subdomainId, envName)
+	autogenSubdomain, err := nsClient.AutogenSubdomain().Get(subdomainId, envName)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
