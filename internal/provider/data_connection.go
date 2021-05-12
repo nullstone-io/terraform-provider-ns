@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"log"
 	"regexp"
@@ -85,6 +86,8 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 }
 
 func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
+	nsClient := api.Client{Config: d.p.NsConfig}
+
 	name := extractStringFromConfig(config, "name")
 	type_ := extractStringFromConfig(config, "type")
 	optional := extractBoolFromConfig(config, "optional")
@@ -113,22 +116,31 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		})
 	} else if workspace != nil {
 		workspaceId = workspace.Id()
-		stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.OrgName, *workspace)
+		nfWorkspace, err := nsClient.Workspaces().Get(workspace.StackName, workspace.BlockName, workspace.EnvName)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
-				Severity: tfprotov5.DiagnosticSeverityWarning,
-				Summary:  fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  fmt.Sprintf(`Unable to download find nullstone workspace %s/%s/%s`, workspace.StackName, workspace.BlockName, workspace.EnvName),
 				Detail:   err.Error(),
 			})
 		} else {
-			if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
+			stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.OrgName, nfWorkspace.Uid.String())
+			if err != nil {
 				diags = append(diags, &tfprotov5.Diagnostic{
 					Severity: tfprotov5.DiagnosticSeverityWarning,
-					Summary:  fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+					Summary:  fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
 					Detail:   err.Error(),
 				})
 			} else {
-				outputsValue = ov
+				if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
+					diags = append(diags, &tfprotov5.Diagnostic{
+						Severity: tfprotov5.DiagnosticSeverityWarning,
+						Summary:  fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+						Detail:   err.Error(),
+					})
+				} else {
+					outputsValue = ov
+				}
 			}
 		}
 	} else if !optional {
