@@ -40,7 +40,7 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 					Type:            tftypes.String,
 					Description:     "The name of the stack in nullstone that owns this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
-					Deprecated: 	 true,
+					Deprecated:      true,
 				},
 				{
 					Name:            "stack_name",
@@ -59,7 +59,7 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 					Type:            tftypes.String,
 					Description:     "The name of the environment in nullstone associated with this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
-					Deprecated: 	 true,
+					Deprecated:      true,
 				},
 				{
 					Name:            "env_name",
@@ -78,7 +78,7 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 					Type:            tftypes.String,
 					Description:     "The name of the block in nullstone associated with this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
-					Deprecated: 	 true,
+					Deprecated:      true,
 				},
 				{
 					Name:            "block_name",

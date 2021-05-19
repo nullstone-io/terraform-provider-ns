@@ -29,7 +29,7 @@ func extractIntFromConfig(config map[string]tftypes.Value, key string) int {
 	}
 	val := new(big.Float)
 	config[key].As(&val)
-	i,_ := val.Int64()
+	i, _ := val.Int64()
 	return int(i)
 }
 

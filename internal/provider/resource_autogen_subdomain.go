@@ -104,7 +104,7 @@ func (r *resourceAutogenSubdomain) Read(ctx context.Context, config map[string]t
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractIntFromConfig(config, "subdomain_id")
-	envName := extractStringFromConfig(config,"env")
+	envName := extractStringFromConfig(config, "env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
 	autogenSubdomain, err := nsClient.AutogenSubdomain().Get(subdomainId, envName)
@@ -138,7 +138,7 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractIntFromConfig(config, "subdomain_id")
-	envName := extractStringFromConfig(config,"env")
+	envName := extractStringFromConfig(config, "env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
 	if autogenSubdomain, err := nsClient.AutogenSubdomain().Create(subdomainId, envName); err != nil {
@@ -177,7 +177,7 @@ func (r *resourceAutogenSubdomain) Update(ctx context.Context, planned map[strin
 func (r *resourceAutogenSubdomain) Destroy(ctx context.Context, prior map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomainId := extractIntFromConfig(prior,"subdomain_id")
+	subdomainId := extractIntFromConfig(prior, "subdomain_id")
 	envName := extractStringFromConfig(prior, "env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}

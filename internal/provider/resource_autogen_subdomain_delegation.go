@@ -87,7 +87,7 @@ func (r *resourceAutogenSubdomainDelegation) Read(ctx context.Context, config ma
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractIntFromConfig(config, "subdomain_id")
-	envName := extractStringFromConfig(config,"env")
+	envName := extractStringFromConfig(config, "env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
 	autogenSubdomain, err := nsClient.AutogenSubdomain().Get(subdomainId, envName)
@@ -116,7 +116,7 @@ func (r *resourceAutogenSubdomainDelegation) Update(ctx context.Context, planned
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractIntFromConfig(config, "subdomain_id")
-	envName := extractStringFromConfig(config,"env")
+	envName := extractStringFromConfig(config, "env")
 
 	nameservers, _ := extractStringSliceFromConfig(planned, "nameservers")
 	autogenSubdomain := &types.AutogenSubdomain{Nameservers: nameservers}
@@ -147,7 +147,7 @@ func (r *resourceAutogenSubdomainDelegation) Destroy(ctx context.Context, prior 
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractIntFromConfig(prior, "subdomain_id")
-	envName := extractStringFromConfig(prior,"env")
+	envName := extractStringFromConfig(prior, "env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
 	if found, err := nsClient.AutogenSubdomainDelegation().Destroy(subdomainId, envName); err != nil {

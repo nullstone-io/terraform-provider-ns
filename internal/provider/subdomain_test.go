@@ -14,8 +14,8 @@ func mockNsServerWithSubdomains() http.Handler {
 		Path("/orgs/{orgName}/stacks/{stackName}/subdomains/{subdomainName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			subdomain := types.Subdomain{
-				DnsName: "api",
-				OrgName: "org0",
+				DnsName:   "api",
+				OrgName:   "org0",
 				StackName: "demo",
 			}
 			raw, _ := json.Marshal(subdomain)

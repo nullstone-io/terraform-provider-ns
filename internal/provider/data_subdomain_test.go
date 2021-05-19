@@ -30,8 +30,8 @@ data "ns_subdomain" "subdomain" {
 			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
 			Steps: []resource.TestStep{
 				{
-					Config: tfconfig,
-					Check:  checks,
+					Config:      tfconfig,
+					Check:       checks,
 					ExpectError: regexp.MustCompile(`The subdomain in the stack "demo" and block "api-subdomain" does not exist in nullstone.`),
 				},
 			},

@@ -13,11 +13,11 @@ import (
 
 func TestDataAppEnv(t *testing.T) {
 	core := &types.Stack{
-		IdModel:     types.IdModel{
+		IdModel: types.IdModel{
 			Id: 2,
 		},
-		Name:        "core",
-		OrgName:     "org0",
+		Name:    "core",
+		OrgName: "org0",
 	}
 	app1 := &types.Application{
 		IdModel: types.IdModel{
@@ -57,7 +57,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 	}
 	apps := []*types.Application{app1}
-	envs := []*types.Environment{dev,prod}
+	envs := []*types.Environment{dev, prod}
 
 	t.Run("sets up attributes properly with new AppEnv", func(t *testing.T) {
 		tfconfig := fmt.Sprintf(`
@@ -224,7 +224,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		Methods(http.MethodPut).
 		Path("/orgs/{orgName}/apps/{appId}/envs/{envName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			payload := struct{
+			payload := struct {
 				Version string `json:"version"`
 			}{}
 			decoder := json.NewDecoder(r.Body)

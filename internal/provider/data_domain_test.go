@@ -30,8 +30,8 @@ data "ns_domain" "domain" {
 			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
 			Steps: []resource.TestStep{
 				{
-					Config: tfconfig,
-					Check:  checks,
+					Config:      tfconfig,
+					Check:       checks,
 					ExpectError: regexp.MustCompile(`The domain in the stack "global" and block "nullstone-io" does not exist in nullstone.`),
 				},
 			},
