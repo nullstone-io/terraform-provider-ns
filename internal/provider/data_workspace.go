@@ -40,17 +40,56 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 					Type:            tftypes.String,
 					Description:     "The name of the stack in nullstone that owns this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
+					Deprecated: 	 true,
+				},
+				{
+					Name:            "stack_name",
+					Type:            tftypes.String,
+					Description:     "The stack name in nullstone that owns this workspace.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
+				{
+					Name:            "stack_ref",
+					Type:            tftypes.String,
+					Description:     "The stack reference in nullstone that owns this workspace.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
 					Name:            "env",
 					Type:            tftypes.String,
 					Description:     "The name of the environment in nullstone associated with this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
+					Deprecated: 	 true,
+				},
+				{
+					Name:            "env_name",
+					Type:            tftypes.String,
+					Description:     "The environment name in nullstone associated with this workspace.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
+				{
+					Name:            "env_ref",
+					Type:            tftypes.String,
+					Description:     "The environment reference in nullstone associated with this workspace.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
 					Name:            "block",
 					Type:            tftypes.String,
 					Description:     "The name of the block in nullstone associated with this workspace.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+					Deprecated: 	 true,
+				},
+				{
+					Name:            "block_name",
+					Type:            tftypes.String,
+					Description:     "The block name in nullstone associated with this workspace.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
+				{
+					Name:            "block_ref",
+					Type:            tftypes.String,
+					Description:     "The block reference in nullstone associated with this workspace.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
@@ -85,15 +124,15 @@ func (d *dataWorkspace) Validate(ctx context.Context, config map[string]tftypes.
 
 func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
 	envCurWorkspace := d.p.PlanConfig.WorkspaceTarget
-	stack := extractStringFromConfig(config, "stack")
+	stack := extractStringFromConfig(config, "stack_name")
 	if stack == "" {
 		stack = envCurWorkspace.StackName
 	}
-	env := extractStringFromConfig(config, "env")
+	env := extractStringFromConfig(config, "env_name")
 	if env == "" {
 		env = envCurWorkspace.EnvName
 	}
-	block := extractStringFromConfig(config, "block")
+	block := extractStringFromConfig(config, "block_name")
 	if block == "" {
 		block = envCurWorkspace.BlockName
 	}
@@ -115,8 +154,14 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"id":              tftypes.NewValue(tftypes.String, slashed),
 		"workspace_id":    tftypes.NewValue(tftypes.String, destWorkspace.Id()),
 		"stack":           tftypes.NewValue(tftypes.String, stack),
+		"stack_name":      tftypes.NewValue(tftypes.String, stack),
+		"stack_ref":       tftypes.NewValue(tftypes.String, stack),
 		"env":             tftypes.NewValue(tftypes.String, env),
+		"env_name":        tftypes.NewValue(tftypes.String, env),
+		"env_ref":         tftypes.NewValue(tftypes.String, env),
 		"block":           tftypes.NewValue(tftypes.String, block),
+		"block_name":      tftypes.NewValue(tftypes.String, block),
+		"block_ref":       tftypes.NewValue(tftypes.String, block),
 		"tags":            tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
 		"hyphenated_name": tftypes.NewValue(tftypes.String, hyphenated),
 		"slashed_name":    tftypes.NewValue(tftypes.String, slashed),

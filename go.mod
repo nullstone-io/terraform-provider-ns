@@ -12,5 +12,5 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.3.0
 	github.com/nullstone-io/module v0.2.3
 	github.com/stretchr/testify v1.5.1
-	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210427165902-c449f6ee2981
+	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210515005601-b1fbe9dd0f9a
 )

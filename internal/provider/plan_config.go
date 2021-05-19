@@ -14,10 +14,10 @@ type PlanConfig struct {
 func PlanConfigFromEnv() PlanConfig {
 	return PlanConfig{
 		WorkspaceTarget: types.WorkspaceTarget{
-			OrgName:   os.Getenv("NULLSTONE_ORG"),
-			StackName: os.Getenv("NULLSTONE_STACK"),
-			EnvName:   os.Getenv("NULLSTONE_ENV"),
-			BlockName: os.Getenv("NULLSTONE_BLOCK"),
+			OrgName:   os.Getenv("NULLSTONE_ORG_NAME"),
+			StackName: os.Getenv("NULLSTONE_STACK_NAME"),
+			EnvName:   os.Getenv("NULLSTONE_ENV_NAME"),
+			BlockName: os.Getenv("NULLSTONE_BLOCK_NAME"),
 		},
 	}
 }
