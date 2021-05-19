@@ -32,7 +32,7 @@ data "ns_subdomain" "subdomain" {
 				{
 					Config:      tfconfig,
 					Check:       checks,
-					ExpectError: regexp.MustCompile(`The subdomain in the stack "demo" and block "api-subdomain" does not exist in nullstone.`),
+					ExpectError: regexp.MustCompile(`The subdomain in the stack 100 and block 126 does not exist in nullstone.`),
 				},
 			},
 		})

@@ -32,7 +32,7 @@ data "ns_domain" "domain" {
 				{
 					Config:      tfconfig,
 					Check:       checks,
-					ExpectError: regexp.MustCompile(`The domain in the stack "global" and block "nullstone-io" does not exist in nullstone.`),
+					ExpectError: regexp.MustCompile(`The domain in the stack 100 and block 117 does not exist in nullstone.`),
 				},
 			},
 		})
