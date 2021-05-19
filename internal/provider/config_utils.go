@@ -33,6 +33,16 @@ func extractIntFromConfig(config map[string]tftypes.Value, key string) int {
 	return int(i)
 }
 
+func extractInt64FromConfig(config map[string]tftypes.Value, key string) int64 {
+	if config[key].IsNull() {
+		return -1
+	}
+	val := new(big.Float)
+	config[key].As(&val)
+	i, _ := val.Int64()
+	return i
+}
+
 func extractStringSliceFromConfig(config map[string]tftypes.Value, key string) ([]string, error) {
 	if config[key].IsNull() {
 		return make([]string, 0), nil
