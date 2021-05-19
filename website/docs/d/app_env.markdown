@@ -15,12 +15,11 @@ Data source to read information about an application in a specific environment.
 #### Basic example
 
 ```hcl
-data "ns_block" "this" {}
-data "ns_env" "this" {}
+data "ns_workspace" "this" {}
 
 data "ns_app_env" "this" {
-  app_id = data.ns_block.this.id
-  env_id = data.ns_env.this.id
+  app_id = data.ns_block.ns_workspace.block_id
+  env_id = data.ns_env.ns_workspace.env_id
 }
 
 locals {

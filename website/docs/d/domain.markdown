@@ -16,11 +16,11 @@ This data source allows users to read the dns_name in order to use the configure
 #### Example
 
 ```hcl
-data "ns_block" "this" {}
+data "ns_workspace" "this" {}
 
 data "ns_domain" "domain" {
-  stack_id = data.ns_block.this.stack_id
-  block_id = data.ns_block.this.id
+  stack_id = data.ns_workspace.this.stack_id
+  block_id = data.ns_workspace.this.block_id
 }
 
 output "domain_fqdn" {

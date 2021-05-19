@@ -17,11 +17,11 @@ The dns_name should be combined with the domain name in order to create a fqdn.
 #### Example
 
 ```hcl
-data "ns_block" "this" {}
+data "ns_workspace" "this" {}
 
 data "ns_subdomain" "subdomain" {
-  stack_id = data.ns_block.this.stack_id
-  block_id = data.ns_block.this.id
+  stack_id = data.ns_workspace.this.stack_id
+  block_id = data.ns_workspace.this.block_id
 }
 
 output "subdomain_fqdn" {
