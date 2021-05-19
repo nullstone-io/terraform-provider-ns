@@ -25,7 +25,7 @@ func TestDataAppEnv(t *testing.T) {
 				Id: 1,
 			},
 			OrgName:   "org0",
-			StackId: core.Id,
+			StackId:   core.Id,
 			StackName: core.Name,
 			Name:      "app1",
 			Reference: "yellow-giraffe",
@@ -37,7 +37,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "dev",
 		OrgName:   "org0",
-		StackId: core.Id,
+		StackId:   core.Id,
 		StackName: core.Name,
 	}
 	prod := &types.Environment{
@@ -46,7 +46,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "prod",
 		OrgName:   "org0",
-		StackId: core.Id,
+		StackId:   core.Id,
 		StackName: core.Name,
 	}
 
@@ -246,13 +246,13 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		Methods(http.MethodGet).
 		Path("/orgs/{orgName}/stacks_by_id/{stackId}/envs/{envId}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		if env := findEnv(vars["orgName"], vars["stackId"], vars["envId"]); env == nil {
-			http.NotFound(w, r)
-		} else {
-			raw, _ := json.Marshal(env)
-			w.Write(raw)
-		}
+			vars := mux.Vars(r)
+			if env := findEnv(vars["orgName"], vars["stackId"], vars["envId"]); env == nil {
+				http.NotFound(w, r)
+			} else {
+				raw, _ := json.Marshal(env)
+				w.Write(raw)
+			}
 		})
 	router.
 		Methods(http.MethodPut).

@@ -120,7 +120,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  fmt.Sprintf(`Unable to download find nullstone workspace %s`, workspace.Id()),
+				Summary:  fmt.Sprintf(`Unable to find nullstone workspace %s`, workspace.Id()),
 				Detail:   err.Error(),
 			})
 		} else {

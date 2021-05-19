@@ -178,15 +178,15 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	slashed := fmt.Sprintf("%s/%s/%s", stackName, envName, blockName)
 
 	return map[string]tftypes.Value{
-		"id":          tftypes.NewValue(tftypes.String, id),
-		"stack_id":    tftypes.NewValue(tftypes.Number, &stackId),
-		"stack_name":  tftypes.NewValue(tftypes.String, stackName),
-		"block_id":    tftypes.NewValue(tftypes.Number, &blockId),
-		"block_name":  tftypes.NewValue(tftypes.String, blockName),
-		"block_ref":   tftypes.NewValue(tftypes.String, blockRef),
-		"env_id":      tftypes.NewValue(tftypes.Number, &envId),
-		"env_name":    tftypes.NewValue(tftypes.String, envName),
-		"tags":        tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
+		"id":         tftypes.NewValue(tftypes.String, id),
+		"stack_id":   tftypes.NewValue(tftypes.Number, &stackId),
+		"stack_name": tftypes.NewValue(tftypes.String, stackName),
+		"block_id":   tftypes.NewValue(tftypes.Number, &blockId),
+		"block_name": tftypes.NewValue(tftypes.String, blockName),
+		"block_ref":  tftypes.NewValue(tftypes.String, blockRef),
+		"env_id":     tftypes.NewValue(tftypes.Number, &envId),
+		"env_name":   tftypes.NewValue(tftypes.String, envName),
+		"tags":       tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
 
 		// Deprecated
 		"workspace_id":    tftypes.NewValue(tftypes.String, id),
