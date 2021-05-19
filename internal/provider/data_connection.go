@@ -116,11 +116,11 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		})
 	} else if workspace != nil {
 		workspaceId = workspace.Id()
-		nfWorkspace, err := nsClient.Workspaces().Get(workspace.StackName, workspace.BlockName, workspace.EnvName)
+		nfWorkspace, err := nsClient.Workspaces().Get(workspace.StackId, workspace.BlockId, workspace.EnvId)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  fmt.Sprintf(`Unable to download find nullstone workspace %s/%s/%s`, workspace.StackName, workspace.BlockName, workspace.EnvName),
+				Summary:  fmt.Sprintf(`Unable to download find nullstone workspace %s`, workspace.Id()),
 				Detail:   err.Error(),
 			})
 		} else {
@@ -162,7 +162,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 }
 
 func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types.WorkspaceTarget, error) {
-	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget
+	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	log.Printf("(getConnectionWorkspace) Pulling connections for @ %s", sourceWorkspace.Id())
 	runConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, sourceWorkspace)
@@ -174,11 +174,11 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
 		viaWorkspaceConn, ok := runConfig.Connections[via]
-		if !ok || viaWorkspaceConn.Target == "" {
+		if !ok || viaWorkspaceConn.Reference == nil {
 			log.Printf("via connection (%s) was not found in %s", via, sourceWorkspace.Id())
 			return nil, nil
 		}
-		viaWorkspace := sourceWorkspace.FindRelativeConnection(viaWorkspaceConn.Target)
+		viaWorkspace := sourceWorkspace.FindRelativeConnection(*viaWorkspaceConn.Reference)
 		log.Printf("(getConnectionWorkspace) Pulling (via=%s) connections for %s", via, viaWorkspace.Id())
 		viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, viaWorkspace)
 		if err != nil {
@@ -189,14 +189,14 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 	}
 
 	conn, ok := runConfig.Connections[name]
-	if !ok || conn.Target == "" {
+	if !ok || conn.Reference == nil {
 		log.Printf("connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
 	}
 	if conn.Type != type_ {
 		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
 	}
-	found := sourceWorkspace.FindRelativeConnection(conn.Target)
+	found := sourceWorkspace.FindRelativeConnection(*conn.Reference)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
 	return &found, nil
 }

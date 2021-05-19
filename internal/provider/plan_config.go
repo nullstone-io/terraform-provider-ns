@@ -2,6 +2,7 @@ package provider
 
 import (
 	"encoding/json"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -19,6 +20,14 @@ type PlanConfig struct {
 
 	EnvId   int64  `json:"envId"`
 	EnvName string `json:"envName"`
+}
+
+func (c PlanConfig) WorkspaceTarget() types.WorkspaceTarget {
+	return types.WorkspaceTarget{
+		StackId: c.StackId,
+		BlockId: c.BlockId,
+		EnvId:   c.EnvId,
+	}
 }
 
 func PlanConfigFromEnv() PlanConfig {
