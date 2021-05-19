@@ -138,7 +138,7 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	planConfig := d.p.PlanConfig
 
 	stackId := extractInt64FromConfig(config, "stack_id")
-	if stackId == 0 {
+	if stackId <= 0 {
 		stackId = planConfig.StackId
 	}
 	stackName := extractStringFromConfig(config, "stack_name")
@@ -147,7 +147,7 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	}
 
 	blockId := extractInt64FromConfig(config, "block_id")
-	if blockId == 0 {
+	if blockId <= 0 {
 		blockId = planConfig.BlockId
 	}
 	blockName := extractStringFromConfig(config, "block_name")
@@ -160,7 +160,7 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	}
 
 	envId := extractInt64FromConfig(config, "env_id")
-	if envId == 0 {
+	if envId <= 0 {
 		envId = planConfig.EnvId
 	}
 	envName := extractStringFromConfig(config, "env_name")
