@@ -26,5 +26,3 @@ data "ns_workspace" "this" {
 * `env_id` - Workspace env ID. (Environment variable: `NULLSTONE_ENV_ID`)
 * `block_id` - Workspace block ID. (Environment variable: `NULLSTONE_BLOCK_ID`)
 * `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace.
-* `hyphenated_name` - A standard, unique, computed name for the workspace using '-' as a delimiter that is typically used for resource names.
-* `slashed_name` - A standard, unique, computed name for the workspace using '/' as a delimiter that is typically used for resource names.
