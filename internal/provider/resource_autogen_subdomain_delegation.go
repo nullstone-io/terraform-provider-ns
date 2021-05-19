@@ -114,7 +114,7 @@ func (r *resourceAutogenSubdomainDelegation) Update(ctx context.Context, planned
 	state := map[string]tftypes.Value{}
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomainId := extractInt64FromConfig(prior, "subdomain_id")
+	subdomainId := extractInt64FromConfig(config, "subdomain_id")
 	envName := extractStringFromConfig(config, "env")
 
 	nameservers, _ := extractStringSliceFromConfig(planned, "nameservers")

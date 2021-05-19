@@ -38,9 +38,9 @@ provider "ns" {
   organization = "org0"
 }
 resource "ns_autogen_subdomain_delegation" "to_fake" {
-  subdomain_id 	= 99
-  env 			= "prod"
-  nameservers 	= ["1.1.1.1","2.2.2.2","3.3.3.3"]
+  subdomain_id = 99
+  env 		   = "prod"
+  nameservers  = ["1.1.1.1","2.2.2.2","3.3.3.3"]
 }
 `)
 
