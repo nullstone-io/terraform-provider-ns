@@ -16,20 +16,22 @@ This data source allows users to read the dns_name in order to use the configure
 #### Example
 
 ```hcl
+data "ns_block" "this" {}
+
 data "ns_domain" "domain" {
-  stack = data.ns_workspace.stack
-  block = data.ns_workspace.block
+  stack_id = data.ns_block.this.stack_id
+  block_id = data.ns_block.this.id
 }
 
 output "domain_fqdn" {
-  value = data.ns_domain.dns_name
+  value = data.ns_domain.domain.dns_name
 }
 ```
 
 ## Argument Reference
 
-- `stack` - (Required) Name of the stack that the domain exists in.
-- `block` - (Required) Name of the domain/block that you are looking to fetch.
+- `stack_id` - (Required) ID of the stack that the domain exists in.
+- `block_id` - (Required) ID of the domain/block that you are looking to fetch.
 
 ## Attributes Reference
 

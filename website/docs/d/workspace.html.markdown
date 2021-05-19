@@ -21,10 +21,10 @@ data "ns_workspace" "this" {
 
 ## Attributes Reference
 
-* `workspace_id` - The fully qualified workspace ID. This follows the form `{stack}/{env}/{block}`.
-* `stack` - Workspace stack name. (Environment variable: `NULLSTONE_STACK`)
-* `env` - Workspace env name. (Environment variable: `NULLSTONE_ENV`)
-* `block` - Workspace block name. (Environment variable: `NULLSTONE_BLOCK`)
+* `workspace_id` - The fully qualified workspace ID. This follows the form `{stack_id}/{block_id}/{env_id}`.
+* `stack_id` - Workspace stack ID. (Environment variable: `NULLSTONE_STACK_ID`)
+* `env_id` - Workspace env ID. (Environment variable: `NULLSTONE_ENV_ID`)
+* `block_id` - Workspace block ID. (Environment variable: `NULLSTONE_BLOCK_ID`)
 * `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace.
 * `hyphenated_name` - A standard, unique, computed name for the workspace using '-' as a delimiter that is typically used for resource names.
 * `slashed_name` - A standard, unique, computed name for the workspace using '/' as a delimiter that is typically used for resource names.

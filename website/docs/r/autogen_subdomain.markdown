@@ -16,9 +16,17 @@ This resource allows users to delegate DNS records provisioned via Nullstone to 
 #### AWS Example
 
 ```hcl
+data "ns_block" "this" {}
+data "ns_env" "this" {}
+
+data "ns_subdomain" "subdomain" {
+  stack_id = data.ns_block.this.stack_id
+  block_id = data.ns_block.this.id
+}
+
 resource "ns_autogen_subdomain" "autogen_subdomain" {
-  subdomain_id = data.ns_subdomain.id
-  env = data.ns_workspace.this.env
+  subdomain_id = data.ns_subdomain.subdomain.id
+  env_id       = data.ns_env.this.id
 }
 
 resource "aws_route53_zone" "this" {
@@ -27,9 +35,9 @@ resource "aws_route53_zone" "this" {
 }
 
 resource "ns_autogen_subdomain_delegation" "to_aws" {
-  subdomain_id = data.ns_subdomain.id
-  env = data.ns_workspace.this.env
-  nameservers = aws_route53_zone.this.name_servers
+  subdomain_id = data.ns_subdomain.subdomain.id
+  env_id       = data.ns_env.this.id
+  nameservers  = aws_route53_zone.this.name_servers
 }
 ```
 
@@ -37,7 +45,7 @@ resource "ns_autogen_subdomain_delegation" "to_aws" {
 
 - `subdomain_id` - (Required) Id of the subdomain that already exists in Nullstone system.
   The subdomain in Nullstone represents the block. This represents the subdomain name created for each environment.
-- `env` - (Required) Name of the environment to create an autogen_subdomain in.
+- `env_id` - (Required) ID of the environment to create an autogen_subdomain in.
 
 ## Attributes Reference
 
