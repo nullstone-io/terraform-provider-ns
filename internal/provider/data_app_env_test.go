@@ -20,12 +20,15 @@ func TestDataAppEnv(t *testing.T) {
 		OrgName: "org0",
 	}
 	app1 := &types.Application{
-		IdModel: types.IdModel{
-			Id: 1,
+		Block: types.Block{
+			IdModel: types.IdModel{
+				Id: 1,
+			},
+			OrgName:   "org0",
+			StackName: core.Name,
+			Name:      "app1",
+			Reference: "yellow-giraffe",
 		},
-		Name:      "app1",
-		OrgName:   "org0",
-		StackName: core.Name,
 	}
 	dev := &types.Environment{
 		IdModel: types.IdModel{
@@ -66,22 +69,26 @@ provider "ns" {
 }
 
 data "ns_workspace" "this" {
-  stack = "core"
-  block = "app1"
-  env   = "dev"
+  stack_id   = "100"
+  stack_name = "stack0"
+  block_id   = "101"
+  block_name = "app1"
+  block_ref  = "yellow-giraffe"
+  env_id     = "102"
+  env_name   = "dev"
 }
 
 data "ns_app_env" "this" {
-  app   = data.ns_workspace.this.block
-  stack = data.ns_workspace.this.stack
-  env   = data.ns_workspace.this.env
+  app_id    = data.ns_workspace.this.block_id
+  stack_id  = data.ns_workspace.this.stack_id
+  env_id    = data.ns_workspace.this.env_id
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "10"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `app`, "app1"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack`, "core"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `env`, "dev"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "101"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "100"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "102"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, ""),
 		)
 
@@ -108,9 +115,13 @@ provider "ns" {
 }
 
 data "ns_workspace" "this" {
-  stack = "core"
-  block = "app1"
-  env   = "prod"
+  stack_id   = "100"
+  stack_name = "stack0"
+  block_id   = "101"
+  block_name = "app1"
+  block_ref  = "yellow-giraffe"
+  env_id     = "102"
+  env_name   = "dev"
 }
 
 data "ns_app_env" "this" {
@@ -121,9 +132,9 @@ data "ns_app_env" "this" {
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "5"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `app`, "app1"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack`, "core"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `env`, "prod"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "101"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "100"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "102"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, "1.0.0"),
 		)
 
@@ -147,7 +158,7 @@ data "ns_app_env" "this" {
 func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, envs []*types.Environment) http.Handler {
 	findApp := func(orgName, appIdStr string) *types.Application {
 		for _, app := range apps {
-			if app.OrgName == orgName && strconv.Itoa(app.Id) == appIdStr {
+			if app.OrgName == orgName && strconv.FormatInt(app.Id, 10) == appIdStr {
 				return app
 			}
 		}
@@ -163,7 +174,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 	}
 	getAppEnv := func(orgName, appIdStr, envName string) *types.AppEnv {
 		for _, existing := range *appEnvs {
-			if existing.App.OrgName == orgName && strconv.Itoa(existing.App.Id) == appIdStr &&
+			if existing.App.OrgName == orgName && strconv.FormatInt(existing.App.Id, 10) == appIdStr &&
 				existing.Env.OrgName == orgName && existing.Env.Name == envName {
 				return existing
 			}
