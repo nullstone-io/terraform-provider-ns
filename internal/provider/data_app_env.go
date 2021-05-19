@@ -144,15 +144,5 @@ func (d *dataAppEnv) findApp(stackId, appId int64) (*types.Application, error) {
 
 func (d *dataAppEnv) findEnv(stackId, envId int64) (*types.Environment, error) {
 	nsClient := api.Client{Config: d.p.NsConfig}
-	envs, err := nsClient.Environments().List(stackId)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, env := range envs {
-		if env.Id == envId {
-			return env, nil
-		}
-	}
-	return nil, nil
+	return nsClient.Environments().Get(stackId, envId)
 }

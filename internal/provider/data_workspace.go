@@ -120,7 +120,7 @@ This is typically used to construct unique resource names. See unique_name.`,
 		},
 		{
 			Name:            "unique_name",
-			Type:            tftypes.Map{AttributeType: tftypes.String},
+			Type:            tftypes.String,
 			Computed:        true,
 			Description:     "Used for creating infrastructure resource names. Composed as `{block_ref}.{random_string}`. `random_string` is 8 characters.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,

@@ -25,6 +25,7 @@ func TestDataAppEnv(t *testing.T) {
 				Id: 1,
 			},
 			OrgName:   "org0",
+			StackId: core.Id,
 			StackName: core.Name,
 			Name:      "app1",
 			Reference: "yellow-giraffe",
@@ -36,6 +37,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "dev",
 		OrgName:   "org0",
+		StackId: core.Id,
 		StackName: core.Name,
 	}
 	prod := &types.Environment{
@@ -44,6 +46,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "prod",
 		OrgName:   "org0",
+		StackId: core.Id,
 		StackName: core.Name,
 	}
 
@@ -69,26 +72,26 @@ provider "ns" {
 }
 
 data "ns_workspace" "this" {
-  stack_id   = "100"
+  stack_id   = 2
   stack_name = "stack0"
-  block_id   = "101"
+  block_id   = 1
   block_name = "app1"
   block_ref  = "yellow-giraffe"
-  env_id     = "102"
+  env_id     = 1
   env_name   = "dev"
 }
 
 data "ns_app_env" "this" {
-  app_id    = data.ns_workspace.this.block_id
-  stack_id  = data.ns_workspace.this.stack_id
-  env_id    = data.ns_workspace.this.env_id
+  stack_id = data.ns_workspace.this.stack_id
+  app_id   = data.ns_workspace.this.block_id
+  env_id   = data.ns_workspace.this.env_id
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "10"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "101"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "100"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "102"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "2"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "1"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, ""),
 		)
 
@@ -115,26 +118,26 @@ provider "ns" {
 }
 
 data "ns_workspace" "this" {
-  stack_id   = "100"
+  stack_id   = 2
   stack_name = "stack0"
-  block_id   = "101"
+  block_id   = 1
   block_name = "app1"
   block_ref  = "yellow-giraffe"
-  env_id     = "102"
-  env_name   = "dev"
+  env_id     = 2
+  env_name   = "prod"
 }
 
 data "ns_app_env" "this" {
-  app   = data.ns_workspace.this.block
-  stack = data.ns_workspace.this.stack
-  env   = data.ns_workspace.this.env
+  stack_id = data.ns_workspace.this.stack_id
+  app_id   = data.ns_workspace.this.block_id
+  env_id   = data.ns_workspace.this.env_id
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "5"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "101"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "100"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "102"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "2"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "2"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, "1.0.0"),
 		)
 
@@ -164,7 +167,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		}
 		return nil
 	}
-	findEnv := func(orgName, envName string) *types.Environment {
+	findEnvByName := func(orgName, envName string) *types.Environment {
 		for _, env := range envs {
 			if env.OrgName == orgName && env.Name == envName {
 				return env
@@ -172,9 +175,17 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		}
 		return nil
 	}
+	findEnv := func(orgName, stackId, envId string) *types.Environment {
+		for _, env := range envs {
+			if env.OrgName == orgName && fmt.Sprintf("%d", env.StackId) == stackId && fmt.Sprintf("%d", env.Id) == envId {
+				return env
+			}
+		}
+		return nil
+	}
 	getAppEnv := func(orgName, appIdStr, envName string) *types.AppEnv {
 		for _, existing := range *appEnvs {
-			if existing.App.OrgName == orgName && strconv.FormatInt(existing.App.Id, 10) == appIdStr &&
+			if existing.App.OrgName == orgName && fmt.Sprintf("%d", existing.App.Id) == appIdStr &&
 				existing.Env.OrgName == orgName && existing.Env.Name == envName {
 				return existing
 			}
@@ -183,7 +194,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 	}
 	addAppEnv := func(orgName, appIdStr, envName string) *types.AppEnv {
 		app := findApp(orgName, appIdStr)
-		env := findEnv(orgName, envName)
+		env := findEnvByName(orgName, envName)
 		if app == nil || env == nil {
 			return nil
 		}
@@ -230,6 +241,18 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 				raw, _ := json.Marshal(appEnv)
 				w.Write(raw)
 			}
+		})
+	router.
+		Methods(http.MethodGet).
+		Path("/orgs/{orgName}/stacks_by_id/{stackId}/envs/{envId}").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		if env := findEnv(vars["orgName"], vars["stackId"], vars["envId"]); env == nil {
+			http.NotFound(w, r)
+		} else {
+			raw, _ := json.Marshal(env)
+			w.Write(raw)
+		}
 		})
 	router.
 		Methods(http.MethodPut).
