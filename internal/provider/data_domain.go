@@ -88,8 +88,8 @@ func (d *dataDomain) Read(ctx context.Context, config map[string]tftypes.Value) 
 
 	return map[string]tftypes.Value{
 		"id":       tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", domainId)),
-		"stack_id": tftypes.NewValue(tftypes.String, stackId),
-		"block_id": tftypes.NewValue(tftypes.String, blockId),
+		"stack_id": tftypes.NewValue(tftypes.Number, &stackId),
+		"block_id": tftypes.NewValue(tftypes.Number, &blockId),
 		"dns_name": tftypes.NewValue(tftypes.String, dnsName),
 	}, diags, nil
 }

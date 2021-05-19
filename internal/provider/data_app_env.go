@@ -121,9 +121,9 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 
 	return map[string]tftypes.Value{
 		"id":       tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", appEnvId)),
-		"app_id":   tftypes.NewValue(tftypes.Number, appId),
-		"stack_id": tftypes.NewValue(tftypes.Number, stackId),
-		"env_id":   tftypes.NewValue(tftypes.Number, envId),
+		"app_id":   tftypes.NewValue(tftypes.Number, &appId),
+		"stack_id": tftypes.NewValue(tftypes.Number, &stackId),
+		"env_id":   tftypes.NewValue(tftypes.Number, &envId),
 		"version":  tftypes.NewValue(tftypes.String, appEnvVersion),
 	}, diags, nil
 }

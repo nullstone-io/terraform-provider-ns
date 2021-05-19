@@ -189,12 +189,12 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 
 	return map[string]tftypes.Value{
 		"id":          tftypes.NewValue(tftypes.String, id),
-		"stack_id":    tftypes.NewValue(tftypes.Number, stackId),
+		"stack_id":    tftypes.NewValue(tftypes.Number, &stackId),
 		"stack_name":  tftypes.NewValue(tftypes.String, stackName),
-		"block_id":    tftypes.NewValue(tftypes.Number, blockId),
+		"block_id":    tftypes.NewValue(tftypes.Number, &blockId),
 		"block_name":  tftypes.NewValue(tftypes.String, blockName),
 		"block_ref":   tftypes.NewValue(tftypes.String, blockRef),
-		"env_id":      tftypes.NewValue(tftypes.Number, envId),
+		"env_id":      tftypes.NewValue(tftypes.Number, &envId),
 		"env_name":    tftypes.NewValue(tftypes.String, envName),
 		"tags":        tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
 		"unique_name": tftypes.NewValue(tftypes.String, uniqueName),
