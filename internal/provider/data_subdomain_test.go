@@ -15,8 +15,8 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_subdomain" "subdomain" {
-  stack = "demo"
-  block = "api-subdomain"
+  stack_id = 100
+  block_id = 126
 }
 `)
 
@@ -44,8 +44,8 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_subdomain" "subdomain" {
-  stack = "demo"
-  block = "api-subdomain"
+  stack_id = 100
+  block_id = 123
 }
 `)
 
