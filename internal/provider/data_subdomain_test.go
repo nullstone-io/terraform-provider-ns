@@ -50,8 +50,8 @@ data "ns_subdomain" "subdomain" {
 `)
 
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `stack`, "demo"),
-			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `block`, "api-subdomain"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `stack_id`, "100"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `block_id`, "123"),
 			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `dns_name`, "api"),
 		)
 

@@ -15,8 +15,8 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_domain" "domain" {
-  stack = "global"
-  block = "nullstone-io"
+  stack_id = 100
+  block_id = 117
 }
 `)
 
@@ -44,14 +44,14 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_domain" "domain" {
-  stack = "global"
-  block = "nullstone-io"
+  stack_id = 100
+  block_id = 117
 }
 `)
 
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_domain.domain", `stack`, "global"),
-			resource.TestCheckResourceAttr("data.ns_domain.domain", `block`, "nullstone-io"),
+			resource.TestCheckResourceAttr("data.ns_domain.domain", `stack_id`, "100"),
+			resource.TestCheckResourceAttr("data.ns_domain.domain", `block_id`, "117"),
 			resource.TestCheckResourceAttr("data.ns_domain.domain", `dns_name`, "nullstone.io"),
 		)
 
