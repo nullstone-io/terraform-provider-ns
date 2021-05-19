@@ -9,7 +9,6 @@ import (
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
-	"strconv"
 )
 
 type resourceAutogenSubdomainDelegation struct {
@@ -86,7 +85,7 @@ func (r *resourceAutogenSubdomainDelegation) Read(ctx context.Context, config ma
 	state := map[string]tftypes.Value{}
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomainId := extractIntFromConfig(config, "subdomain_id")
+	subdomainId := extractInt64FromConfig(config, "subdomain_id")
 	envName := extractStringFromConfig(config, "env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
@@ -98,7 +97,7 @@ func (r *resourceAutogenSubdomainDelegation) Read(ctx context.Context, config ma
 			Detail:   err.Error(),
 		})
 	} else {
-		state["id"] = tftypes.NewValue(tftypes.String, strconv.Itoa(autogenSubdomain.Id))
+		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
 		state["env"] = tftypes.NewValue(tftypes.String, envName)
 		state["nameservers"] = ns.NameserversToProtov5(autogenSubdomain.Nameservers)
@@ -115,7 +114,7 @@ func (r *resourceAutogenSubdomainDelegation) Update(ctx context.Context, planned
 	state := map[string]tftypes.Value{}
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomainId := extractIntFromConfig(config, "subdomain_id")
+	subdomainId := extractInt64FromConfig(prior, "subdomain_id")
 	envName := extractStringFromConfig(config, "env")
 
 	nameservers, _ := extractStringSliceFromConfig(planned, "nameservers")
@@ -134,7 +133,7 @@ func (r *resourceAutogenSubdomainDelegation) Update(ctx context.Context, planned
 			Summary:  fmt.Sprintf("The autogen_subdomain_delegation for the subdomain %d and env %q is missing.", subdomainId, envName),
 		})
 	} else {
-		state["id"] = tftypes.NewValue(tftypes.String, strconv.Itoa(autogenSubdomain.Id))
+		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
 		state["env"] = tftypes.NewValue(tftypes.String, envName)
 		state["nameservers"] = ns.NameserversToProtov5(autogenSubdomain.Nameservers)
@@ -146,7 +145,7 @@ func (r *resourceAutogenSubdomainDelegation) Update(ctx context.Context, planned
 func (r *resourceAutogenSubdomainDelegation) Destroy(ctx context.Context, prior map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	subdomainId := extractIntFromConfig(prior, "subdomain_id")
+	subdomainId := extractInt64FromConfig(prior, "subdomain_id")
 	envName := extractStringFromConfig(prior, "env")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
