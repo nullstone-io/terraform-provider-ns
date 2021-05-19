@@ -118,13 +118,6 @@ This is typically used to construct unique resource names. See unique_name.`,
 			Description:     "A default list of tags including all nullstone configuration for this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 		},
-		{
-			Name:            "unique_name",
-			Type:            tftypes.String,
-			Computed:        true,
-			Description:     "Used for creating infrastructure resource names. Composed as `{block_ref}.{random_string}`. `random_string` is 8 characters.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-		},
 	}
 
 	return &tfprotov5.Schema{
@@ -184,9 +177,6 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	hyphenated := fmt.Sprintf("%s-%s-%s", stackName, envName, blockName)
 	slashed := fmt.Sprintf("%s/%s/%s", stackName, envName, blockName)
 
-	randomString := generateRandomString(8, false, true, false)
-	uniqueName := fmt.Sprintf("%s-%s", blockRef, randomString)
-
 	return map[string]tftypes.Value{
 		"id":          tftypes.NewValue(tftypes.String, id),
 		"stack_id":    tftypes.NewValue(tftypes.Number, &stackId),
@@ -197,7 +187,6 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"env_id":      tftypes.NewValue(tftypes.Number, &envId),
 		"env_name":    tftypes.NewValue(tftypes.String, envName),
 		"tags":        tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
-		"unique_name": tftypes.NewValue(tftypes.String, uniqueName),
 
 		// Deprecated
 		"workspace_id":    tftypes.NewValue(tftypes.String, id),

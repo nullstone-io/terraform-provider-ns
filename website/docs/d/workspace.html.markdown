@@ -30,7 +30,6 @@ data "ns_workspace" "this" {
 * `env_id` - Workspace environment ID. (Environment variable: `NULLSTONE_ENV_ID`)
 * `env_name` - Workspace environment name. (Environment variable: `NULLSTONE_ENV_NAME`)
 * `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace.
-* `unique_name` - A combination of `block_ref` and a random string. Used for creating infrastructure resource names.
 
 #### Deprecated
 
@@ -38,5 +37,5 @@ data "ns_workspace" "this" {
 * `stack` - Use `stack_name` instead.
 * `env` - Use `env_name` instead.
 * `block` - Use `block_name` instead.
-* `hyphenated_name` - Use `unique_name` instead.
-* `slashed_name` - Use `unique_name` instead. 
+* `hyphenated_name`
+* `slashed_name` 
