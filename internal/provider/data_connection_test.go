@@ -15,27 +15,46 @@ import (
 )
 
 func TestDataConnection(t *testing.T) {
-	os.Setenv("NULLSTONE_STACK", "stack0")
-	os.Setenv("NULLSTONE_ENV", "env0")
-	os.Setenv("NULLSTONE_BLOCK", "faceless")
+	os.Setenv("NULLSTONE_STACK_ID", "100")
+	os.Setenv("NULLSTONE_STACK_NAME", "stack0")
+	os.Setenv("NULLSTONE_BLOCK_ID", "101")
+	os.Setenv("NULLSTONE_BLOCK_NAME", "faceless")
+	os.Setenv("NULLSTONE_ENV_ID", "102")
+	os.Setenv("NULLSTONE_ENV_NAME", "env0")
 	uid1 := uuid.New()
 	uid2 := uuid.New()
-	workspaces := []types.Workspace{
-		{
-			UidCreatedModel: types.UidCreatedModel{Uid: uid1},
-			OrgName:         "org0",
-			StackName:       "stack0",
-			EnvName:         "env0",
-			BlockName:       "faceless",
-		},
-		{
-			UidCreatedModel: types.UidCreatedModel{Uid: uid2},
-			OrgName:         "org0",
-			StackName:       "stack0",
-			EnvName:         "env0",
-			BlockName:       "lycan",
-		},
+	uid3 := uuid.New()
+	facelessEnv0 := types.Workspace{
+		UidCreatedModel: types.UidCreatedModel{Uid: uid1},
+		OrgName:         "org0",
+		StackId:         100,
+		StackName:       "stack0",
+		BlockId:         101,
+		BlockName:       "faceless",
+		EnvId:           102,
+		EnvName:         "env0",
 	}
+	lycanEnv0 := types.Workspace{
+		UidCreatedModel: types.UidCreatedModel{Uid: uid2},
+		OrgName:         "org0",
+		StackId:         100,
+		StackName:       "stack0",
+		BlockId:         103,
+		BlockName:       "lycan",
+		EnvId:           102,
+		EnvName:         "env0",
+	}
+	rikiEnv0 := types.Workspace{
+		UidCreatedModel: types.UidCreatedModel{Uid: uid3},
+		OrgName:         "org0",
+		StackId:         100,
+		StackName:       "stack0",
+		BlockId:         105,
+		BlockName:       "rikimaru",
+		EnvId:           102,
+		EnvName:         "env0",
+	}
+	workspaces := []types.Workspace{facelessEnv0, lycanEnv0, rikiEnv0}
 	runConfigs := map[string]types.RunConfig{
 		uid1.String(): {
 			WorkspaceUid: uid1,
@@ -46,6 +65,10 @@ func TestDataConnection(t *testing.T) {
 						Optional: false,
 					},
 					Target: "lycan",
+					Reference: &types.BlockConnection{
+						StackId: lycanEnv0.StackId,
+						BlockId: lycanEnv0.BlockId,
+					},
 					Unused: false,
 				},
 			},
@@ -59,6 +82,10 @@ func TestDataConnection(t *testing.T) {
 						Optional: false,
 					},
 					Target: "rikimaru",
+					Reference: &types.BlockConnection{
+						StackId: rikiEnv0.StackId,
+						BlockId: rikiEnv0.BlockId,
+					},
 					Unused: false,
 				},
 			},
@@ -136,7 +163,7 @@ data "ns_connection" "cluster" {
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "org0/stack0/lycan/env0"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "100/103/102"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
@@ -146,7 +173,7 @@ data "ns_connection" "cluster" {
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru())
+		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
@@ -177,19 +204,19 @@ data "ns_connection" "network" {
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "org0/stack0/lycan/env0"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "100/103/102"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key2`, "value2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
-			resource.TestCheckResourceAttr("data.ns_connection.network", `workspace_id`, "org0/stack0/rikimaru/env0"),
+			resource.TestCheckResourceAttr("data.ns_connection.network", `workspace_id`, "100/105/102"),
 			resource.TestCheckResourceAttr("data.ns_connection.network", `outputs.placeholder`, "value"),
 		)
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru())
+		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
@@ -208,15 +235,17 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 	router := mux.NewRouter()
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/stacks/{stackName}/blocks/{blockName}/envs/{envName}").
+		Path("/orgs/{orgName}/stacks/{stackId}/blocks/{blockId}/envs/{envId}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
-			orgName, stackName := vars["orgName"], vars["stackName"]
-			blockName, envName := vars["blockName"], vars["envName"]
+			orgName, stackId := vars["orgName"], vars["stackId"]
+			blockId, envId := vars["blockId"], vars["envId"]
 			for _, workspace := range workspaces {
 
-				if workspace.OrgName == orgName && workspace.StackName == stackName &&
-					workspace.EnvName == envName && workspace.BlockName == blockName {
+				if workspace.OrgName == orgName &&
+					fmt.Sprintf("%d", workspace.StackId) == stackId &&
+					fmt.Sprintf("%d", workspace.BlockId) == blockId &&
+					fmt.Sprintf("%d", workspace.EnvId) == envId {
 					raw, _ := json.Marshal(workspace)
 					w.Write(raw)
 					return
@@ -225,12 +254,12 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 		})
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/stacks/{stackName}/workspaces/{workspaceUid}/run-configs/latest").
+		Path("/orgs/{orgName}/stacks/{stackId}/workspaces/{workspaceUid}/run-configs/latest").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
-			orgName, stackName, workspaceUidStr := vars["orgName"], vars["stackName"], vars["workspaceUid"]
+			orgName, stackId, workspaceUidStr := vars["orgName"], vars["stackId"], vars["workspaceUid"]
 			for _, workspace := range workspaces {
-				if workspace.OrgName == orgName && workspace.StackName == stackName {
+				if workspace.OrgName == orgName && fmt.Sprintf("%d", workspace.StackId) == stackId {
 					if workspace.Uid.String() != workspaceUidStr {
 						continue
 					} else if rc, ok := runConfigs[workspaceUidStr]; !ok {
@@ -248,9 +277,9 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 	return router
 }
 
-func mockServerWithLycanAndRikimaru() http.Handler {
+func mockServerWithLycanAndRikimaru(lycanEnv0 types.Workspace, rikiEnv0 types.Workspace) http.Handler {
 	workspaces := map[string]json.RawMessage{
-		"stack0-env0-lycan": json.RawMessage(`{
+		lycanEnv0.Uid.String(): json.RawMessage(`{
   "data": {
     "id": "cb30d6ab-1a9e-4c7c-aaf2-9dc9f33eeabc",
     "type": "workspaces",
@@ -267,7 +296,7 @@ func mockServerWithLycanAndRikimaru() http.Handler {
     }
   }
 }`),
-		"stack0-env0-rikimaru": json.RawMessage(`{
+		rikiEnv0.Uid.String(): json.RawMessage(`{
   "data": {
     "id": "ce69c4d8-5c90-41ab-a0ba-3ef770efbdb1",
     "type": "workspaces",

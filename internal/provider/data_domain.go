@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"gopkg.in/nullstone-io/go-api-client.v0"
-	"strconv"
 )
 
 type dataDomain struct {
@@ -29,16 +28,16 @@ func (*dataDomain) Schema(ctx context.Context) *tfprotov5.Schema {
 			Attributes: []*tfprotov5.SchemaAttribute{
 				deprecatedIDAttribute(),
 				{
-					Name:            "stack",
-					Type:            tftypes.String,
-					Description:     "The domain belongs to this stack",
+					Name:            "stack_id",
+					Type:            tftypes.Number,
+					Description:     "The stack ID that owns this subdomain",
 					Required:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
-					Name:            "block",
-					Type:            tftypes.String,
-					Description:     "The domain belongs to this block (in the specified stack)",
+					Name:            "block_id",
+					Type:            tftypes.Number,
+					Description:     "The block ID of the subdomain (in the specified stack)",
 					Required:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
@@ -64,13 +63,13 @@ func (d *dataDomain) Read(ctx context.Context, config map[string]tftypes.Value) 
 
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	stack := extractStringFromConfig(config, "stack")
-	block := extractStringFromConfig(config, "block")
+	stackId := extractInt64FromConfig(config, "stack_id")
+	blockId := extractInt64FromConfig(config, "block_id")
 
-	var domainId int
+	var domainId int64
 	var dnsName string
 
-	domain, err := nsClient.Domains().Get(stack, block)
+	domain, err := nsClient.Domains().Get(blockId)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -83,14 +82,14 @@ func (d *dataDomain) Read(ctx context.Context, config map[string]tftypes.Value) 
 	} else {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("The domain in the stack %q and block %q does not exist in nullstone.", stack, block),
+			Summary:  fmt.Sprintf("The domain in the stack %d and block %d does not exist in nullstone.", stackId, blockId),
 		})
 	}
 
 	return map[string]tftypes.Value{
-		"id":       tftypes.NewValue(tftypes.String, strconv.Itoa(domainId)),
-		"stack":    tftypes.NewValue(tftypes.String, stack),
-		"block":    tftypes.NewValue(tftypes.String, block),
+		"id":       tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", domainId)),
+		"stack_id": tftypes.NewValue(tftypes.Number, &stackId),
+		"block_id": tftypes.NewValue(tftypes.Number, &blockId),
 		"dns_name": tftypes.NewValue(tftypes.String, dnsName),
 	}, diags, nil
 }

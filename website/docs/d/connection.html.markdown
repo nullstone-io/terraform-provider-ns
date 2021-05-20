@@ -56,5 +56,5 @@ data "ns_connection" "network" {
 * `type` - Type of nullstone module to make connection.
 * `optional` - By default, if this connection has not been configured, this causes an error. Set to true to disable. (Default: `false`)
 * `via` - Name of connection to satisfy this connection through. Typically, this is set to `data.ns_connection.other.name`.
-* `workspace_id` - This refers to the workspace in nullstone. This follows the form `{stack}/{env}/{block}`.
+* `workspace_id` - This refers to the workspace in nullstone. This follows the form `{stack_id}/{block_id}/{env_id}`.
 - `outputs` - An object containing every root-level output in the remote state. This attribute is interchangeable for `data.terraform_remote_state.outputs`.

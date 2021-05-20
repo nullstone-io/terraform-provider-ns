@@ -17,20 +17,22 @@ The dns_name should be combined with the domain name in order to create a fqdn.
 #### Example
 
 ```hcl
+data "ns_workspace" "this" {}
+
 data "ns_subdomain" "subdomain" {
-  stack = data.ns_workspace.stack
-  block = data.ns_workspace.block
+  stack_id = data.ns_workspace.this.stack_id
+  block_id = data.ns_workspace.this.block_id
 }
 
 output "subdomain_fqdn" {
-  value = data.ns_subdomain.dns_name
+  value = data.ns_subdomain.subdomain.dns_name
 }
 ```
 
 ## Argument Reference
 
-- `stack` - (Required) Name of the stack that the subdomain exists in.
-- `block` - (Required) Name of the subdomain/block that you are looking to fetch.
+- `stack_id` - (Required) ID of the stack that the subdomain exists in.
+- `block_id` - (Required) ID of the subdomain/block that you are looking to fetch.
 
 ## Attributes Reference
 

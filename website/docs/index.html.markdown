@@ -18,9 +18,9 @@ Use the navigation to the left to read about the available resources.
 provider "ns" {
 }
 
-# Example resource configuration
-resource "ns_workspace" "example" {
-}
+data "ns_block" "this" {}
+data "ns_env" "this" {}
+data "ns_workspace" this {}
 ```
 
 ## Server Authentication
@@ -49,16 +49,24 @@ The following is an example `.nullstone.json`.
 ```json
 {
   "orgName": "nullstone",
+  "stackId": 100,
   "stackName": "core",
-  "envName": "prod",
-  "blockName": "fargate0"
+  "blockId": 101,
+  "blockName": "fargate0",
+  "blockRef": "yellow-giraffe",
+  "envId": 102,
+  "envName": "prod"
 }
 ```
 
 The following environment file describes the same information as above.
 ```
-NULLSTONE_ORG=nullstone
-NULLSTONE_BLOCK=core
-NULLSTONE_ENV=prod
-NULLSTONE_STACK=fargate0
+NULLSTONE_ORG_NAME=nullstone
+NULLSTONE_STACK_ID=100
+NULLSTONE_STACK_NAME=fargate0
+NULLSTONE_BLOCK_ID=101
+NULLSTONE_BLOCK_NAME=core
+NULLSTONE_BLOCK_REF=yellow-giraffe
+NULLSTONE_ENV_ID=102
+NULLSTONE_ENV_NAME=prod
 ```

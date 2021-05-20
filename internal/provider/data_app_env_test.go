@@ -13,19 +13,23 @@ import (
 
 func TestDataAppEnv(t *testing.T) {
 	core := &types.Stack{
-		IdModel:     types.IdModel{
+		IdModel: types.IdModel{
 			Id: 2,
 		},
-		Name:        "core",
-		OrgName:     "org0",
+		Name:    "core",
+		OrgName: "org0",
 	}
 	app1 := &types.Application{
-		IdModel: types.IdModel{
-			Id: 1,
+		Block: types.Block{
+			IdModel: types.IdModel{
+				Id: 1,
+			},
+			OrgName:   "org0",
+			StackId:   core.Id,
+			StackName: core.Name,
+			Name:      "app1",
+			Reference: "yellow-giraffe",
 		},
-		Name:      "app1",
-		OrgName:   "org0",
-		StackName: core.Name,
 	}
 	dev := &types.Environment{
 		IdModel: types.IdModel{
@@ -33,6 +37,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "dev",
 		OrgName:   "org0",
+		StackId:   core.Id,
 		StackName: core.Name,
 	}
 	prod := &types.Environment{
@@ -41,6 +46,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 		Name:      "prod",
 		OrgName:   "org0",
+		StackId:   core.Id,
 		StackName: core.Name,
 	}
 
@@ -57,7 +63,7 @@ func TestDataAppEnv(t *testing.T) {
 		},
 	}
 	apps := []*types.Application{app1}
-	envs := []*types.Environment{dev,prod}
+	envs := []*types.Environment{dev, prod}
 
 	t.Run("sets up attributes properly with new AppEnv", func(t *testing.T) {
 		tfconfig := fmt.Sprintf(`
@@ -66,22 +72,26 @@ provider "ns" {
 }
 
 data "ns_workspace" "this" {
-  stack = "core"
-  block = "app1"
-  env   = "dev"
+  stack_id   = 2
+  stack_name = "stack0"
+  block_id   = 1
+  block_name = "app1"
+  block_ref  = "yellow-giraffe"
+  env_id     = 1
+  env_name   = "dev"
 }
 
 data "ns_app_env" "this" {
-  app   = data.ns_workspace.this.block
-  stack = data.ns_workspace.this.stack
-  env   = data.ns_workspace.this.env
+  stack_id = data.ns_workspace.this.stack_id
+  app_id   = data.ns_workspace.this.block_id
+  env_id   = data.ns_workspace.this.env_id
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "10"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `app`, "app1"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack`, "core"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `env`, "dev"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "2"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "1"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, ""),
 		)
 
@@ -108,22 +118,26 @@ provider "ns" {
 }
 
 data "ns_workspace" "this" {
-  stack = "core"
-  block = "app1"
-  env   = "prod"
+  stack_id   = 2
+  stack_name = "stack0"
+  block_id   = 1
+  block_name = "app1"
+  block_ref  = "yellow-giraffe"
+  env_id     = 2
+  env_name   = "prod"
 }
 
 data "ns_app_env" "this" {
-  app   = data.ns_workspace.this.block
-  stack = data.ns_workspace.this.stack
-  env   = data.ns_workspace.this.env
+  stack_id = data.ns_workspace.this.stack_id
+  app_id   = data.ns_workspace.this.block_id
+  env_id   = data.ns_workspace.this.env_id
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "5"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `app`, "app1"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack`, "core"),
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `env`, "prod"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "2"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "2"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, "1.0.0"),
 		)
 
@@ -147,13 +161,13 @@ data "ns_app_env" "this" {
 func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, envs []*types.Environment) http.Handler {
 	findApp := func(orgName, appIdStr string) *types.Application {
 		for _, app := range apps {
-			if app.OrgName == orgName && strconv.Itoa(app.Id) == appIdStr {
+			if app.OrgName == orgName && strconv.FormatInt(app.Id, 10) == appIdStr {
 				return app
 			}
 		}
 		return nil
 	}
-	findEnv := func(orgName, envName string) *types.Environment {
+	findEnvByName := func(orgName, envName string) *types.Environment {
 		for _, env := range envs {
 			if env.OrgName == orgName && env.Name == envName {
 				return env
@@ -161,9 +175,17 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		}
 		return nil
 	}
+	findEnv := func(orgName, stackId, envId string) *types.Environment {
+		for _, env := range envs {
+			if env.OrgName == orgName && fmt.Sprintf("%d", env.StackId) == stackId && fmt.Sprintf("%d", env.Id) == envId {
+				return env
+			}
+		}
+		return nil
+	}
 	getAppEnv := func(orgName, appIdStr, envName string) *types.AppEnv {
 		for _, existing := range *appEnvs {
-			if existing.App.OrgName == orgName && strconv.Itoa(existing.App.Id) == appIdStr &&
+			if existing.App.OrgName == orgName && fmt.Sprintf("%d", existing.App.Id) == appIdStr &&
 				existing.Env.OrgName == orgName && existing.Env.Name == envName {
 				return existing
 			}
@@ -172,7 +194,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 	}
 	addAppEnv := func(orgName, appIdStr, envName string) *types.AppEnv {
 		app := findApp(orgName, appIdStr)
-		env := findEnv(orgName, envName)
+		env := findEnvByName(orgName, envName)
 		if app == nil || env == nil {
 			return nil
 		}
@@ -221,10 +243,22 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 			}
 		})
 	router.
+		Methods(http.MethodGet).
+		Path("/orgs/{orgName}/stacks_by_id/{stackId}/envs/{envId}").
+		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			vars := mux.Vars(r)
+			if env := findEnv(vars["orgName"], vars["stackId"], vars["envId"]); env == nil {
+				http.NotFound(w, r)
+			} else {
+				raw, _ := json.Marshal(env)
+				w.Write(raw)
+			}
+		})
+	router.
 		Methods(http.MethodPut).
 		Path("/orgs/{orgName}/apps/{appId}/envs/{envName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			payload := struct{
+			payload := struct {
 				Version string `json:"version"`
 			}{}
 			decoder := json.NewDecoder(r.Body)

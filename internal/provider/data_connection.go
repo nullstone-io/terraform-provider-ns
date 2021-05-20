@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
+	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"log"
 	"regexp"
@@ -85,6 +86,8 @@ func (d *dataConnection) Validate(ctx context.Context, config map[string]tftypes
 }
 
 func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
+	nsClient := api.Client{Config: d.p.NsConfig}
+
 	name := extractStringFromConfig(config, "name")
 	type_ := extractStringFromConfig(config, "type")
 	optional := extractBoolFromConfig(config, "optional")
@@ -113,22 +116,31 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		})
 	} else if workspace != nil {
 		workspaceId = workspace.Id()
-		stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.OrgName, *workspace)
+		nfWorkspace, err := nsClient.Workspaces().Get(workspace.StackId, workspace.BlockId, workspace.EnvId)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
-				Severity: tfprotov5.DiagnosticSeverityWarning,
-				Summary:  fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  fmt.Sprintf(`Unable to find nullstone workspace %s`, workspace.Id()),
 				Detail:   err.Error(),
 			})
 		} else {
-			if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
+			stateFile, err := ns.GetStateFile(d.p.TfeClient, d.p.PlanConfig.OrgName, nfWorkspace.Uid.String())
+			if err != nil {
 				diags = append(diags, &tfprotov5.Diagnostic{
 					Severity: tfprotov5.DiagnosticSeverityWarning,
-					Summary:  fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+					Summary:  fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
 					Detail:   err.Error(),
 				})
 			} else {
-				outputsValue = ov
+				if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
+					diags = append(diags, &tfprotov5.Diagnostic{
+						Severity: tfprotov5.DiagnosticSeverityWarning,
+						Summary:  fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+						Detail:   err.Error(),
+					})
+				} else {
+					outputsValue = ov
+				}
 			}
 		}
 	} else if !optional {
@@ -150,7 +162,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 }
 
 func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types.WorkspaceTarget, error) {
-	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget
+	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	log.Printf("(getConnectionWorkspace) Pulling connections for @ %s", sourceWorkspace.Id())
 	runConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, sourceWorkspace)
@@ -162,11 +174,11 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
 		viaWorkspaceConn, ok := runConfig.Connections[via]
-		if !ok || viaWorkspaceConn.Target == "" {
+		if !ok || viaWorkspaceConn.Reference == nil {
 			log.Printf("via connection (%s) was not found in %s", via, sourceWorkspace.Id())
 			return nil, nil
 		}
-		viaWorkspace := sourceWorkspace.FindRelativeConnection(viaWorkspaceConn.Target)
+		viaWorkspace := sourceWorkspace.FindRelativeConnection(*viaWorkspaceConn.Reference)
 		log.Printf("(getConnectionWorkspace) Pulling (via=%s) connections for %s", via, viaWorkspace.Id())
 		viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, viaWorkspace)
 		if err != nil {
@@ -177,14 +189,14 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 	}
 
 	conn, ok := runConfig.Connections[name]
-	if !ok || conn.Target == "" {
+	if !ok || conn.Reference == nil {
 		log.Printf("connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
 	}
 	if conn.Type != type_ {
 		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
 	}
-	found := sourceWorkspace.FindRelativeConnection(conn.Target)
+	found := sourceWorkspace.FindRelativeConnection(*conn.Reference)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
 	return &found, nil
 }

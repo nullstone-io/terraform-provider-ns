@@ -15,8 +15,8 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_subdomain" "subdomain" {
-  stack = "demo"
-  block = "api-subdomain"
+  stack_id = 100
+  block_id = 126
 }
 `)
 
@@ -30,9 +30,9 @@ data "ns_subdomain" "subdomain" {
 			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
 			Steps: []resource.TestStep{
 				{
-					Config: tfconfig,
-					Check:  checks,
-					ExpectError: regexp.MustCompile(`The subdomain in the stack "demo" and block "api-subdomain" does not exist in nullstone.`),
+					Config:      tfconfig,
+					Check:       checks,
+					ExpectError: regexp.MustCompile(`The subdomain in the stack 100 and block 126 does not exist in nullstone.`),
 				},
 			},
 		})
@@ -44,14 +44,14 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_subdomain" "subdomain" {
-  stack = "demo"
-  block = "api-subdomain"
+  stack_id = 100
+  block_id = 123
 }
 `)
 
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `stack`, "demo"),
-			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `block`, "api-subdomain"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `stack_id`, "100"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `block_id`, "123"),
 			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `dns_name`, "api"),
 		)
 

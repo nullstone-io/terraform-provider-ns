@@ -29,8 +29,18 @@ func extractIntFromConfig(config map[string]tftypes.Value, key string) int {
 	}
 	val := new(big.Float)
 	config[key].As(&val)
-	i,_ := val.Int64()
+	i, _ := val.Int64()
 	return int(i)
+}
+
+func extractInt64FromConfig(config map[string]tftypes.Value, key string) int64 {
+	if config[key].IsNull() {
+		return -1
+	}
+	val := new(big.Float)
+	config[key].As(&val)
+	i, _ := val.Int64()
+	return i
 }
 
 func extractStringSliceFromConfig(config map[string]tftypes.Value, key string) ([]string, error) {

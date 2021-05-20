@@ -1,6 +1,10 @@
 {
   "orgName": "nullstone",
+  "stackId": 100,
   "stackName": "demo",
-  "envName": "dev",
-  "blockName": "fargate0"
+  "blockId": 101,
+  "blockName": "fargate0",
+  "blockRef": "yellow-giraffe",
+  "envId": 102,
+  "envName": "dev"
 }
