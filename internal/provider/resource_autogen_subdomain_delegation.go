@@ -96,6 +96,11 @@ func (r *resourceAutogenSubdomainDelegation) Read(ctx context.Context, config ma
 			Summary:  "error retrieving autogen subdomain delegation",
 			Detail:   err.Error(),
 		})
+	} else if autogenSubdomain == nil {
+		state["id"] = tftypes.NewValue(tftypes.String, "")
+		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
+		state["env"] = tftypes.NewValue(tftypes.String, envName)
+		state["nameservers"] = ns.NameserversToProtov5(types.Nameservers{})
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
