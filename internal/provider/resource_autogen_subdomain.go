@@ -117,9 +117,9 @@ func (r *resourceAutogenSubdomain) Read(ctx context.Context, config map[string]t
 		state["id"] = tftypes.NewValue(tftypes.String, "")
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
 		state["env"] = tftypes.NewValue(tftypes.String, envName)
-		state["dns_name"] = tftypes.NewValue(tftypes.String, "")
-		state["domain_name"] = tftypes.NewValue(tftypes.String, "")
-		state["fqdn"] = tftypes.NewValue(tftypes.String, "")
+		state["dns_name"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+		state["domain_name"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+		state["fqdn"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
@@ -147,12 +147,17 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 			Detail:   err.Error(),
 		})
 	} else if autogenSubdomain == nil {
-		state["id"] = tftypes.NewValue(tftypes.String, "")
-		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
-		state["env"] = tftypes.NewValue(tftypes.String, envName)
-		state["dns_name"] = tftypes.NewValue(tftypes.String, "")
-		state["domain_name"] = tftypes.NewValue(tftypes.String, "")
-		state["fqdn"] = tftypes.NewValue(tftypes.String, "")
+		diag := &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "unable to create autogen subdomain",
+		}
+		if subdomain, err := nsClient.Subdomains().Get(subdomainId); err != nil {
+			diag.Detail = fmt.Sprintf("error retrieving subdomain: %s", err)
+		} else if subdomain == nil {
+			diag.Detail = fmt.Sprintf("unable to find subdomain (id=%d)", subdomainId)
+		} else {
+			diag.Detail = fmt.Sprintf("unknown cause")
+		}
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
