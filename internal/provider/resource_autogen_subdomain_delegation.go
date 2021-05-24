@@ -97,10 +97,11 @@ func (r *resourceAutogenSubdomainDelegation) Read(ctx context.Context, config ma
 			Detail:   err.Error(),
 		})
 	} else if autogenSubdomain == nil {
-		state["id"] = tftypes.NewValue(tftypes.String, "")
-		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
-		state["env"] = tftypes.NewValue(tftypes.String, envName)
-		state["nameservers"] = ns.NameserversToProtov5(types.Nameservers{})
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "unable to find autogen subdomain because subdomain or environment is missing",
+			Detail:   fmt.Sprintf("subdomain_id=%d env_name=%s", subdomainId, envName),
+		})
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
