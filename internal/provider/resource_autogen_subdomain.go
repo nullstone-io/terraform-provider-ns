@@ -117,9 +117,9 @@ func (r *resourceAutogenSubdomain) Read(ctx context.Context, config map[string]t
 		state["id"] = tftypes.NewValue(tftypes.String, "")
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
 		state["env"] = tftypes.NewValue(tftypes.String, envName)
-		state["dns_name"] = tftypes.NewValue(tftypes.String, "")
-		state["domain_name"] = tftypes.NewValue(tftypes.String, "")
-		state["fqdn"] = tftypes.NewValue(tftypes.String, "")
+		state["dns_name"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+		state["domain_name"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
+		state["fqdn"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
