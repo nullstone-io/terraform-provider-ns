@@ -20,7 +20,7 @@ data "ns_workspace" "this" {}
 
 resource "ns_autogen_subdomain" "autogen_subdomain" {
   subdomain_id = data.ns_workspace.this.block_id
-  env_id       = data.ns_workspace.this.env_id
+  env          = data.ns_workspace.this.env_name
 }
 
 resource "aws_route53_zone" "this" {
