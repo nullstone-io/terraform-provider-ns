@@ -30,7 +30,7 @@ resource "aws_route53_zone" "this" {
 
 resource "ns_autogen_subdomain_delegation" "to_aws" {
   subdomain_id = data.ns_workspace.this.block_id
-  env_id       = data.ns_workspace.this.env_id
+  env          = data.ns_workspace.this.env_name
   nameservers  = aws_route53_zone.this.name_servers
 }
 ```
