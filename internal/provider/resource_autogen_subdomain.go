@@ -147,11 +147,17 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 			Detail:   err.Error(),
 		})
 	} else if autogenSubdomain == nil {
-		diags = append(diags, &tfprotov5.Diagnostic{
+		diag := &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "unable to create autogen subdomain because subdomain or environment is missing",
-			Detail:   fmt.Sprintf("subdomain_id=%d env_name=%s", subdomainId, envName),
-		})
+			Summary:  "unable to create autogen subdomain",
+		}
+		if subdomain, err := nsClient.Subdomains().Get(subdomainId); err != nil {
+			diag.Detail = fmt.Sprintf("error retrieving subdomain: %s", err)
+		} else if subdomain == nil {
+			diag.Detail = fmt.Sprintf("unable to find subdomain (id=%d)", subdomainId)
+		} else {
+			diag.Detail = fmt.Sprintf("unknown cause")
+		}
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)

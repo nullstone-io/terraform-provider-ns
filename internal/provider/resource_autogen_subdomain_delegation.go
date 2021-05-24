@@ -99,7 +99,7 @@ func (r *resourceAutogenSubdomainDelegation) Read(ctx context.Context, config ma
 	} else if autogenSubdomain == nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "unable to find autogen subdomain because subdomain or environment is missing",
+			Summary:  "unable to find autogen subdomain for the given subdomain and environment",
 			Detail:   fmt.Sprintf("subdomain_id=%d env_name=%s", subdomainId, envName),
 		})
 	} else {
