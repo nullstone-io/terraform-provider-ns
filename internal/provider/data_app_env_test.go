@@ -244,7 +244,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		})
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/stacks_by_id/{stackId}/envs/{envId}").
+		Path("/orgs/{orgName}/stacks/{stackId}/envs/{envId}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			vars := mux.Vars(r)
 			if env := findEnv(vars["orgName"], vars["stackId"], vars["envId"]); env == nil {
