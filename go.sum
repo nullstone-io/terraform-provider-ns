@@ -576,6 +576,8 @@ gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210520130828-f66258f36214 h1:asc
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210520130828-f66258f36214/go.mod h1:6z3xyBE0tWngWi5equdUPGtEKClza3g5hpSkQKWLid8=
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210612172101-d5b816cc5368 h1:Ody22vsKXQBxYEweL9OAUhnGpnzkJucxv5wbfNKk2B8=
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210612172101-d5b816cc5368/go.mod h1:6z3xyBE0tWngWi5equdUPGtEKClza3g5hpSkQKWLid8=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210616013145-0d722f8335a6 h1:4H0Zaxb/d8tngEHr09Ywx7NR0nzqcZbQAdxuFfMY6ss=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20210616013145-0d722f8335a6/go.mod h1:6z3xyBE0tWngWi5equdUPGtEKClza3g5hpSkQKWLid8=
 gopkg.in/warnings.v0 v0.1.2 h1:wFXVbFY8DY5/xOe1ECiWdKCzZlxgshcYVNkBHstARME=
 gopkg.in/warnings.v0 v0.1.2/go.mod h1:jksf8JmL6Qr/oQM2OXTHunEvvTAsrWBLb6OOjuVWRNI=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=

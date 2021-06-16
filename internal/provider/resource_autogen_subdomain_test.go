@@ -19,7 +19,7 @@ provider "ns" {
 }
 resource "ns_autogen_subdomain" "autogen_subdomain" {
   subdomain_id 	= 99
-  env 			= "prod"
+  env_id        = 15
 }
 `)
 
