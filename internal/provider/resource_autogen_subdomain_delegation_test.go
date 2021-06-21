@@ -12,7 +12,7 @@ func TestResourceSubdomainDelegation(t *testing.T) {
 	autogenSubdomains := map[string]map[string]map[string]*types.AutogenSubdomain{
 		"org0": {
 			"1": {
-				"prod": {
+				"15": {
 					IdModel:     types.IdModel{Id: 1},
 					DnsName:     "api",
 					DomainName:  "nullstone.app",
@@ -21,7 +21,7 @@ func TestResourceSubdomainDelegation(t *testing.T) {
 				},
 			},
 			"2": {
-				"prod": {
+				"15": {
 					IdModel:     types.IdModel{Id: 2},
 					DnsName:     "docs",
 					DomainName:  "nullstone.app",
@@ -39,7 +39,7 @@ provider "ns" {
 }
 resource "ns_autogen_subdomain_delegation" "to_fake" {
   subdomain_id = 99
-  env 		   = "prod"
+  env_id       = 15
   nameservers  = ["1.1.1.1","2.2.2.2","3.3.3.3"]
 }
 `)
@@ -55,7 +55,7 @@ resource "ns_autogen_subdomain_delegation" "to_fake" {
 				{
 					Config:      tfconfig,
 					Check:       checks,
-					ExpectError: regexp.MustCompile(`The autogen_subdomain_delegation for the subdomain 99 and env "prod" is missing.`),
+					ExpectError: regexp.MustCompile(`The autogen_subdomain_delegation for the subdomain 99 and env 15 is missing.`),
 				},
 			},
 		})
@@ -68,7 +68,7 @@ provider "ns" {
 }
 resource "ns_autogen_subdomain_delegation" "to_fake" {
   subdomain_id	= 1
-  env 			= "prod"
+  env_id        = 15
   nameservers 	= ["1.1.1.1","2.2.2.2","3.3.3.3"]
 }
 `)
@@ -101,7 +101,7 @@ provider "ns" {
 }
 resource "ns_autogen_subdomain_delegation" "to_fake" {
   subdomain_id 	= 2
-  env 			= "prod"
+  env_id        = 15
   nameservers 	= ["5.5.5.5", "6.6.6.6", "7.7.7.7"]
 }
 `)

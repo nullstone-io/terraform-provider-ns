@@ -38,8 +38,8 @@ func (r *resourceAutogenSubdomain) Schema(ctx context.Context) *tfprotov5.Schema
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
-					Name:            "env",
-					Type:            tftypes.String,
+					Name:            "env_id",
+					Type:            tftypes.Number,
 					Description:     "The autogen subdomain belongs to this env.",
 					Required:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
@@ -79,7 +79,7 @@ func (r *resourceAutogenSubdomain) PlanCreate(ctx context.Context, proposed map[
 	return map[string]tftypes.Value{
 		"id":           tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		"subdomain_id": proposed["subdomain_id"],
-		"env":          proposed["env"],
+		"env_id":       proposed["env_id"],
 		"dns_name":     tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		"domain_name":  tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 		"fqdn":         tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
@@ -91,7 +91,7 @@ func (r *resourceAutogenSubdomain) PlanUpdate(ctx context.Context, proposed map[
 	return map[string]tftypes.Value{
 		"id":           prior["id"],
 		"subdomain_id": proposed["subdomain_id"],
-		"env":          proposed["env"],
+		"env_id":       proposed["env_id"],
 		"dns_name":     prior["dns_name"],
 		"domain_name":  prior["domain_name"],
 		"fqdn":         prior["fqdn"],
@@ -103,10 +103,10 @@ func (r *resourceAutogenSubdomain) Read(ctx context.Context, config map[string]t
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractInt64FromConfig(config, "subdomain_id")
-	envName := extractStringFromConfig(config, "env")
+	envId := extractInt64FromConfig(config, "env_id")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
-	autogenSubdomain, err := nsClient.AutogenSubdomain().Get(subdomainId, envName)
+	autogenSubdomain, err := nsClient.AutogenSubdomain().Get(subdomainId, envId)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -116,14 +116,14 @@ func (r *resourceAutogenSubdomain) Read(ctx context.Context, config map[string]t
 	} else if autogenSubdomain == nil {
 		state["id"] = tftypes.NewValue(tftypes.String, "")
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
-		state["env"] = tftypes.NewValue(tftypes.String, envName)
+		state["env_id"] = tftypes.NewValue(tftypes.Number, &envId)
 		state["dns_name"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
 		state["domain_name"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
 		state["fqdn"] = tftypes.NewValue(tftypes.String, tftypes.UnknownValue)
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
-		state["env"] = tftypes.NewValue(tftypes.String, envName)
+		state["env_id"] = tftypes.NewValue(tftypes.Number, &envId)
 		state["dns_name"] = tftypes.NewValue(tftypes.String, autogenSubdomain.DnsName)
 		state["domain_name"] = tftypes.NewValue(tftypes.String, autogenSubdomain.DomainName)
 		state["fqdn"] = tftypes.NewValue(tftypes.String, autogenSubdomain.Fqdn)
@@ -137,10 +137,10 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractInt64FromConfig(config, "subdomain_id")
-	envName := extractStringFromConfig(config, "env")
+	envId := extractInt64FromConfig(config, "env_id")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
-	if autogenSubdomain, err := nsClient.AutogenSubdomain().Create(subdomainId, envName); err != nil {
+	if autogenSubdomain, err := nsClient.AutogenSubdomain().Create(subdomainId, envId); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  "error creating autogen subdomain",
@@ -161,7 +161,7 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 	} else {
 		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
 		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
-		state["env"] = tftypes.NewValue(tftypes.String, envName)
+		state["env_id"] = tftypes.NewValue(tftypes.Number, &envId)
 		state["dns_name"] = tftypes.NewValue(tftypes.String, autogenSubdomain.DnsName)
 		state["domain_name"] = tftypes.NewValue(tftypes.String, autogenSubdomain.DomainName)
 		state["fqdn"] = tftypes.NewValue(tftypes.String, autogenSubdomain.Fqdn)
@@ -177,7 +177,7 @@ func (r *resourceAutogenSubdomain) Update(ctx context.Context, planned map[strin
 
 	state["id"] = config["id"]
 	state["subdomain_id"] = config["subdomain_id"]
-	state["env"] = config["env"]
+	state["env_id"] = config["env_id"]
 	state["dns_name"] = config["dns_name"]
 	state["domain_name"] = config["domain_name"]
 	state["fqdn"] = config["fqdn"]
@@ -189,10 +189,10 @@ func (r *resourceAutogenSubdomain) Destroy(ctx context.Context, prior map[string
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
 	subdomainId := extractInt64FromConfig(prior, "subdomain_id")
-	envName := extractStringFromConfig(prior, "env")
+	envId := extractInt64FromConfig(prior, "env_id")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
-	if found, err := nsClient.AutogenSubdomain().Destroy(subdomainId, envName); err != nil {
+	if found, err := nsClient.AutogenSubdomain().Destroy(subdomainId, envId); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  "error destroying autogen subdomain",
@@ -201,7 +201,7 @@ func (r *resourceAutogenSubdomain) Destroy(ctx context.Context, prior map[string
 	} else if !found {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("The autogen_subdomain for the subdomain %d and env %q is missing.", subdomainId, envName),
+			Summary:  fmt.Sprintf("The autogen_subdomain for the subdomain %d and env %q is missing.", subdomainId, envId),
 		})
 	}
 
