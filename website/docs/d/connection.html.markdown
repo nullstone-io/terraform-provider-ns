@@ -12,7 +12,9 @@ Data source to configure connection to another nullstone workspace.
 This stanza defines the name and type of connection we need.
 During terraform execution, nullstone provides outputs from the connected workspace.
 
-This data source is affected by Plan Config. See [the main provider documentation](../index.html) for more details.
+Plan Config affects this data source. See [the main provider documentation](../index.html) for more details.
+Specific to this data source, if the provider specifies `capability_id`, 
+this data source will pull connections from the capability rather than the owning application.
 
 ## Example Usage
 
