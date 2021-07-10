@@ -197,6 +197,7 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 		}
 		sourceWorkspace = viaWorkspace
 		runConfig = viaRunConfig
+		connections = runConfig.Connections
 	}
 
 	conn, ok := connections[name]
