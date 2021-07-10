@@ -65,7 +65,7 @@ func TestDataConnection(t *testing.T) {
 						Optional: false,
 					},
 					Target: "lycan",
-					Reference: &types.BlockConnection{
+					Reference: &types.ConnectionTarget{
 						StackId: lycanEnv0.StackId,
 						BlockId: lycanEnv0.BlockId,
 					},
@@ -82,7 +82,7 @@ func TestDataConnection(t *testing.T) {
 						Optional: false,
 					},
 					Target: "rikimaru",
-					Reference: &types.BlockConnection{
+					Reference: &types.ConnectionTarget{
 						StackId: rikiEnv0.StackId,
 						BlockId: rikiEnv0.BlockId,
 					},

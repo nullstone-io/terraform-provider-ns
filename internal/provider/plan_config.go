@@ -20,6 +20,8 @@ type PlanConfig struct {
 
 	EnvId   int64  `json:"envId"`
 	EnvName string `json:"envName"`
+
+	CapabilityId int64 `json:"capabilityId"`
 }
 
 func (c PlanConfig) WorkspaceTarget() types.WorkspaceTarget {

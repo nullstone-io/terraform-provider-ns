@@ -14,7 +14,7 @@ Use the navigation to the left to read about the available resources.
 
 ## Example Usage
 
-```hcl
+```terraform
 provider "ns" {
 }
 
@@ -43,7 +43,7 @@ Set `NULSTONE_API_KEY` to your nullstone API key.
 
 When running inside a Nullstone runner, Nullstone will automatically configure the plan configuration all resources in this provider.
 However, if you want to run locally, you may configure the current organization and workspace through a plan config.
-This plan config is loaded by environment variables or from `.nullstone.json`.
+This terraform provider loads the plan config by environment variables or from `.nullstone.json`.
 
 The following is an example `.nullstone.json`.
 ```json
@@ -69,4 +69,24 @@ NULLSTONE_BLOCK_NAME=core
 NULLSTONE_BLOCK_REF=yellow-giraffe
 NULLSTONE_ENV_ID=102
 NULLSTONE_ENV_NAME=prod
+```
+
+## Capabilities
+
+When constructing app modules that use capabilities, you can use an aliased provider to scope the module.
+This ensures that connections defined within the module pull connection configuration from the capability rather than the application.
+
+```terraform
+provider "ns" {
+  capability_id = 5
+  alias         = "cap_5"
+}
+
+module "cap_5" {
+  source = "nullstone/capability"
+  
+  providers = {
+    ns = ns.cap_5
+  }
+}
 ```

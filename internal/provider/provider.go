@@ -65,6 +65,13 @@ func (p *provider) Schema(ctx context.Context) *tfprotov5.Schema {
 					Description:     "Configure provider with this organization.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
+				{
+					Name:            "capability_id",
+					Type:            tftypes.Number,
+					Optional:        true,
+					Description:     "Configure provider with the context of the capability's id",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
 			},
 		},
 	}
@@ -108,6 +115,10 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 
 	p.NsConfig.OrgName = p.PlanConfig.OrgName
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
+
+	if !config["capability_id"].IsNull() {
+		config["capability_id"].As(&p.PlanConfig.CapabilityId)
+	}
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)
 	if err != nil {

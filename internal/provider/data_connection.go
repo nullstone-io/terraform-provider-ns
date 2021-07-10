@@ -164,16 +164,27 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types.WorkspaceTarget, error) {
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
-	log.Printf("(getConnectionWorkspace) Pulling connections for @ %s", sourceWorkspace.Id())
+	log.Printf("(getConnectionWorkspace) Pulling workspace run config for @ %s", sourceWorkspace.Id())
 	runConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, sourceWorkspace)
 	if err != nil {
 		return nil, err
 	}
 
+	connections := runConfig.Connections
+	capabilityId := d.p.PlanConfig.CapabilityId
+	if capabilityId > 0 {
+		for _, cap := range runConfig.Capabilities {
+			if cap.Id == capabilityId {
+				connections = cap.Connections
+				break
+			}
+		}
+	}
+
 	// If this data_connection has `via` specified, then we need to
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
-		viaWorkspaceConn, ok := runConfig.Connections[via]
+		viaWorkspaceConn, ok := connections[via]
 		if !ok || viaWorkspaceConn.Reference == nil {
 			log.Printf("via connection (%s) was not found in %s", via, sourceWorkspace.Id())
 			return nil, nil
@@ -186,9 +197,10 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 		}
 		sourceWorkspace = viaWorkspace
 		runConfig = viaRunConfig
+		connections = runConfig.Connections
 	}
 
-	conn, ok := runConfig.Connections[name]
+	conn, ok := connections[name]
 	if !ok || conn.Reference == nil {
 		log.Printf("connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
