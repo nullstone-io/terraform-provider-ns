@@ -163,9 +163,10 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 }
 
 func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types.WorkspaceTarget, error) {
+	log.Printf("(getConnectionWorkspace) name=%s type=%s via=%s capabilityId=%d", name, type_, via, d.p.PlanConfig.CapabilityId)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
-	log.Printf("[DEBUG] (getConnectionWorkspace) Pulling workspace run config for @ %s", sourceWorkspace.Id())
+	log.Printf("(getConnectionWorkspace) Pulling workspace run config for @ %s", sourceWorkspace.Id())
 	runConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, sourceWorkspace)
 	if err != nil {
 		return nil, err
@@ -174,13 +175,13 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 	// If this data_connection is established on the capability, we need to pull from the correct set of connections
 	connections := d.getConnectionsFromRunConfig(runConfig)
 	raw, _ := json.Marshal(connections)
-	log.Printf("[DEBUG] (getConnectionWorkspace) Utilizing connections (capability id=%d) %s", d.p.PlanConfig.CapabilityId, string(raw))
+	log.Printf("(getConnectionWorkspace) Utilizing connections (capability id=%d) %s", d.p.PlanConfig.CapabilityId, string(raw))
 
 	// If this data_connection has `via` specified, then we need to
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
 		if sourceWorkspace, connections, err = d.jumpThroughVia(via, sourceWorkspace, connections); err == ErrViaConnectionNotFound {
-			log.Printf("[DEBUG] (getConnectionWorkspace) Could not resolve connection via %s", via)
+			log.Printf("(getConnectionWorkspace) Could not resolve connection via %s", via)
 			return nil, nil
 		} else if err != nil {
 			return nil, err
@@ -189,14 +190,14 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 
 	conn, ok := connections[name]
 	if !ok || conn.Reference == nil {
-		log.Printf("[DEBUG] (getConnectionWorkspace) Connection (%s) was not found in %s", name, sourceWorkspace.Id())
+		log.Printf("(getConnectionWorkspace) Connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
 	}
 	if conn.Type != type_ {
 		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
 	}
 	found := sourceWorkspace.FindRelativeConnection(*conn.Reference)
-	log.Printf("[DEBUG] (getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
+	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
 	return &found, nil
 }
 
@@ -222,15 +223,15 @@ var (
 func (d *dataConnection) jumpThroughVia(via string, sourceWorkspace types.WorkspaceTarget, connections types.Connections) (types.WorkspaceTarget, types.Connections, error) {
 	viaWorkspaceConn, ok := connections[via]
 	if !ok || viaWorkspaceConn.Reference == nil {
-		log.Printf("[DEBUG] (jumpThroughVia) via connection (%s) was not found in %s", via, sourceWorkspace.Id())
+		log.Printf("(jumpThroughVia) via connection (%s) was not found in %s", via, sourceWorkspace.Id())
 		return sourceWorkspace, connections, ErrViaConnectionNotFound
 	}
 	viaWorkspace := sourceWorkspace.FindRelativeConnection(*viaWorkspaceConn.Reference)
-	log.Printf("[DEBUG] (jumpThroughVia) Pulling (via=%s) connections for %s", via, viaWorkspace.Id())
+	log.Printf("(jumpThroughVia) Pulling (via=%s) connections for %s", via, viaWorkspace.Id())
 	viaRunConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, viaWorkspace)
 	if err != nil {
 		return sourceWorkspace, connections, fmt.Errorf("error retrieving connections for `via` workspace (via=%s, workspace=%s): %w", via, viaWorkspace.Id(), err)
 	}
-	log.Printf("[DEBUG] (jumpThroughVia) Resolved workspace via %s", via)
+	log.Printf("(jumpThroughVia) Resolved workspace via %s", via)
 	return viaWorkspace, viaRunConfig.Connections, nil
 }

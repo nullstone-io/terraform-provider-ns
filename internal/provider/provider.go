@@ -116,9 +116,8 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	p.NsConfig.OrgName = p.PlanConfig.OrgName
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
-	if !config["capability_id"].IsNull() {
-		config["capability_id"].As(&p.PlanConfig.CapabilityId)
-	}
+	p.PlanConfig.CapabilityId = extractInt64FromConfig(config, "capability_id")
+	log.Printf("capability_id set to %d", p.PlanConfig.CapabilityId)
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)
 	if err != nil {
