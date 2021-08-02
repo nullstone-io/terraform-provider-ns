@@ -1,6 +1,11 @@
 package provider
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/nullstone-io/terraform-provider-ns/internal/server"
+)
+
+var _ server.DataSource = &dataAppConnection{}
 
 type dataAppConnection struct {
 	dataConnection

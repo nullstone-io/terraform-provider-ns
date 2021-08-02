@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
@@ -15,6 +16,8 @@ import (
 )
 
 var validConnectionName = regexp.MustCompile("^[_a-z0-9/-]+$")
+
+var _ server.DataSource = &dataConnection{}
 
 type dataConnection struct {
 	p               *provider
