@@ -126,6 +126,8 @@ func (r *resourceAutogenSubdomainDelegation) Update(ctx context.Context, planned
 	nameservers, _ := extractStringSliceFromConfig(planned, "nameservers")
 	autogenSubdomain := &types.AutogenSubdomain{Nameservers: nameservers}
 
+	var id int64
+
 	nsClient := &api.Client{Config: r.p.NsConfig}
 	if result, err := nsClient.AutogenSubdomainDelegation().Update(subdomainId, envId, autogenSubdomain); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
@@ -139,11 +141,14 @@ func (r *resourceAutogenSubdomainDelegation) Update(ctx context.Context, planned
 			Summary:  fmt.Sprintf("The autogen_subdomain_delegation for the subdomain %d and env %d is missing.", subdomainId, envId),
 		})
 	} else {
-		state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", autogenSubdomain.Id))
-		state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
-		state["env_id"] = tftypes.NewValue(tftypes.Number, &envId)
-		state["nameservers"] = ns.NameserversToProtov5(autogenSubdomain.Nameservers)
+		id = autogenSubdomain.Id
+		nameservers = autogenSubdomain.Nameservers
 	}
+
+	state["id"] = tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", id))
+	state["subdomain_id"] = tftypes.NewValue(tftypes.Number, &subdomainId)
+	state["env_id"] = tftypes.NewValue(tftypes.Number, &envId)
+	state["nameservers"] = ns.NameserversToProtov5(nameservers)
 
 	return state, diags, nil
 }
