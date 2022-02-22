@@ -33,7 +33,7 @@ func mockNs(handler http.Handler) (func() api.Config, func()) {
 }
 
 func mockTfe(handler http.Handler) (func() *tfe.Config, func()) {
-	cfg := ns.NewTfeConfig()
+	cfg := ns.NewTfeConfig(api.Config{})
 	cfg.Token = "abcdefgh012345789"
 	fn := func() *tfe.Config {
 		return cfg
