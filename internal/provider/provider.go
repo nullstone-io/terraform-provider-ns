@@ -31,7 +31,7 @@ func New(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe
 			tfeConfig = ns.NewTfeConfig(apiConfig)
 		}
 
-		planConfig, _ := PlanConfigFromFile(".nullstone.json")
+		planConfig, _ := LoadPlanConfig()
 
 		return &provider{
 			NsConfig:   apiConfig,
