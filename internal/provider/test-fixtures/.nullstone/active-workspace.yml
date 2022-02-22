@@ -1,0 +1,8 @@
+org_name: nullstone
+stack_id: 100
+stack_name: demo
+block_id: 101
+block_name: fargate0
+block_ref: yellow-giraffe
+env_id: 102
+env_name: dev

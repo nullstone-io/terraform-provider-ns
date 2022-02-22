@@ -3,12 +3,15 @@ package provider
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"path/filepath"
+	"os"
 	"testing"
 )
 
-func TestPlanConfigFromFile(t *testing.T) {
-	got, err := PlanConfigFromFile(filepath.Join("test-fixtures", ".nullstone.json"))
+func TestLoadPlanConfig(t *testing.T) {
+	original, _ := os.Getwd()
+	os.Chdir("test-fixtures")
+	got, err := LoadPlanConfig()
+	os.Chdir(original)
 	require.NoError(t, err, "unexpected error")
 	want := PlanConfig{
 		OrgName:   "nullstone",

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // TFtypeFromCtyType is lifted from github.com/hashicorp/terraform-plugin-sdk/internal/plugin/convert
@@ -53,7 +53,7 @@ func TftypeFromCtyType(in cty.Type) (tftypes.Type, error) {
 			return nil, err
 		}
 		return tftypes.Map{
-			AttributeType: elemType,
+			ElementType: elemType,
 		}, nil
 	case in.IsObjectType():
 		attrTypes := make(map[string]tftypes.Type)

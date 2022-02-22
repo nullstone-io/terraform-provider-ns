@@ -5,27 +5,41 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"log"
 )
 
-func New(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
+func Mock(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
+	return newProviderServer(version, func() (api.Config, *tfe.Config, PlanConfig) {
+		apiConfig := getNsConfig()
+		tfeConfig := getTfeConfig()
+		planConfig, _ := LoadPlanConfig()
+		return apiConfig, tfeConfig, planConfig
+	})
+}
+
+func New(version string) tfprotov5.ProviderServer {
+	return newProviderServer(version, func() (api.Config, *tfe.Config, PlanConfig) {
+		apiConfig := api.DefaultConfig()
+		if profile, ac, _ := ns.LoadProfile(); profile != nil {
+			apiConfig = ac
+		}
+		tfeConfig := ns.NewTfeConfig(apiConfig)
+		planConfig, _ := LoadPlanConfig()
+		return apiConfig, tfeConfig, planConfig
+	})
+}
+
+func newProviderServer(version string, fn func() (api.Config, *tfe.Config, PlanConfig)) tfprotov5.ProviderServer {
 	s := server.MustNew(func() server.Provider {
-		if getNsConfig == nil {
-			getNsConfig = api.DefaultConfig
-		}
-		if getTfeConfig == nil {
-			getTfeConfig = ns.NewTfeConfig
-		}
-
-		planConfig, _ := PlanConfigFromFile(".nullstone.json")
-
+		apiConfig, tfeConfig, planConfig := fn()
 		return &provider{
-			NsConfig:   getNsConfig(),
-			TfeConfig:  getTfeConfig(),
+			Version:    version,
+			NsConfig:   apiConfig,
+			TfeConfig:  tfeConfig,
 			PlanConfig: &planConfig,
 		}
 	})
@@ -48,6 +62,7 @@ func New(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe
 var _ server.Provider = (*provider)(nil)
 
 type provider struct {
+	Version    string
 	TfeConfig  *tfe.Config
 	TfeClient  *tfe.Client
 	NsConfig   api.Config
@@ -97,7 +112,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 	if p.TfeConfig.Token == "" {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("TFE Token is required (Set %q environment variable)", "TFE_TOKEN"),
+			Summary:  fmt.Sprintf("TFE Token is required (Set %q environment variable)", api.ApiKeyEnvVar),
 		})
 	}
 
@@ -109,6 +124,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 }
 
 func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Value) (diags []*tfprotov5.Diagnostic, err error) {
+	log.Printf("[DEBUG] Configuring Nullstone provider %s", p.Version)
 	if !config["organization"].IsNull() {
 		// This is already checked in Validate, just cast it
 		config["organization"].As(&p.PlanConfig.OrgName)
@@ -118,7 +134,7 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
 	p.PlanConfig.CapabilityId = extractInt64FromConfig(config, "capability_id")
-	log.Printf("capability_id set to %d", p.PlanConfig.CapabilityId)
+	log.Printf("[DEBUG] capability_id set to %d\n", p.PlanConfig.CapabilityId)
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)
 	if err != nil {

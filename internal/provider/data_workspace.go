@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 type dataWorkspace struct {
@@ -18,53 +18,6 @@ func newDataWorkspace(p *provider) (*dataWorkspace, error) {
 	return &dataWorkspace{p: p}, nil
 }
 
-func deprecatedWorkspaceAttrs() []*tfprotov5.SchemaAttribute {
-	return []*tfprotov5.SchemaAttribute{
-		{
-			Name:            "workspace_id",
-			Computed:        true,
-			Description:     "The fully qualified workspace ID. This follows the form `<stack>/<env>/<block>`.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Type:            tftypes.String,
-		},
-		{
-			Name:            "stack",
-			Type:            tftypes.String,
-			Description:     "The name of the stack in nullstone that owns this workspace.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "block",
-			Type:            tftypes.String,
-			Description:     "The name of the stack in nullstone that owns this workspace.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "env",
-			Type:            tftypes.String,
-			Description:     "The name of the stack in nullstone that owns this workspace.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "hyphenated_name",
-			Type:            tftypes.String,
-			Description:     "A standard, unique, computed name for the workspace using '-' as a delimiter that is typically used for resource names.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "slashed_name",
-			Type:            tftypes.String,
-			Description:     "A standard, unique, computed name for the workspace using '/' as a delimiter that is typically used for resource names.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-	}
-}
-
 func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 	attrs := []*tfprotov5.SchemaAttribute{
 		deprecatedIDAttribute(),
@@ -73,24 +26,28 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 			Type:            tftypes.Number,
 			Description:     "The ID of the stack in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "stack_name",
 			Type:            tftypes.String,
 			Description:     "The name of the stack in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "block_id",
 			Type:            tftypes.Number,
 			Description:     "The ID of the block in nullstone associated with this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "block_name",
 			Type:            tftypes.String,
 			Description:     "The name of the block in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name: "block_ref",
@@ -98,22 +55,25 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 			Description: `The reference of the block in nullstone that owns this workspace.
 This is typically used to construct unique resource names. See unique_name.`,
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "env_id",
 			Type:            tftypes.Number,
 			Description:     "The ID of the environment in nullstone associated with this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "env_name",
 			Type:            tftypes.String,
 			Description:     "The name of the block in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "tags",
-			Type:            tftypes.Map{AttributeType: tftypes.String},
+			Type:            tftypes.Map{ElementType: tftypes.String},
 			Computed:        true,
 			Description:     "A default list of tags including all nullstone configuration for this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
@@ -125,7 +85,7 @@ This is typically used to construct unique resource names. See unique_name.`,
 		Block: &tfprotov5.SchemaBlock{
 			Description:     "Data source to configure module based on current nullstone workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Attributes:      append(attrs, deprecatedWorkspaceAttrs()...),
+			Attributes:      attrs,
 		},
 	}
 }
@@ -168,14 +128,12 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		envName = planConfig.EnvName
 	}
 
-	id := fmt.Sprintf("%s/%s/%s", stackName, blockName, envName)
+	id := fmt.Sprintf("%s/%s/%s/%s", planConfig.OrgName, stackName, blockName, envName)
 	tags := map[string]tftypes.Value{
 		"Stack": tftypes.NewValue(tftypes.String, stackName),
 		"Env":   tftypes.NewValue(tftypes.String, envName),
 		"Block": tftypes.NewValue(tftypes.String, blockName),
 	}
-	hyphenated := fmt.Sprintf("%s-%s-%s", stackName, envName, blockName)
-	slashed := fmt.Sprintf("%s/%s/%s", stackName, envName, blockName)
 
 	return map[string]tftypes.Value{
 		"id":         tftypes.NewValue(tftypes.String, id),
@@ -186,14 +144,6 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"block_ref":  tftypes.NewValue(tftypes.String, blockRef),
 		"env_id":     tftypes.NewValue(tftypes.Number, &envId),
 		"env_name":   tftypes.NewValue(tftypes.String, envName),
-		"tags":       tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
-
-		// Deprecated
-		"workspace_id":    tftypes.NewValue(tftypes.String, id),
-		"stack":           tftypes.NewValue(tftypes.String, stackName),
-		"block":           tftypes.NewValue(tftypes.String, blockName),
-		"env":             tftypes.NewValue(tftypes.String, envName),
-		"hyphenated_name": tftypes.NewValue(tftypes.String, hyphenated),
-		"slashed_name":    tftypes.NewValue(tftypes.String, slashed),
+		"tags":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tags),
 	}, nil, nil
 }

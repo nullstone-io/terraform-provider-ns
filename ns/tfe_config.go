@@ -1,28 +1,23 @@
 package ns
 
 import (
+	"github.com/hashicorp/go-tfe"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"os"
-
-	"github.com/hashicorp/go-tfe"
 )
 
-func NewTfeConfig() *tfe.Config {
+func NewTfeConfig(apiConfig api.Config) *tfe.Config {
 	cfg := tfe.DefaultConfig()
-	// Priority: NULLSTONE_ADDR > TFE_ADDRESS > DefaultAddress
+	// Fall back to TFE_ADDRESS if api config does not have an address
 	cfg.Address = os.Getenv(api.AddressEnvVar)
 	if cfg.Address == "" {
 		cfg.Address = os.Getenv("TFE_ADDRESS")
 	}
-	if cfg.Address == "" {
-		cfg.Address = api.DefaultAddress
-	}
 	cfg.BasePath = "/terraform/v2/"
-	// If TFE_TOKEN is missing, we will look at NULLSTONE_API_KEY
-	if cfg.Token == "" {
-		if val := os.Getenv(api.ApiKeyEnvVar); val != "" {
-			cfg.Token = val
-		}
+	// By default cfg.Token loads TFE_TOKEN env var
+	// Fall back to TFE_TOKEN if api key is missing
+	if apiConfig.ApiKey != "" {
+		cfg.Token = apiConfig.ApiKey
 	}
 	return cfg
 }

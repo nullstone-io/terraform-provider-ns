@@ -12,7 +12,7 @@ import (
 func protoV5ProviderFactories(getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){
 		"ns": func() (tfprotov5.ProviderServer, error) {
-			return New("acctest", getNsConfig, getTfeConfig), nil
+			return Mock("acctest", getNsConfig, getTfeConfig), nil
 		},
 	}
 }
@@ -33,7 +33,7 @@ func mockNs(handler http.Handler) (func() api.Config, func()) {
 }
 
 func mockTfe(handler http.Handler) (func() *tfe.Config, func()) {
-	cfg := ns.NewTfeConfig()
+	cfg := ns.NewTfeConfig(api.Config{})
 	cfg.Token = "abcdefgh012345789"
 	fn := func() *tfe.Config {
 		return cfg
