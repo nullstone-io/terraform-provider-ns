@@ -12,7 +12,7 @@ import (
 func protoV5ProviderFactories(getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){
 		"ns": func() (tfprotov5.ProviderServer, error) {
-			return New("acctest", getNsConfig, getTfeConfig), nil
+			return Mock("acctest", getNsConfig, getTfeConfig), nil
 		},
 	}
 }

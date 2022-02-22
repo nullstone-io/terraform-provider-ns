@@ -9,30 +9,33 @@ import (
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
-	"gopkg.in/nullstone-io/nullstone.v0/config"
 	"log"
 )
 
-func New(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
-	s := server.MustNew(func() server.Provider {
-		apiConfig := api.DefaultConfig()
-		if getNsConfig != nil {
-			apiConfig = getNsConfig()
-		} else {
-			if profile, ac, _ := ns.LoadProfile(); profile != nil {
-				apiConfig = ac
-			}
-		}
-
-		var tfeConfig *tfe.Config
-		if getTfeConfig != nil {
-			tfeConfig = getTfeConfig()
-		} else {
-			tfeConfig = ns.NewTfeConfig(apiConfig)
-		}
-
+func Mock(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
+	return newProviderServer(version, func() (api.Config, *tfe.Config, PlanConfig) {
+		apiConfig := getNsConfig()
+		tfeConfig := getTfeConfig()
 		planConfig, _ := LoadPlanConfig()
+		return apiConfig, tfeConfig, planConfig
+	})
+}
 
+func New(version string) tfprotov5.ProviderServer {
+	return newProviderServer(version, func() (api.Config, *tfe.Config, PlanConfig) {
+		apiConfig := api.DefaultConfig()
+		if profile, ac, _ := ns.LoadProfile(); profile != nil {
+			apiConfig = ac
+		}
+		tfeConfig := ns.NewTfeConfig(apiConfig)
+		planConfig, _ := LoadPlanConfig()
+		return apiConfig, tfeConfig, planConfig
+	})
+}
+
+func newProviderServer(version string, fn func() (api.Config, *tfe.Config, PlanConfig)) tfprotov5.ProviderServer {
+	s := server.MustNew(func() server.Provider {
+		apiConfig, tfeConfig, planConfig := fn()
 		return &provider{
 			NsConfig:   apiConfig,
 			TfeConfig:  tfeConfig,
@@ -58,7 +61,6 @@ func New(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe
 var _ server.Provider = (*provider)(nil)
 
 type provider struct {
-	CliProfile *config.Profile
 	TfeConfig  *tfe.Config
 	TfeClient  *tfe.Client
 	NsConfig   api.Config
