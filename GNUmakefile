@@ -6,4 +6,4 @@ setup:
 # Run acceptance tests
 .PHONY: testacc
 testacc:
-	TF_ACC=1 gotestsum ./... -timeout 120m
+	TF_ACC=1 gotestsum ./... -timeout 5m
