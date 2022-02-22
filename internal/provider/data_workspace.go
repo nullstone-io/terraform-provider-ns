@@ -73,24 +73,28 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 			Type:            tftypes.Number,
 			Description:     "The ID of the stack in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "stack_name",
 			Type:            tftypes.String,
 			Description:     "The name of the stack in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "block_id",
 			Type:            tftypes.Number,
 			Description:     "The ID of the block in nullstone associated with this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "block_name",
 			Type:            tftypes.String,
 			Description:     "The name of the block in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name: "block_ref",
@@ -98,18 +102,21 @@ func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 			Description: `The reference of the block in nullstone that owns this workspace.
 This is typically used to construct unique resource names. See unique_name.`,
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "env_id",
 			Type:            tftypes.Number,
 			Description:     "The ID of the environment in nullstone associated with this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "env_name",
 			Type:            tftypes.String,
 			Description:     "The name of the block in nullstone that owns this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
 		},
 		{
 			Name:            "tags",
