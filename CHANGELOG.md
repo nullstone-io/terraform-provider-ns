@@ -1,3 +1,9 @@
+## 0.6.1 (Feb 22, 2022)
+
+FIXES:
+
+* Fixed loading of profile so that `NULLSTONE_ADDR` is honored.
+
 ## 0.6.0 (Feb 22, 2022)
 
 FEATURES:
