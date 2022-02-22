@@ -37,6 +37,7 @@ func newProviderServer(version string, fn func() (api.Config, *tfe.Config, PlanC
 	s := server.MustNew(func() server.Provider {
 		apiConfig, tfeConfig, planConfig := fn()
 		return &provider{
+			Version:    version,
 			NsConfig:   apiConfig,
 			TfeConfig:  tfeConfig,
 			PlanConfig: &planConfig,
@@ -61,6 +62,7 @@ func newProviderServer(version string, fn func() (api.Config, *tfe.Config, PlanC
 var _ server.Provider = (*provider)(nil)
 
 type provider struct {
+	Version    string
 	TfeConfig  *tfe.Config
 	TfeClient  *tfe.Client
 	NsConfig   api.Config
@@ -110,7 +112,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 	if p.TfeConfig.Token == "" {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("TFE Token is required (Set %q environment variable)", "TFE_TOKEN"),
+			Summary:  fmt.Sprintf("TFE Token is required (Set %q environment variable)", api.ApiKeyEnvVar),
 		})
 	}
 
@@ -122,6 +124,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 }
 
 func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Value) (diags []*tfprotov5.Diagnostic, err error) {
+	log.Printf("[DEBUG] Configuring Nullstone provider %s", p.Version)
 	if !config["organization"].IsNull() {
 		// This is already checked in Validate, just cast it
 		config["organization"].As(&p.PlanConfig.OrgName)
@@ -131,7 +134,7 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
 	p.PlanConfig.CapabilityId = extractInt64FromConfig(config, "capability_id")
-	log.Printf("capability_id set to %d", p.PlanConfig.CapabilityId)
+	log.Printf("[DEBUG] capability_id set to %d\n", p.PlanConfig.CapabilityId)
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)
 	if err != nil {
