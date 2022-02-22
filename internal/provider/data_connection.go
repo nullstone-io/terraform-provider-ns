@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tftypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
