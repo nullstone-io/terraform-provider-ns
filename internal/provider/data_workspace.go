@@ -113,7 +113,7 @@ This is typically used to construct unique resource names. See unique_name.`,
 		},
 		{
 			Name:            "tags",
-			Type:            tftypes.Map{AttributeType: tftypes.String},
+			Type:            tftypes.Map{ElementType: tftypes.String},
 			Computed:        true,
 			Description:     "A default list of tags including all nullstone configuration for this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
@@ -186,7 +186,7 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"block_ref":  tftypes.NewValue(tftypes.String, blockRef),
 		"env_id":     tftypes.NewValue(tftypes.Number, &envId),
 		"env_name":   tftypes.NewValue(tftypes.String, envName),
-		"tags":       tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, tags),
+		"tags":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tags),
 
 		// Deprecated
 		"workspace_id":    tftypes.NewValue(tftypes.String, id),

@@ -111,7 +111,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		return nil, diags, nil
 	}
 
-	outputsValue := tftypes.NewValue(tftypes.Map{AttributeType: tftypes.String}, map[string]tftypes.Value{})
+	outputsValue := tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{})
 
 	workspace, err := d.getConnectionWorkspace(name, type_, via)
 	if err != nil {

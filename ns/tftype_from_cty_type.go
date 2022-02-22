@@ -53,7 +53,7 @@ func TftypeFromCtyType(in cty.Type) (tftypes.Type, error) {
 			return nil, err
 		}
 		return tftypes.Map{
-			AttributeType: elemType,
+			ElementType: elemType,
 		}, nil
 	case in.IsObjectType():
 		attrTypes := make(map[string]tftypes.Type)
