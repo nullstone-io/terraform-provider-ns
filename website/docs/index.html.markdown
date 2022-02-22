@@ -15,11 +15,14 @@ Use the navigation to the left to read about the available resources.
 ## Example Usage
 
 ```terraform
-provider "ns" {
+terraform {
+  required_providers {
+    ns = {
+      source = "nullstone-io/ns"
+    }
+  }
 }
 
-data "ns_block" "this" {}
-data "ns_env" "this" {}
 data "ns_workspace" this {}
 ```
 
@@ -43,20 +46,18 @@ Set `NULSTONE_API_KEY` to your nullstone API key.
 
 When running inside a Nullstone runner, Nullstone will automatically configure the plan configuration all resources in this provider.
 However, if you want to run locally, you may configure the current organization and workspace through a plan config.
-This terraform provider loads the plan config by environment variables or from `.nullstone.json`.
+This terraform provider loads the plan config by environment variables or from `.nullstone/active-workspace.yml`.
 
-The following is an example `.nullstone.json`.
-```json
-{
-  "orgName": "nullstone",
-  "stackId": 100,
-  "stackName": "core",
-  "blockId": 101,
-  "blockName": "fargate0",
-  "blockRef": "yellow-giraffe",
-  "envId": 102,
-  "envName": "prod"
-}
+The following is an example `.nullstone/active-workspace.yml`.
+```yaml
+org_name: nullstone
+stack_id: 100
+stack_name: core
+block_id: 101
+block_name: fargate0
+block_ref: yellow-giraffe
+env_id: 102
+env_name: prod
 ```
 
 The following environment file describes the same information as above.
