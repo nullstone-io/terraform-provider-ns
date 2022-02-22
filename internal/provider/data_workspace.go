@@ -128,14 +128,12 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		envName = planConfig.EnvName
 	}
 
-	id := fmt.Sprintf("%s/%s/%s", stackName, blockName, envName)
+	id := fmt.Sprintf("%s/%s/%s/%s", planConfig.OrgName, stackName, blockName, envName)
 	tags := map[string]tftypes.Value{
 		"Stack": tftypes.NewValue(tftypes.String, stackName),
 		"Env":   tftypes.NewValue(tftypes.String, envName),
 		"Block": tftypes.NewValue(tftypes.String, blockName),
 	}
-	hyphenated := fmt.Sprintf("%s-%s-%s", stackName, envName, blockName)
-	slashed := fmt.Sprintf("%s/%s/%s", stackName, envName, blockName)
 
 	return map[string]tftypes.Value{
 		"id":         tftypes.NewValue(tftypes.String, id),
@@ -147,13 +145,5 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"env_id":     tftypes.NewValue(tftypes.Number, &envId),
 		"env_name":   tftypes.NewValue(tftypes.String, envName),
 		"tags":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tags),
-
-		// Deprecated
-		"workspace_id":    tftypes.NewValue(tftypes.String, id),
-		"stack":           tftypes.NewValue(tftypes.String, stackName),
-		"block":           tftypes.NewValue(tftypes.String, blockName),
-		"env":             tftypes.NewValue(tftypes.String, envName),
-		"hyphenated_name": tftypes.NewValue(tftypes.String, hyphenated),
-		"slashed_name":    tftypes.NewValue(tftypes.String, slashed),
 	}, nil, nil
 }
