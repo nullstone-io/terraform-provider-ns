@@ -18,53 +18,6 @@ func newDataWorkspace(p *provider) (*dataWorkspace, error) {
 	return &dataWorkspace{p: p}, nil
 }
 
-func deprecatedWorkspaceAttrs() []*tfprotov5.SchemaAttribute {
-	return []*tfprotov5.SchemaAttribute{
-		{
-			Name:            "workspace_id",
-			Computed:        true,
-			Description:     "The fully qualified workspace ID. This follows the form `<stack>/<env>/<block>`.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Type:            tftypes.String,
-		},
-		{
-			Name:            "stack",
-			Type:            tftypes.String,
-			Description:     "The name of the stack in nullstone that owns this workspace.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "block",
-			Type:            tftypes.String,
-			Description:     "The name of the stack in nullstone that owns this workspace.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "env",
-			Type:            tftypes.String,
-			Description:     "The name of the stack in nullstone that owns this workspace.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "hyphenated_name",
-			Type:            tftypes.String,
-			Description:     "A standard, unique, computed name for the workspace using '-' as a delimiter that is typically used for resource names.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-		{
-			Name:            "slashed_name",
-			Type:            tftypes.String,
-			Description:     "A standard, unique, computed name for the workspace using '/' as a delimiter that is typically used for resource names.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Deprecated:      true,
-		},
-	}
-}
-
 func (*dataWorkspace) Schema(ctx context.Context) *tfprotov5.Schema {
 	attrs := []*tfprotov5.SchemaAttribute{
 		deprecatedIDAttribute(),
@@ -132,7 +85,7 @@ This is typically used to construct unique resource names. See unique_name.`,
 		Block: &tfprotov5.SchemaBlock{
 			Description:     "Data source to configure module based on current nullstone workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Attributes:      append(attrs, deprecatedWorkspaceAttrs()...),
+			Attributes:      attrs,
 		},
 	}
 }
