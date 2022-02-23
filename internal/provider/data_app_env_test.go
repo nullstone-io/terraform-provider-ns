@@ -233,7 +233,7 @@ func mockNsHandlerAppEnvs(appEnvs *[]*types.AppEnv, apps []*types.Application, e
 		})
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/apps/{appId}/envs/{envName}").
+		Path("/orgs/{orgName}/stacks/{stackId}/apps/{appId}/envs/{envName}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if appEnv := findOrCreateEnv(r); appEnv == nil {
 				http.NotFound(w, r)

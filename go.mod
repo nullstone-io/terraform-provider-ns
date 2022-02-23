@@ -74,3 +74,5 @@ require (
 	google.golang.org/grpc v1.44.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 )
+
+replace gopkg.in/nullstone-io/go-api-client.v0 => ../go-api-client

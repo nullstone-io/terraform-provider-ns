@@ -100,7 +100,7 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 			Summary:  fmt.Sprintf("The environment (stack=%d, env=%d) is missing.", stackId, envId),
 		})
 	} else {
-		appEnv, err := nsClient.AppEnvs().Get(app.Id, env.Name)
+		appEnv, err := nsClient.AppEnvs().Get(stackId, app.Id, env.Name)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,

@@ -11,7 +11,7 @@ func mockNsServerWithDomains() http.Handler {
 	router := mux.NewRouter()
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/domains/{domainId}").
+		Path("/orgs/{orgName}/stacks/{stackId}/domains/{domainId}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			domain := types.Domain{
 				DnsName: "nullstone.io",
