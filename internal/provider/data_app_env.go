@@ -111,7 +111,6 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
 				Summary:  fmt.Sprintf("Unable to find the application environment (stack=%d, app=%d, env=%d) is missing.", stackId, appId, envId),
-				Detail:   err.Error(),
 			})
 		} else {
 			appEnvId = appEnv.Id

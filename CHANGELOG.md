@@ -1,3 +1,9 @@
+## 0.6.4 (Feb 24, 2022)
+
+FIXES:
+
+* Fixed nil panic when `ns_app_env` is not found.
+
 ## 0.6.3 (Feb 24, 2022)
 
 FEATURES:
