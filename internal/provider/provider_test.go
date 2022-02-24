@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 )
 
-func protoV5ProviderFactories(getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) map[string]func() (tfprotov5.ProviderServer, error) {
+func protoV5ProviderFactories(getNsConfig func() api.Config, getTfeConfig func() *tfe.Config, alterPlanConfig func(config *PlanConfig)) map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){
 		"ns": func() (tfprotov5.ProviderServer, error) {
-			return Mock("acctest", getNsConfig, getTfeConfig), nil
+			return Mock("acctest", getNsConfig, getTfeConfig, alterPlanConfig), nil
 		},
 	}
 }

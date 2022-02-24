@@ -42,7 +42,7 @@ data "ns_workspace" "this" {
 		getTfeConfig, _ := mockTfe(nil)
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: config,
@@ -71,7 +71,7 @@ data "ns_workspace" "this" {}
 		os.Setenv("NULLSTONE_ENV_NAME", "env0")
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: config,

@@ -171,6 +171,21 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 	log.Printf("(getConnectionWorkspace) name=%s type=%s via=%s capabilityId=%d", name, type_, via, d.p.PlanConfig.CapabilityId)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
+	// Let's search for a configured connection in .nullstone/active-workspace.yml first
+	if localConnections := d.p.PlanConfig.Connections; localConnections != nil {
+		if reference, ok := localConnections[name]; ok {
+			ct := types.ConnectionTarget{
+				StackId:   reference.StackId,
+				BlockId:   reference.BlockId,
+				BlockName: reference.BlockName,
+				EnvId:     reference.EnvId,
+			}
+			found := sourceWorkspace.FindRelativeConnection(ct)
+			log.Printf("(getConnectionWorkspace) Found workspace defined in plan config @ %s", found.Id())
+			return &found, nil
+		}
+	}
+
 	log.Printf("(getConnectionWorkspace) Pulling workspace run config for @ %s", sourceWorkspace.Id())
 	runConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, sourceWorkspace)
 	if err != nil {

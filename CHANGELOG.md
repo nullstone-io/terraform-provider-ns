@@ -1,3 +1,11 @@
+## 0.6.3 (Feb 24, 2022)
+
+FEATURES:
+
+* `ns_connection` will attempt to resolve through the plan config `.nullstone/active-workspace.yml` first.
+This allows for local configuration of connections when iterating on modules.
+* Updated Nullstone API endpoints to utilize new stack-based endpoints.
+
 ## 0.6.2 (Feb 24, 2022)
 
 FIXES:
