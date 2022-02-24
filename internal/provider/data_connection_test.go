@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/nullstone-io/module/config"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
+	"gopkg.in/nullstone-io/nullstone.v0/workspaces"
 	"net/http"
 	"os"
 	"regexp"
@@ -24,6 +25,8 @@ func TestDataConnection(t *testing.T) {
 	uid1 := uuid.New()
 	uid2 := uuid.New()
 	uid3 := uuid.New()
+	uid4 := uuid.New()
+	// faceless (app) => lycan (cluster) => riki (network)
 	facelessEnv0 := types.Workspace{
 		UidCreatedModel: types.UidCreatedModel{Uid: uid1},
 		OrgName:         "org0",
@@ -54,7 +57,18 @@ func TestDataConnection(t *testing.T) {
 		EnvId:           102,
 		EnvName:         "env0",
 	}
-	workspaces := []types.Workspace{facelessEnv0, lycanEnv0, rikiEnv0}
+	// techies (app) => (no connection) - set up to test plan config
+	techiesEnv0 := types.Workspace{
+		UidCreatedModel: types.UidCreatedModel{Uid: uid4},
+		OrgName:         "org0",
+		StackId:         100,
+		StackName:       "stack0",
+		BlockId:         106,
+		BlockName:       "techies",
+		EnvId:           102,
+		EnvName:         "env0",
+	}
+	allWorkspaces := []types.Workspace{facelessEnv0, lycanEnv0, rikiEnv0, techiesEnv0}
 	runConfigs := map[string]types.RunConfig{
 		uid1.String(): {
 			WorkspaceUid: uid1,
@@ -90,6 +104,12 @@ func TestDataConnection(t *testing.T) {
 				},
 			},
 		},
+		uid4.String(): {
+			WorkspaceUid: uid4,
+			Connections: map[string]types.Connection{
+				// Intentionally blank, this simulates a connection not configured yet on Nullstone servers
+			},
+		},
 	}
 
 	t.Run("fails when required and connection is not configured", func(t *testing.T) {
@@ -103,7 +123,7 @@ data "ns_connection" "network" {
 }
 `)
 
-		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
+		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
 		getTfeConfig, _ := mockTfe(nil)
 
@@ -136,7 +156,7 @@ data "ns_connection" "postgres" {
 			resource.TestCheckResourceAttr("data.ns_connection.postgres", `outputs.%`, "0"),
 		)
 
-		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
+		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
 		getTfeConfig, _ := mockTfe(nil)
 
@@ -171,7 +191,7 @@ data "ns_connection" "cluster" {
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
 		)
 
-		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
+		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
 		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
@@ -214,7 +234,7 @@ data "ns_connection" "network" {
 			resource.TestCheckResourceAttr("data.ns_connection.network", `outputs.placeholder`, "value"),
 		)
 
-		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
+		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
 		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
@@ -228,6 +248,58 @@ data "ns_connection" "network" {
 				},
 			},
 		})
+	})
+
+	t.Run("overrides connection through local setup in plan config", func(t *testing.T) {
+		// This simulates connections injected via .nullstone/active-workspace.yml
+		// Later in the test, we configure the plan config with: techies (app) => lycan (cluster)
+		tfconfig := fmt.Sprintf(`
+provider "ns" {
+  organization = "org0"
+}
+data "ns_connection" "cluster" {
+  name = "cluster"
+  type = "cluster/aws-fargate"
+}
+`)
+		checks := resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "100/103/102"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key2`, "value2"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
+		)
+
+		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
+		defer closeNsFn()
+		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		defer closeTfeFn()
+		alterPlanConfig := func(config *PlanConfig) {
+			// Set up cluster connection for techies
+			config.OrgName = techiesEnv0.OrgName
+			config.StackId = techiesEnv0.StackId
+			config.BlockId = techiesEnv0.BlockId
+			config.EnvId = techiesEnv0.EnvId
+			config.WorkspaceUid = techiesEnv0.Uid.String()
+			config.Connections = workspaces.ManifestConnections{
+				"cluster": { // point at lycan
+					StackId: lycanEnv0.StackId,
+					BlockId: lycanEnv0.BlockId,
+				},
+			}
+		}
+
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, alterPlanConfig),
+			Steps: []resource.TestStep{
+				{
+					Config: tfconfig,
+					Check:  checks,
+				},
+			},
+		})
+
 	})
 }
 
