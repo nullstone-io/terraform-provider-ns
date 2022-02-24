@@ -106,7 +106,7 @@ func TestDataConnection(t *testing.T) {
 		},
 		uid4.String(): {
 			WorkspaceUid: uid4,
-			Connections: map[string]types.Connection{
+			Connections:  map[string]types.Connection{
 				// Intentionally blank, this simulates a connection not configured yet on Nullstone servers
 			},
 		},
