@@ -1460,7 +1460,6 @@ gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2/go.mod h1:Xk6kEKp8OKb+X14hQBKW
 gopkg.in/inf.v0 v0.9.1/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
 gopkg.in/ini.v1 v1.62.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/natefinch/lumberjack.v2 v2.0.0/go.mod h1:l0ndWWf7gzL7RNwBG7wST/UCcT4T24xpD6X8LsfU/+k=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220221231733-8058a6eea44b h1:xzbOH1H0jUskNxI5XfivJZ/DPJS+z8Kve1Hc6lQe7M8=
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220221231733-8058a6eea44b/go.mod h1:zdGqTYrRQ2TX/s4g2KNfiwn6qCg8fQesmnuhR1Ccfhw=
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220223045806-92adb9a1985a h1:aMXNHJ5AYkx81bazVtmkx4zXbaz+WG5YZE4C80CT5X8=
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220223045806-92adb9a1985a/go.mod h1:zdGqTYrRQ2TX/s4g2KNfiwn6qCg8fQesmnuhR1Ccfhw=
