@@ -134,7 +134,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 			if err != nil {
 				diags = append(diags, &tfprotov5.Diagnostic{
 					Severity: tfprotov5.DiagnosticSeverityWarning,
-					Summary:  fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace),
+					Summary:  fmt.Sprintf(`Unable to download workspace outputs for %q. 'outputs' will be empty`, workspace.Id()),
 					Detail:   err.Error(),
 				})
 			} else {

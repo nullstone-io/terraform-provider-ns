@@ -1,3 +1,9 @@
+## 0.6.5 (Feb 24, 2022)
+
+FIXES:
+
+* Fixed warning output if `ns_connection` cannot find state file for outputs.
+
 ## 0.6.4 (Feb 24, 2022)
 
 FIXES:
