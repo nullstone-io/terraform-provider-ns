@@ -27,7 +27,7 @@ data "ns_domain" "domain" {
 		getTfeConfig, _ := mockTfe(nil)
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config:      tfconfig,
@@ -60,7 +60,7 @@ data "ns_domain" "domain" {
 		getTfeConfig, _ := mockTfe(nil)
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,

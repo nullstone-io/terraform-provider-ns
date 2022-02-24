@@ -50,7 +50,7 @@ resource "ns_autogen_subdomain_delegation" "to_fake" {
 
 		checks := resource.ComposeTestCheckFunc()
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config:      tfconfig,
@@ -84,7 +84,7 @@ resource "ns_autogen_subdomain_delegation" "to_fake" {
 			resource.TestCheckResourceAttr("ns_autogen_subdomain_delegation.to_fake", `nameservers.2`, "3.3.3.3"),
 		)
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,
@@ -117,7 +117,7 @@ resource "ns_autogen_subdomain_delegation" "to_fake" {
 			resource.TestCheckResourceAttr("ns_autogen_subdomain_delegation.to_fake", `nameservers.2`, "7.7.7.7"),
 		)
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,

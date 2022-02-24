@@ -109,7 +109,7 @@ data "ns_connection" "network" {
 
 		checks := resource.ComposeTestCheckFunc()
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config:      tfconfig,
@@ -141,7 +141,7 @@ data "ns_connection" "postgres" {
 		getTfeConfig, _ := mockTfe(nil)
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,
@@ -177,7 +177,7 @@ data "ns_connection" "cluster" {
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,
@@ -220,7 +220,7 @@ data "ns_connection" "network" {
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,

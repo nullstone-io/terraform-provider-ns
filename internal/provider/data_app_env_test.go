@@ -101,7 +101,7 @@ data "ns_app_env" "this" {
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,
@@ -147,7 +147,7 @@ data "ns_app_env" "this" {
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,

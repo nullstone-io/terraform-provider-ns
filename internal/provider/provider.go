@@ -12,11 +12,14 @@ import (
 	"log"
 )
 
-func Mock(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config) tfprotov5.ProviderServer {
+func Mock(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config, alterPlanConfig func(config *PlanConfig)) tfprotov5.ProviderServer {
 	return newProviderServer(version, func() (api.Config, *tfe.Config, PlanConfig) {
 		apiConfig := getNsConfig()
 		tfeConfig := getTfeConfig()
 		planConfig, _ := LoadPlanConfig()
+		if alterPlanConfig != nil {
+			alterPlanConfig(&planConfig)
+		}
 		return apiConfig, tfeConfig, planConfig
 	})
 }

@@ -33,7 +33,7 @@ resource "ns_autogen_subdomain" "autogen_subdomain" {
 			resource.TestCheckResourceAttr("ns_autogen_subdomain.autogen_subdomain", `fqdn`, "xyz123.nullstone.app."),
 		)
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,
