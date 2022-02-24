@@ -1,3 +1,9 @@
+## 0.6.2 (Feb 24, 2022)
+
+FIXES:
+
+* Fixed nil panic in `ns_connection` when the workspace has not been created yet.
+
 ## 0.6.1 (Feb 22, 2022)
 
 FIXES:

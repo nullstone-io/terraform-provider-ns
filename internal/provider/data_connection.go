@@ -208,6 +208,10 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 }
 
 func (d *dataConnection) getConnectionsFromRunConfig(runConfig *types.RunConfig) types.Connections {
+	if runConfig == nil {
+		return types.Connections{}
+	}
+
 	// If this is an app connection, we immediately return those
 	if d.isAppConnection {
 		return runConfig.Connections
