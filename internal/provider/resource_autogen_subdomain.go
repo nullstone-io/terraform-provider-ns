@@ -156,7 +156,7 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  "unable to create autogen subdomain",
 		}
-		if subdomain, err := nsClient.Subdomains().Get(subdomainId); err != nil {
+		if subdomain, err := nsClient.Subdomains().GlobalGet(subdomainId); err != nil {
 			diag.Detail = fmt.Sprintf("error retrieving subdomain: %s", err)
 		} else if subdomain == nil {
 			diag.Detail = fmt.Sprintf("unable to find subdomain (id=%d)", subdomainId)
