@@ -11,7 +11,7 @@ func mockNsServerWithSubdomains() http.Handler {
 	router := mux.NewRouter()
 	router.
 		Methods(http.MethodGet).
-		Path("/orgs/{orgName}/stacks/{stackId}/subdomains/{subdomainId}").
+		Path("/orgs/{orgName}/subdomains/{subdomainId}").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			subdomain := types.Subdomain{
 				DnsName: "api",
