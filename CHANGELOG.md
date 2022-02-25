@@ -1,3 +1,9 @@
+## 0.6.6 (Feb 24, 2022)
+
+FIXES:
+
+* Fixed loading of nullstone API address when using CLI profile on local machine.
+
 ## 0.6.5 (Feb 24, 2022)
 
 FIXES:
