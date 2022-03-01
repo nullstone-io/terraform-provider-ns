@@ -81,36 +81,36 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("Unable to list applications."),
+			Summary:  fmt.Sprintf("An error occurred when fetching the application (stackId=%d appId=%d).", stackId, appId),
 			Detail:   err.Error(),
 		})
 	} else if app == nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("The application environment (stack=%d, app=%d, env=%d) is missing.", stackId, appId, envId),
+			Summary:  fmt.Sprintf("The application (stackId=%d, appId=%d) is missing.", stackId, appId),
 		})
 	} else if env, err := d.findEnv(stackId, envId); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("Unable to find environment (stack=%d, env=%d).", stackId, envId),
+			Summary:  fmt.Sprintf("An error occurred when fetching the environment (stackId=%d, envId=%d).", stackId, envId),
 		})
 	} else if env == nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("The environment (stack=%d, env=%d) is missing.", stackId, envId),
+			Summary:  fmt.Sprintf("The environment (stackId=%d, envId=%d) is missing.", stackId, envId),
 		})
 	} else {
 		appEnv, err := nsClient.AppEnvs().Get(stackId, app.Id, env.Name)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  fmt.Sprintf("Unable to retrieve the application environment (stack=%d, app=%d, env=%d) is missing.", stackId, appId, envId),
+				Summary:  fmt.Sprintf("Unable to retrieve the application environment (stackId=%d, appId=%d, envName=%s).", stackId, appId, env.Name),
 				Detail:   err.Error(),
 			})
 		} else if appEnv == nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
-				Summary:  fmt.Sprintf("Unable to find the application environment (stack=%d, app=%d, env=%d) is missing.", stackId, appId, envId),
+				Summary:  fmt.Sprintf("Unable to find the application environment (stackId=%d, appId=%d, envName=%s).", stackId, appId, env.Name),
 			})
 		} else {
 			appEnvId = appEnv.Id
