@@ -506,6 +506,8 @@ github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB7
 github.com/gorilla/websocket v0.0.0-20170926233335-4201258b820c/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
+github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gosuri/uilive v0.0.4/go.mod h1:V/epo5LjjlDE5RJUcqx8dbw+zc93y5Ya3yg8tfZ74VI=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
@@ -1464,6 +1466,8 @@ gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220224193142-3c37cde72e1a h1:8SR
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220224193142-3c37cde72e1a/go.mod h1:zdGqTYrRQ2TX/s4g2KNfiwn6qCg8fQesmnuhR1Ccfhw=
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220224194550-ef55271e39bd h1:rp208soyUQTlORtl1jM5CAOM7PvkNptVYoX/synbuv0=
 gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220224194550-ef55271e39bd/go.mod h1:zdGqTYrRQ2TX/s4g2KNfiwn6qCg8fQesmnuhR1Ccfhw=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220301214224-5db0d6beedd4 h1:LNn3DZ6vDa+bQ1Nit4zutdMdcrPr3mlJq1lBpjUon/U=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220301214224-5db0d6beedd4/go.mod h1:Dh5CgcUmJmAKVI41dlaiiFjcDDYPN3N+9Rg1rPHrqjs=
 gopkg.in/nullstone-io/nullstone.v0 v0.0.46 h1:+6iYMkVy+GE8JC2PNSl/e4P+BeKpq3JLT2VyPSYHsiI=
 gopkg.in/nullstone-io/nullstone.v0 v0.0.46/go.mod h1:UVWszvTMBU4HE85uIxI0If5k+lvLjoa/zEUjMZxaq58=
 gopkg.in/resty.v1 v1.12.0/go.mod h1:mDo4pnntr5jdWRML875a/NmxYqAlA73dVijT2AXvQQo=

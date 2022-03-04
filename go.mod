@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/nullstone-io/module v0.2.4
 	github.com/stretchr/testify v1.7.0
-	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220224193142-3c37cde72e1a
+	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220301214224-5db0d6beedd4
 	gopkg.in/nullstone-io/nullstone.v0 v0.0.46
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
@@ -26,6 +26,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
