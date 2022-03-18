@@ -262,6 +262,11 @@ data "ns_connection" "cluster" {
   name     = "cluster"
   contract = "cluster/aws/ecs"
 }
+data "ns_connection" "network" {
+  name = "network"
+  type = "network/aws"
+  via  = data.ns_connection.cluster.name
+}
 `)
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "100/103/102"),
@@ -270,6 +275,8 @@ data "ns_connection" "cluster" {
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key2`, "value2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
+			resource.TestCheckResourceAttr("data.ns_connection.network", `workspace_id`, "100/105/102"),
+			resource.TestCheckResourceAttr("data.ns_connection.network", `outputs.placeholder`, "value"),
 		)
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
@@ -314,7 +321,6 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 			orgName, stackId := vars["orgName"], vars["stackId"]
 			blockId, envId := vars["blockId"], vars["envId"]
 			for _, workspace := range workspaces {
-
 				if workspace.OrgName == orgName &&
 					fmt.Sprintf("%d", workspace.StackId) == stackId &&
 					fmt.Sprintf("%d", workspace.BlockId) == blockId &&
@@ -324,6 +330,7 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 					return
 				}
 			}
+			http.NotFound(w, r)
 		})
 	router.
 		Methods(http.MethodGet).
