@@ -194,7 +194,8 @@ func (d *dataConnection) getConnectionWorkspace(name string, contractName types.
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	// Let's search for a configured connection in .nullstone/active-workspace.yml first
-	if localConnections := d.p.PlanConfig.Connections; localConnections != nil {
+	localConnections := d.p.PlanConfig.Connections
+	if localConnections != nil {
 		if reference, ok := localConnections[name]; ok {
 			ct := types.ConnectionTarget{
 				StackId:   reference.StackId,
@@ -222,7 +223,7 @@ func (d *dataConnection) getConnectionWorkspace(name string, contractName types.
 	// If this data_connection has `via` specified, then we need to
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
-		sourceWorkspace, connections, err = followViaConnection(d.p.NsConfig, sourceWorkspace, connections, via)
+		sourceWorkspace, connections, err = followViaConnection(d.p.NsConfig, sourceWorkspace, connections, localConnections, via)
 		if errors.Is(err, &ErrViaConnectionNotFound{}) {
 			log.Printf("(getConnectionWorkspace) %s\n", err)
 			return nil, nil
