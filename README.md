@@ -1,7 +1,6 @@
 # Nullstone Terraform Provider
 
 - Website: https://nullstone.io
-- [![Gitter chat](https://badges.gitter.im/nullstone-io/Lobby.png)](https://gitter.im/nullstone-io/community)
 
 ## Overview
 
@@ -16,7 +15,7 @@ This provider enables several capabilities with nullstone.
 Requirements
 ------------
 
--	[Terraform](https://www.terraform.io/downloads.html) >= 0.12.x
+-	[Terraform](https://www.terraform.io/downloads.html) >= 1.x
 -	[Go](https://golang.org/doc/install) >= 1.12
 
 Building The Provider
@@ -48,7 +47,7 @@ Then commit the changes to `go.mod` and `go.sum`.
 Using the provider
 ----------------------
 
-Fill this in for each provider
+This provider is registered on the official Terraform registry. Follow the [docs](https://registry.terraform.io/providers/nullstone-io/ns/latest/docs) to use this provider.
 
 Developing the Provider
 ---------------------------

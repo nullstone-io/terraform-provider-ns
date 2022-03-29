@@ -6,9 +6,15 @@ description: |-
   Terraform provider Nullstone.
 ---
 
-# Scaffolding Provider
+# Nullstone Provider
 
-Use this paragraph to give a high-level overview of your provider, and any configuration it requires.
+[Nullstone](https://nullstone.io) is an extensible developer platform.
+
+This provider serves as a bridge between Terraform modules and Nullstone apps, datastores, and domains.
+Mostly, this allows for retrieval of Nullstone information, but you can also use this provider to configure domain information in Nullstone.
+
+The Nullstone engine automatically configures this provider with the correct context (i.e. stack, environment, app/datastore/domain/block).
+See documentation below for reference on local setup.
 
 Use the navigation to the left to read about the available resources.
 
