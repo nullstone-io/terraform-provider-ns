@@ -1469,10 +1469,10 @@ gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2/go.mod h1:Xk6kEKp8OKb+X14hQBKW
 gopkg.in/inf.v0 v0.9.1/go.mod h1:cWUDdTG/fYaXco+Dcufb5Vnc6Gp2YChqWtbxRZE0mXw=
 gopkg.in/ini.v1 v1.62.0/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/natefinch/lumberjack.v2 v2.0.0/go.mod h1:l0ndWWf7gzL7RNwBG7wST/UCcT4T24xpD6X8LsfU/+k=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220401140055-fc2d7d88b817 h1:36apnCl0Hxpr6vgzi/Vi95XOuzsSqxLn/L6MOwva4ls=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220401140055-fc2d7d88b817/go.mod h1:Dh5CgcUmJmAKVI41dlaiiFjcDDYPN3N+9Rg1rPHrqjs=
-gopkg.in/nullstone-io/nullstone.v0 v0.0.51 h1:3M0HUPSW5DwRdJUsGvUOVWmo9YS8SqdyxXNg8CyGWnQ=
-gopkg.in/nullstone-io/nullstone.v0 v0.0.51/go.mod h1:Bwwu5guK+vkz6YBuFgYrnjSqctA+zzgXyQGmUgThFS8=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220401153526-61be00f13619 h1:VDFhfMig/zfObj8jKJfL1vj9atwH9f5qwf6x4ClYMdc=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220401153526-61be00f13619/go.mod h1:Dh5CgcUmJmAKVI41dlaiiFjcDDYPN3N+9Rg1rPHrqjs=
+gopkg.in/nullstone-io/nullstone.v0 v0.0.52 h1:0Npj1V+ncmK6uC6QPc2z/jMwg+iclb3VYDhHy+9+SiA=
+gopkg.in/nullstone-io/nullstone.v0 v0.0.52/go.mod h1:qigkWjWHnZsY22H+x3DHajs+hXBJ63n5D8cwLi8GYRw=
 gopkg.in/resty.v1 v1.12.0/go.mod h1:mDo4pnntr5jdWRML875a/NmxYqAlA73dVijT2AXvQQo=
 gopkg.in/rethinkdb/rethinkdb-go.v6 v6.2.1/go.mod h1:WbjuEoo1oadwzQ4apSDU+JTvmllEHtsNHS6y7vFc7iw=
 gopkg.in/square/go-jose.v2 v2.2.2/go.mod h1:M9dMgbHiYLoDGQrXy7OpJDJWiKiU//h+vD76mk0e1AI=
