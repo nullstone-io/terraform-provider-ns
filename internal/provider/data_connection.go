@@ -49,8 +49,15 @@ func (*dataConnection) Schema(ctx context.Context) *tfprotov5.Schema {
 				{
 					Name:            "type",
 					Type:            tftypes.String,
-					Required:        true,
+					Optional:        true,
 					Description:     "The type of module to satisfy this connection.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
+				{
+					Name:            "contract",
+					Type:            tftypes.String,
+					Optional:        true,
+					Description:     "The contract that defines which modules can satisfy this connection.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
@@ -96,6 +103,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 
 	name := extractStringFromConfig(config, "name")
 	type_ := extractStringFromConfig(config, "type")
+	contract := extractStringFromConfig(config, "contract")
 	optional := extractBoolFromConfig(config, "optional")
 	via := extractStringFromConfig(config, "via")
 	workspaceId := ""
@@ -107,13 +115,26 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 			Summary:  fmt.Sprintf("name (%s) can only contain the characters 'a'-'z', '0'-'9', '-', '_'", name),
 		})
 	}
+	if type_ == "" && contract == "" {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("contract is required"),
+		})
+	}
+	contractName, err := types.ParseContractName(contract)
+	if err != nil {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("contract (%s) is invalid: %s", contract, err),
+		})
+	}
 	if len(diags) > 0 {
 		return nil, diags, nil
 	}
 
 	outputsValue := tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{})
 
-	workspace, err := d.getConnectionWorkspace(name, type_, via)
+	workspace, err := d.getConnectionWorkspace(name, contractName, type_, via)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -160,6 +181,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		"id":           tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspaceId)),
 		"name":         tftypes.NewValue(tftypes.String, name),
 		"type":         tftypes.NewValue(tftypes.String, type_),
+		"contract":     tftypes.NewValue(tftypes.String, contract),
 		"workspace_id": tftypes.NewValue(tftypes.String, workspaceId),
 		"optional":     tftypes.NewValue(tftypes.Bool, optional),
 		"via":          tftypes.NewValue(tftypes.String, via),
@@ -167,8 +189,8 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	}, diags, nil
 }
 
-func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types.WorkspaceTarget, error) {
-	log.Printf("(getConnectionWorkspace) name=%s type=%s via=%s capabilityId=%d", name, type_, via, d.p.PlanConfig.CapabilityId)
+func (d *dataConnection) getConnectionWorkspace(name string, contractName types.ContractName, type_, via string) (*types.WorkspaceTarget, error) {
+	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityId=%d", name, contractName, type_, via, d.p.PlanConfig.CapabilityId)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	// Let's search for a configured connection in .nullstone/active-workspace.yml first
@@ -214,8 +236,8 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 		log.Printf("(getConnectionWorkspace) Connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
 	}
-	if conn.Type != type_ {
-		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
+	if err := d.validateConnection(conn, contractName, type_); err != nil {
+		return nil, err
 	}
 	found := sourceWorkspace.FindRelativeConnection(*conn.Reference)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
@@ -243,4 +265,28 @@ func (d *dataConnection) getConnectionsFromRunConfig(runConfig *types.RunConfig)
 		return types.Connections{}
 	}
 	return runConfig.Connections
+}
+
+func (d *dataConnection) validateConnection(conn types.Connection, wantContractName types.ContractName, wantType string) error {
+	// We are migrating from type = "..." to contract="..."
+	// Try "contract" first, then fall back to "type"
+	// If either are using their default values (contract="*/*/*", type="unknown"), then we should fail
+	isEmptyContract := conn.Contract == "*/*/*"
+	isUnknownType := conn.Type == "unknown"
+	if isEmptyContract && isUnknownType {
+		return fmt.Errorf("connection is invalid, has no connection contract")
+	} else if !isEmptyContract {
+		contractName, err := types.ParseContractName(conn.Contract)
+		if err != nil {
+			return fmt.Errorf("retrieved connection, but the connection contract is invalid (%s): %s", conn.Contract, err)
+		}
+		if !wantContractName.Match(contractName) {
+			return fmt.Errorf("retrieved connection, but the connection contract does not match (desired=%s, actual=%s)", wantContractName, conn.Contract)
+		}
+	} else {
+		if conn.Type != wantType {
+			return fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", wantType, conn.Type)
+		}
+	}
+	return nil
 }
