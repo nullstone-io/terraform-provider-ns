@@ -269,13 +269,19 @@ func (d *dataConnection) getConnectionsFromRunConfig(runConfig *types.RunConfig)
 
 func (d *dataConnection) validateConnection(conn types.Connection, wantContractName types.ContractName, wantType string) error {
 	// We are migrating from type = "..." to contract="..."
-	// Try "contract" first, then fall back to "type"
-	// If either are using their default values (contract="*/*/*", type="unknown"), then we should fail
+	// During migration, if the connection does not have a contract, then we won't perform any validation
+	// Otherwise, if terraform has a contract, match against the connection
+	// Else, match terraform type against the connection
 	isEmptyContract := conn.Contract == "*/*/*"
 	isUnknownType := conn.Type == "unknown"
 	if isEmptyContract && isUnknownType {
 		return fmt.Errorf("connection is invalid, has no connection contract")
 	} else if !isEmptyContract {
+		if conn.Contract == "" {
+			// Ignore contract validation if connection doesn't contain correct contract yet
+			return nil
+		}
+
 		contractName, err := types.ParseContractName(conn.Contract)
 		if err != nil {
 			return fmt.Errorf("retrieved connection, but the connection contract is invalid (%s): %s", conn.Contract, err)
