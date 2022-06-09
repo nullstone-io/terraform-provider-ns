@@ -348,9 +348,6 @@ github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce h1:RPclfga2SEJmgMmz2k+Mg7cowZ8yv4Trqw9UsJby758=
 github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce/go.mod h1:uFMI8w+ref4v2r9jz+c9i1IfIttS/OkmLfrk1jne5hs=
-github.com/nullstone-io/module v0.2.3/go.mod h1:btQiO0giVWDvvaQ7CLnPmuPPakJc55lAr8OlE1LK6hg=
-github.com/nullstone-io/module v0.2.7 h1:lRfekcNwR415YV7vV+yupzPwwHhTgeyTPh30nCWVZmk=
-github.com/nullstone-io/module v0.2.7/go.mod h1:btQiO0giVWDvvaQ7CLnPmuPPakJc55lAr8OlE1LK6hg=
 github.com/nullstone-io/module v0.2.8 h1:kflO9hKq8Swfj2Ms04lMvQKTHCXDhkZLac6PYlRzk5Y=
 github.com/nullstone-io/module v0.2.8/go.mod h1:btQiO0giVWDvvaQ7CLnPmuPPakJc55lAr8OlE1LK6hg=
 github.com/oklog/run v1.0.0 h1:Ru7dDtJNOyC66gQ5dQmaCa0qIsAUFY3sFpK1Xk8igrw=
@@ -781,12 +778,10 @@ gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntN
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
 gopkg.in/cheggaaa/pb.v1 v1.0.27/go.mod h1:V/YB90LKu/1FcN3WVnfiiE5oMCibMjukxqG/qStrOgw=
 gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220401153526-61be00f13619 h1:VDFhfMig/zfObj8jKJfL1vj9atwH9f5qwf6x4ClYMdc=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220401153526-61be00f13619/go.mod h1:Dh5CgcUmJmAKVI41dlaiiFjcDDYPN3N+9Rg1rPHrqjs=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220509211024-7cf127e08c54 h1:1vmcRFXFGTp/XEqZYzigZAT0J2PhQvHNV4ZrKwL3BW0=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220509211024-7cf127e08c54/go.mod h1:Dh5CgcUmJmAKVI41dlaiiFjcDDYPN3N+9Rg1rPHrqjs=
-gopkg.in/nullstone-io/nullstone.v0 v0.0.52 h1:0Npj1V+ncmK6uC6QPc2z/jMwg+iclb3VYDhHy+9+SiA=
-gopkg.in/nullstone-io/nullstone.v0 v0.0.52/go.mod h1:qigkWjWHnZsY22H+x3DHajs+hXBJ63n5D8cwLi8GYRw=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220609182625-c7286ad3a15c h1:Yjy9QlA13BVDKdiJw5ycEoi8htfdGwlOR1pAf59MrwM=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220609182625-c7286ad3a15c/go.mod h1:TOi/Ezpi1cVVwHX2BtPYRyom9LJNgVlUxmPRxIkgY9c=
+gopkg.in/nullstone-io/nullstone.v0 v0.0.61 h1:GRCve/peW7x5JyimcjwVZnA6B33oyPIU3zPbxREWz2g=
+gopkg.in/nullstone-io/nullstone.v0 v0.0.61/go.mod h1:4hg/B7weEG2uYBw4lQmASBSTp9PZuYJL9epK3K9ydaI=
 gopkg.in/warnings.v0 v0.1.2 h1:wFXVbFY8DY5/xOe1ECiWdKCzZlxgshcYVNkBHstARME=
 gopkg.in/warnings.v0 v0.1.2/go.mod h1:jksf8JmL6Qr/oQM2OXTHunEvvTAsrWBLb6OOjuVWRNI=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
