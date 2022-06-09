@@ -1,6 +1,6 @@
 module github.com/nullstone-io/terraform-provider-ns
 
-go 1.17
+go 1.18
 
 require (
 	github.com/google/uuid v1.2.0
@@ -10,9 +10,9 @@ require (
 	github.com/hashicorp/go-tfe v0.11.1
 	github.com/hashicorp/terraform-plugin-go v0.7.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
-	github.com/nullstone-io/module v0.2.7
+	github.com/nullstone-io/module v0.2.8
 	github.com/stretchr/testify v1.7.0
-	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220401153526-61be00f13619
+	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20220509211024-7cf127e08c54
 	gopkg.in/nullstone-io/nullstone.v0 v0.0.52
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
