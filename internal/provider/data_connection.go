@@ -121,7 +121,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 			Summary:  fmt.Sprintf("contract is required"),
 		})
 	}
-	contractName, err := types.ParseContractName(contract)
+	contractName, err := types.ParseModuleContractName(contract)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -189,7 +189,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	}, diags, nil
 }
 
-func (d *dataConnection) getConnectionWorkspace(name string, contractName types.ContractName, type_, via string) (*types.WorkspaceTarget, error) {
+func (d *dataConnection) getConnectionWorkspace(name string, contractName types.ModuleContractName, type_, via string) (*types.WorkspaceTarget, error) {
 	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityId=%d", name, contractName, type_, via, d.p.PlanConfig.CapabilityId)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
@@ -267,7 +267,7 @@ func (d *dataConnection) getConnectionsFromRunConfig(runConfig *types.RunConfig)
 	return runConfig.Connections
 }
 
-func (d *dataConnection) validateConnection(conn types.Connection, wantContractName types.ContractName, wantType string) error {
+func (d *dataConnection) validateConnection(conn types.Connection, wantContractName types.ModuleContractName, wantType string) error {
 	// We are migrating from type = "..." to contract="..."
 	// During migration, if the connection does not have a contract, then we won't perform any validation
 	// Otherwise, if terraform has a contract, match against the connection
@@ -282,7 +282,7 @@ func (d *dataConnection) validateConnection(conn types.Connection, wantContractN
 			return nil
 		}
 
-		contractName, err := types.ParseContractName(conn.Contract)
+		contractName, err := types.ParseModuleContractName(conn.Contract)
 		if err != nil {
 			return fmt.Errorf("retrieved connection, but the connection contract is invalid (%s): %s", conn.Contract, err)
 		}
