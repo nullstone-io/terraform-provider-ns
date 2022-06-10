@@ -16,6 +16,12 @@ Plan Config affects this data source. See [the main provider documentation](../i
 Specific to this data source, if the provider specifies `capability_id`, 
 this data source will pull connections from the capability rather than the owning application.
 
+## Local Module Development
+
+For local module development, download the [Nullstone CLI](https://docs.nullstone.io/getting-started/setup/install-configure-cli.html).
+The `nullstone workspaces select` command prompts you when you define a new `ns_connection` in your module and a target workspace is not configured.
+This configuration information is stored in `.nullstone/active-workspace.yml`; refer to the [main provider documentation](../index.html) for more information.
+
 ## Example Usage
 
 #### Basic example

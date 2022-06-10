@@ -6,6 +6,7 @@ import (
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
+	"gopkg.in/nullstone-io/nullstone.v0/workspaces"
 	"log"
 )
 
@@ -24,16 +25,42 @@ func (e *ErrViaConnectionNotFound) Error() string {
 	return fmt.Sprintf("via connection (%s) was not found in workspace %s", e.Via, e.Workspace.Id())
 }
 
-func followViaConnection(nsConfig api.Config, sourceWorkspace types.WorkspaceTarget, connections types.Connections, via string) (types.WorkspaceTarget, types.Connections, error) {
-	viaWorkspaceConn, ok := connections[via]
-	if !ok || viaWorkspaceConn.Reference == nil {
+func followViaConnection(nsConfig api.Config, sourceWorkspace types.WorkspaceTarget, connections types.Connections, localConnections workspaces.ManifestConnections, via string) (types.WorkspaceTarget, types.Connections, error) {
+	viaWorkspace := findViaWorkspace(sourceWorkspace, connections, localConnections, via)
+	if viaWorkspace == nil {
 		return sourceWorkspace, connections, &ErrViaConnectionNotFound{Workspace: sourceWorkspace, Via: via}
 	}
-	viaWorkspace := sourceWorkspace.FindRelativeConnection(*viaWorkspaceConn.Reference)
+
 	log.Printf("(followViaConnection) Pulling (via=%s) connections for %s", via, viaWorkspace.Id())
-	viaRunConfig, err := ns.GetWorkspaceConfig(nsConfig, viaWorkspace)
+	viaRunConfig, err := ns.GetWorkspaceConfig(nsConfig, *viaWorkspace)
 	if err != nil {
 		return sourceWorkspace, connections, fmt.Errorf("error retrieving connections for `via` workspace (via=%s, workspace=%s): %w", via, viaWorkspace.Id(), err)
 	}
-	return viaWorkspace, viaRunConfig.Connections, nil
+	return *viaWorkspace, viaRunConfig.Connections, nil
+}
+
+func findViaWorkspace(sourceWorkspace types.WorkspaceTarget, connections types.Connections, localConnections workspaces.ManifestConnections, via string) *types.WorkspaceTarget {
+	// 1. Try local connections first
+	mct, ok := localConnections[via]
+	if ok {
+		ct := &types.WorkspaceTarget{
+			StackId: mct.StackId,
+			BlockId: mct.BlockId,
+			EnvId:   sourceWorkspace.EnvId,
+		}
+		if mct.EnvId != nil {
+			ct.EnvId = *mct.EnvId
+		}
+		return ct
+	}
+
+	// 2. Try connections normally
+	viaWorkspaceConn, ok := connections[via]
+	if ok && viaWorkspaceConn.Reference != nil {
+		ct := sourceWorkspace.FindRelativeConnection(*viaWorkspaceConn.Reference)
+		return &ct
+	}
+
+	// 3. We can't find the workspace for the connection
+	return nil
 }
