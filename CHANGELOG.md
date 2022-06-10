@@ -4,6 +4,7 @@ FEATURES:
 
 * Added `ns_connection.contract` to migrate modules to use contract-based matching for dependent workspaces.
 * Marked `ns_connection.type` for deprecation.
+* Added `ns_connection.via` support for local module development.
 
 ## 0.6.10 (Mar 29, 2022)
 
