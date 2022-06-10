@@ -237,7 +237,7 @@ func (d *dataConnection) getConnectionWorkspace(name string, contractName types.
 		return nil, nil
 	}
 	if err := d.validateConnection(conn, contractName, type_); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("workspace (%s) is configured with invalid connection: %w", sourceWorkspace.Id(), err)
 	}
 	found := sourceWorkspace.FindRelativeConnection(*conn.Reference)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
@@ -272,10 +272,10 @@ func (d *dataConnection) validateConnection(conn types.Connection, wantContractN
 	// During migration, if the connection does not have a contract, then we won't perform any validation
 	// Otherwise, if terraform has a contract, match against the connection
 	// Else, match terraform type against the connection
-	isEmptyContract := conn.Contract == "*/*/*"
-	isUnknownType := conn.Type == "unknown"
-	if isEmptyContract && isUnknownType {
-		return fmt.Errorf("connection is invalid, has no connection contract")
+	isEmptyContract := conn.Contract == "*/*/*" || conn.Contract == ""
+	isEmptyType := conn.Type == "unknown" || conn.Type == ""
+	if isEmptyContract && isEmptyType {
+		return fmt.Errorf("there is no contract in the connection")
 	} else if !isEmptyContract {
 		if conn.Contract == "" {
 			// Ignore contract validation if connection doesn't contain correct contract yet
@@ -284,14 +284,14 @@ func (d *dataConnection) validateConnection(conn types.Connection, wantContractN
 
 		contractName, err := types.ParseModuleContractName(conn.Contract)
 		if err != nil {
-			return fmt.Errorf("retrieved connection, but the connection contract is invalid (%s): %s", conn.Contract, err)
+			return fmt.Errorf("the connection contract is invalid (%s): %s", conn.Contract, err)
 		}
 		if !wantContractName.Match(contractName) {
-			return fmt.Errorf("retrieved connection, but the connection contract does not match (desired=%s, actual=%s)", wantContractName, conn.Contract)
+			return fmt.Errorf("the connection contract does not match (terraform match=%s, configured in Nullstone=%s)", wantContractName, conn.Contract)
 		}
 	} else {
 		if conn.Type != wantType {
-			return fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", wantType, conn.Type)
+			return fmt.Errorf("the connection type does not match (terraform type=%s, configured in Nullstone=%s)", wantType, conn.Type)
 		}
 	}
 	return nil
