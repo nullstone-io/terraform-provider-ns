@@ -263,9 +263,9 @@ data "ns_connection" "cluster" {
   contract = "cluster/aws/ecs"
 }
 data "ns_connection" "network" {
-  name = "network"
-  type = "network/aws"
-  via  = data.ns_connection.cluster.name
+  name     = "network"
+  contract = "cluster/aws/vpc"
+  via      = data.ns_connection.cluster.name
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
