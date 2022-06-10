@@ -49,8 +49,15 @@ func (*dataConnection) Schema(ctx context.Context) *tfprotov5.Schema {
 				{
 					Name:            "type",
 					Type:            tftypes.String,
-					Required:        true,
+					Optional:        true,
 					Description:     "The type of module to satisfy this connection.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
+				{
+					Name:            "contract",
+					Type:            tftypes.String,
+					Optional:        true,
+					Description:     "The contract that defines which modules can satisfy this connection.",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
@@ -96,6 +103,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 
 	name := extractStringFromConfig(config, "name")
 	type_ := extractStringFromConfig(config, "type")
+	contract := extractStringFromConfig(config, "contract")
 	optional := extractBoolFromConfig(config, "optional")
 	via := extractStringFromConfig(config, "via")
 	workspaceId := ""
@@ -107,13 +115,26 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 			Summary:  fmt.Sprintf("name (%s) can only contain the characters 'a'-'z', '0'-'9', '-', '_'", name),
 		})
 	}
+	if type_ == "" && contract == "" {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("contract is required"),
+		})
+	}
+	contractName, err := types.ParseModuleContractName(contract)
+	if err != nil {
+		diags = append(diags, &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("contract (%s) is invalid: %s", contract, err),
+		})
+	}
 	if len(diags) > 0 {
 		return nil, diags, nil
 	}
 
 	outputsValue := tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{})
 
-	workspace, err := d.getConnectionWorkspace(name, type_, via)
+	workspace, err := d.getConnectionWorkspace(name, contractName, type_, via)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -160,6 +181,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		"id":           tftypes.NewValue(tftypes.String, fmt.Sprintf("%s-%s", name, workspaceId)),
 		"name":         tftypes.NewValue(tftypes.String, name),
 		"type":         tftypes.NewValue(tftypes.String, type_),
+		"contract":     tftypes.NewValue(tftypes.String, contract),
 		"workspace_id": tftypes.NewValue(tftypes.String, workspaceId),
 		"optional":     tftypes.NewValue(tftypes.Bool, optional),
 		"via":          tftypes.NewValue(tftypes.String, via),
@@ -167,8 +189,8 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	}, diags, nil
 }
 
-func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types.WorkspaceTarget, error) {
-	log.Printf("(getConnectionWorkspace) name=%s type=%s via=%s capabilityId=%d", name, type_, via, d.p.PlanConfig.CapabilityId)
+func (d *dataConnection) getConnectionWorkspace(name string, contractName types.ModuleContractName, type_, via string) (*types.WorkspaceTarget, error) {
+	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityId=%d", name, contractName, type_, via, d.p.PlanConfig.CapabilityId)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	// Let's search for a configured connection in .nullstone/active-workspace.yml first
@@ -214,8 +236,8 @@ func (d *dataConnection) getConnectionWorkspace(name, type_, via string) (*types
 		log.Printf("(getConnectionWorkspace) Connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
 	}
-	if conn.Type != type_ {
-		return nil, fmt.Errorf("retrieved connection, but the connection types do not match (desired=%s, actual=%s)", type_, conn.Type)
+	if err := d.validateConnection(conn, contractName, type_); err != nil {
+		return nil, fmt.Errorf("workspace (%s) is configured with invalid connection: %w", sourceWorkspace.Id(), err)
 	}
 	found := sourceWorkspace.FindRelativeConnection(*conn.Reference)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
@@ -243,4 +265,34 @@ func (d *dataConnection) getConnectionsFromRunConfig(runConfig *types.RunConfig)
 		return types.Connections{}
 	}
 	return runConfig.Connections
+}
+
+func (d *dataConnection) validateConnection(conn types.Connection, wantContractName types.ModuleContractName, wantType string) error {
+	// We are migrating from type = "..." to contract="..."
+	// During migration, if the connection does not have a contract, then we won't perform any validation
+	// Otherwise, if terraform has a contract, match against the connection
+	// Else, match terraform type against the connection
+	isEmptyContract := conn.Contract == "*/*/*" || conn.Contract == ""
+	isEmptyType := conn.Type == "unknown" || conn.Type == ""
+	if isEmptyContract && isEmptyType {
+		return fmt.Errorf("there is no contract in the connection")
+	} else if !isEmptyContract {
+		if conn.Contract == "" {
+			// Ignore contract validation if connection doesn't contain correct contract yet
+			return nil
+		}
+
+		contractName, err := types.ParseModuleContractName(conn.Contract)
+		if err != nil {
+			return fmt.Errorf("the connection contract is invalid (%s): %s", conn.Contract, err)
+		}
+		if !wantContractName.Match(contractName) {
+			return fmt.Errorf("the connection contract does not match (terraform match=%s, configured in Nullstone=%s)", wantContractName, conn.Contract)
+		}
+	} else {
+		if conn.Type != wantType {
+			return fmt.Errorf("the connection type does not match (terraform type=%s, configured in Nullstone=%s)", wantType, conn.Type)
+		}
+	}
+	return nil
 }

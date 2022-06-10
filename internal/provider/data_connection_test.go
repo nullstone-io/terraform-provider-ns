@@ -76,6 +76,7 @@ func TestDataConnection(t *testing.T) {
 				"cluster": {
 					Connection: config.Connection{
 						Type:     "cluster/aws-fargate",
+						Contract: "cluster/aws/ecs",
 						Optional: false,
 					},
 					Target: "lycan",
@@ -93,6 +94,7 @@ func TestDataConnection(t *testing.T) {
 				"network": {
 					Connection: config.Connection{
 						Type:     "network/aws",
+						Contract: "network/aws/vpc",
 						Optional: false,
 					},
 					Target: "rikimaru",
@@ -118,8 +120,8 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_connection" "network" {
-  name = "network"
-  type = "network/aws"
+  name     = "network"
+  contract = "network/aws/vpc"
 }
 `)
 
@@ -147,7 +149,7 @@ provider "ns" {
 }
 data "ns_connection" "postgres" {
   name     = "postgres"
-  type     = "database/aws-rds-postgres"
+  contract = "datastore/aws/postgres:rds"
   optional = true
 }
 `)
@@ -178,8 +180,8 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_connection" "cluster" {
-  name = "cluster"
-  type = "cluster/aws-fargate"
+  name     = "cluster"
+  contract = "cluster/aws/ecs"
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
@@ -208,19 +210,18 @@ data "ns_connection" "cluster" {
 	})
 
 	t.Run("sets up attributes with via properly", func(t *testing.T) {
-
 		tfconfig := fmt.Sprintf(`
 provider "ns" {
   organization = "org0"
 }
 data "ns_connection" "cluster" {
-  name = "cluster"
-  type = "cluster/aws-fargate"
+  name     = "cluster"
+  contract = "cluster/aws/ecs"
 }
 data "ns_connection" "network" {
-  name = "network"
-  type = "network/aws"
-  via  = data.ns_connection.cluster.name
+  name     = "network"
+  contract = "network/aws/vpc"
+  via      = data.ns_connection.cluster.name
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
@@ -258,8 +259,8 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_connection" "cluster" {
-  name = "cluster"
-  type = "cluster/aws-fargate"
+  name     = "cluster"
+  contract = "cluster/aws/ecs"
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
