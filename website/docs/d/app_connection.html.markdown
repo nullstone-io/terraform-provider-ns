@@ -25,8 +25,8 @@ The `capability_id` that is normally used in `ns_connection` is ignored in this 
 
 ```hcl
 data "ns_app_connection" "network" {
-  name = "network"
-  type = "network/aws"
+  name     = "network"
+  contract = "network/aws/vpc"
 }
 ```
 
@@ -40,14 +40,14 @@ Since the application may not have a cluster, we specify `optional = true`.
 # top-level configuration
 data "ns_app_connection" "cluster" {
   name     = "cluster"
-  type     = "cluster/aws-fargate"
+  contract = "cluster/aws/ecs:fargate"
   optional = true
 }
 
 data "ns_app_connection" "network" {
-  name = "network"
-  type = "network/aws"
-  via  = data.ns_connection.cluster.name
+  name     = "network"
+  contract = "network/aws"
+  via      = data.ns_connection.cluster.name
 }
 ```
 

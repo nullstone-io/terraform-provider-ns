@@ -1,3 +1,22 @@
+## 0.6.11 (Jun 10, 2022)
+
+FEATURES:
+
+* Added `ns_connection.contract` to migrate modules to use contract-based matching for dependent workspaces.
+* Marked `ns_connection.type` for deprecation.
+
+## 0.6.10 (Mar 29, 2022)
+
+FIXES:
+
+* Upgraded [nullstone-io/go-api-client](https://github.com/nullstone-io/go-api-client) to resolve changes to Nullstone API upgrades for roles/permissions.
+
+## 0.6.7 (Feb 25, 2022)
+
+FIXES:
+
+* Fixed `ns_subdomain` as a result of Nullstone API upgrades.
+
 ## 0.6.6 (Feb 24, 2022)
 
 FIXES:

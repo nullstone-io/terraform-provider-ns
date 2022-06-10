@@ -19,6 +19,10 @@ data "ns_workspace" "this" {
 }
 ```
 
+## Argument Reference
+
+There are no arguments to this data source.
+
 ## Attributes Reference
 
 * `id` - The fully qualified workspace ID. This follows the form `{stack_id}/{block_id}/{env_id}`.

@@ -22,8 +22,8 @@ this data source will pull connections from the capability rather than the ownin
 
 ```hcl
 data "ns_connection" "network" {
-  name = "network"
-  type = "network/aws"
+  name     = "network"
+  contract = "network/aws/vpc"
 }
 ```
 
@@ -33,30 +33,36 @@ data "ns_connection" "network" {
 ```hcl
 # top-level configuration
 data "ns_connection" "cluster" {
-  name = "cluster"
-  type = "cluster/aws-fargate"
+  name     = "cluster"
+  contract = "cluster/aws/ecs:fargate"
 }
 
 data "ns_connection" "network" {
-  name = "network"
-  type = "network/aws"
-  via  = data.ns_connection.cluster.name
+  name     = "network"
+  contract = "network/aws"
+  via      = data.ns_connection.cluster.name
 }
 ```
 
 ```hcl
 # cluster configuration
 data "ns_connection" "network" {
-  name = "network"
-  type = "network/aws"
+  name     = "network"
+  contract = "network/aws"
 }
 ```
 
+## Argument Reference
+
+* `name` - (Required) Name of nullstone connection.
+* `contract` - (Required) A contract name that enables matching of other workspaces by <category>[:<subcategory>]/<cloud-provider>/<platform>[:<subplatform>].
+  This supports wildcard matching of any component in the contract. For example, `datastores/aws/postgres:*` will match any subplatform of `postgres`.
+  See more at [https://docs.nullstone.io/extending/contracts/index.html](https://docs.nullstone.io/extending/contracts/index.html).
+* `type` - (**DEPRECATED**) Type of nullstone module to make connection.
+* `optional` - (Optional) By default, if this connection has not been configured, this causes an error. Set to true to disable. (Default: `false`)
+* `via` - (Optional) Name of connection to satisfy this connection through. Typically, this is set to `data.ns_connection.other.name`.
+
 ## Attributes Reference
 
-* `name` - Name of nullstone connection.
-* `type` - Type of nullstone module to make connection.
-* `optional` - By default, if this connection has not been configured, this causes an error. Set to true to disable. (Default: `false`)
-* `via` - Name of connection to satisfy this connection through. Typically, this is set to `data.ns_connection.other.name`.
 * `workspace_id` - This refers to the workspace in nullstone. This follows the form `{stack_id}/{block_id}/{env_id}`.
-- `outputs` - An object containing every root-level output in the remote state. This attribute is interchangeable for `data.terraform_remote_state.outputs`.
+* `outputs` - An object containing every root-level output in the remote state. This attribute is interchangeable for `data.terraform_remote_state.outputs`.
