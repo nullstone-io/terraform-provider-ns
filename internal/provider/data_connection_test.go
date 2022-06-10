@@ -264,7 +264,7 @@ data "ns_connection" "cluster" {
 }
 data "ns_connection" "network" {
   name     = "network"
-  contract = "cluster/aws/vpc"
+  contract = "network/aws/vpc"
   via      = data.ns_connection.cluster.name
 }
 `)
