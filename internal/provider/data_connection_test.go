@@ -26,6 +26,7 @@ func TestDataConnection(t *testing.T) {
 	uid2 := uuid.New()
 	uid3 := uuid.New()
 	uid4 := uuid.New()
+	uid5 := uuid.New()
 	// faceless (app) => lycan (cluster) => riki (network)
 	facelessEnv0 := types.Workspace{
 		UidCreatedModel: types.UidCreatedModel{Uid: uid1},
@@ -68,7 +69,18 @@ func TestDataConnection(t *testing.T) {
 		EnvId:           102,
 		EnvName:         "env0",
 	}
-	allWorkspaces := []types.Workspace{facelessEnv0, lycanEnv0, rikiEnv0, techiesEnv0}
+	// enigma (app) => faceless (app) => lycan (cluster) => riki (network)
+	enigmaEnv0 := types.Workspace{
+		UidCreatedModel: types.UidCreatedModel{Uid: uid5},
+		OrgName:         "org0",
+		StackId:         100,
+		StackName:       "stack0",
+		BlockId:         107,
+		BlockName:       "enigma",
+		EnvId:           102,
+		EnvName:         "env0",
+	}
+	allWorkspaces := []types.Workspace{facelessEnv0, lycanEnv0, rikiEnv0, techiesEnv0, enigmaEnv0}
 	runConfigs := map[string]types.RunConfig{
 		uid1.String(): {
 			WorkspaceUid: uid1,
@@ -110,6 +122,23 @@ func TestDataConnection(t *testing.T) {
 			WorkspaceUid: uid4,
 			Connections:  map[string]types.Connection{
 				// Intentionally blank, this simulates a connection not configured yet on Nullstone servers
+			},
+		},
+		uid5.String(): {
+			WorkspaceUid: uid5,
+			Connections: map[string]types.Connection{
+				"app": {
+					Connection: config.Connection{
+						Contract: "app/aws/ecs",
+						Optional: false,
+					},
+					Target: "faceless",
+					Reference: &types.ConnectionTarget{
+						StackId: facelessEnv0.StackId,
+						BlockId: facelessEnv0.BlockId,
+					},
+					Unused: false,
+				},
 			},
 		},
 	}
@@ -233,6 +262,54 @@ data "ns_connection" "network" {
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
 			resource.TestCheckResourceAttr("data.ns_connection.network", `workspace_id`, "100/105/102"),
 			resource.TestCheckResourceAttr("data.ns_connection.network", `outputs.placeholder`, "value"),
+		)
+
+		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
+		defer closeNsFn()
+		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		defer closeTfeFn()
+
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
+			Steps: []resource.TestStep{
+				{
+					Config: tfconfig,
+					Check:  checks,
+				},
+			},
+		})
+	})
+
+	t.Run("sets up attributes with transitive via properly", func(t *testing.T) {
+		tfconfig := fmt.Sprintf(`
+provider "ns" {
+  organization = "org0"
+}
+data "ns_connection" "app" {
+  name     = "app"
+  contract = "app/aws/ecs"
+}
+data "ns_connection" "cluster" {
+  name     = "cluster"
+  contract = "cluster/aws/ecs"
+  via      = data.ns_connection.app.name
+}
+data "ns_connection" "network" {
+  name     = "network"
+  contract = "network/aws/vpc"
+  via      = "${data.ns_connection.app.name}/${data.ns_connection.cluster.name}"
+}
+`)
+
+		checks := resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "100/103/102"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key2`, "value2"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
+			resource.TestCheckResourceAttr("data.ns_connection.app", `workspace_id`, "100/105/102"),
+			resource.TestCheckResourceAttr("data.ns_connection.app", `outputs.placeholder`, "value"),
 		)
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
