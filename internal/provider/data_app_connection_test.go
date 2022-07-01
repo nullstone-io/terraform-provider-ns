@@ -21,6 +21,7 @@ func TestDataAppConnection(t *testing.T) {
 	uid1 := uuid.New()
 	uid2 := uuid.New()
 	uid3 := uuid.New()
+	uid5 := uuid.New()
 	// app
 	facelessEnv0 := types.Workspace{
 		UidCreatedModel: types.UidCreatedModel{Uid: uid1},
@@ -51,6 +52,17 @@ func TestDataAppConnection(t *testing.T) {
 		StackName:       "stack0",
 		BlockId:         105,
 		BlockName:       "rikimaru",
+		EnvId:           102,
+		EnvName:         "env0",
+	}
+	// enigma (app) => faceless (app) => lycan (cluster) => riki (network)
+	enigmaEnv0 := types.Workspace{
+		UidCreatedModel: types.UidCreatedModel{Uid: uid5},
+		OrgName:         "org0",
+		StackId:         100,
+		StackName:       "stack0",
+		BlockId:         107,
+		BlockName:       "enigma",
 		EnvId:           102,
 		EnvName:         "env0",
 	}
@@ -141,7 +153,7 @@ data "ns_app_connection" "cluster" {
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
@@ -185,7 +197,7 @@ data "ns_app_connection" "network" {
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
@@ -230,7 +242,7 @@ data "ns_app_connection" "network" {
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(workspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{

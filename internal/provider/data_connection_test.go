@@ -224,7 +224,7 @@ data "ns_connection" "cluster" {
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
@@ -266,7 +266,7 @@ data "ns_connection" "network" {
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
 		resource.UnitTest(t, resource.TestCase{
@@ -302,23 +302,30 @@ data "ns_connection" "network" {
 `)
 
 		checks := resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr("data.ns_connection.app", `workspace_id`, "100/101/102"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "100/103/102"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key1`, "value1"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key2`, "value2"),
 			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test3.key3`, "value3"),
-			resource.TestCheckResourceAttr("data.ns_connection.app", `workspace_id`, "100/105/102"),
-			resource.TestCheckResourceAttr("data.ns_connection.app", `outputs.placeholder`, "value"),
+			resource.TestCheckResourceAttr("data.ns_connection.network", `outputs.placeholder`, "value"),
 		)
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 
+		// We alter the plan config to set the workspace context to enigma
+		//   so that the app can satisfy app connection with faceless
+		alterPlanConfig := func(config *PlanConfig) {
+			config.BlockId = enigmaEnv0.BlockId
+			config.BlockName = enigmaEnv0.BlockName
+		}
+
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, alterPlanConfig),
 			Steps: []resource.TestStep{
 				{
 					Config: tfconfig,
@@ -358,7 +365,7 @@ data "ns_connection" "network" {
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
 		defer closeNsFn()
-		getTfeConfig, closeTfeFn := mockTfe(mockServerWithLycanAndRikimaru(lycanEnv0, rikiEnv0))
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
 		defer closeTfeFn()
 		alterPlanConfig := func(config *PlanConfig) {
 			// Set up cluster connection for techies
@@ -434,8 +441,25 @@ func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.
 	return router
 }
 
-func mockServerWithLycanAndRikimaru(lycanEnv0 types.Workspace, rikiEnv0 types.Workspace) http.Handler {
+func mockStateServerWith(enigmaEnv0 types.Workspace, lycanEnv0 types.Workspace, rikiEnv0 types.Workspace) http.Handler {
 	workspaces := map[string]json.RawMessage{
+		enigmaEnv0.Uid.String(): json.RawMessage(`{
+  "data": {
+    "id": "cb30d6ab-2345-4c7c-aaf2-9dc9f33eeabc",
+    "type": "workspaces",
+    "attributes": {
+      "name": "stack0-env0-enigma"
+    },
+    "relationships": {
+      "organization": {
+        "data": {
+          "id": "org0",
+          "type": "organizations"
+        }
+      }
+    }
+  }
+}`),
 		lycanEnv0.Uid.String(): json.RawMessage(`{
   "data": {
     "id": "cb30d6ab-1a9e-4c7c-aaf2-9dc9f33eeabc",
@@ -472,6 +496,19 @@ func mockServerWithLycanAndRikimaru(lycanEnv0 types.Workspace, rikiEnv0 types.Wo
 }`),
 	}
 	currentStateVersions := map[string]json.RawMessage{
+		"b6876f4b-7615-4197-abd8-93835ed175bf": json.RawMessage(`{
+  "data": {
+    "id": "b2d5fc01-e51c-462b-bff5-9130d31ebc71",
+    "type": "state-versions",
+    "attributes": {
+      "name": "stack0-env0-enigma",
+      "serial": 1,
+      "lineage": "0b4b9d07-cad7-4acd-8ce9-40639b46f3b0",
+      "hosted-state-download-url": "/terraform/v2/state-versions/b2d5fc01-e51c-462b-bff5-9130d31ebc71/download"
+    },
+    "relationships": {}
+  }
+}`),
 		"cb30d6ab-1a9e-4c7c-aaf2-9dc9f33eeabc": json.RawMessage(`{
   "data": {
     "id": "53516a9e-ffd7-4834-8234-63fd070d064f",
@@ -500,6 +537,15 @@ func mockServerWithLycanAndRikimaru(lycanEnv0 types.Workspace, rikiEnv0 types.Wo
 }`),
 	}
 	stateFiles := map[string]json.RawMessage{
+		"b2d5fc01-e51c-462b-bff5-9130d31ebc71": json.RawMessage(`{
+  "version": 4,
+  "terraform_version": "0.13.5",
+  "serial": 1,
+  "lineage": "0b4b9d07-cad7-4acd-8ce9-40639b46f3b0",
+  "outputs": {}
+  },
+  "resources": []
+}`),
 		"53516a9e-ffd7-4834-8234-63fd070d064f": json.RawMessage(`{
   "version": 4,
   "terraform_version": "0.13.5",
