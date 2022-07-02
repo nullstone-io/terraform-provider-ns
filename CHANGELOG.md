@@ -1,3 +1,9 @@
+## 0.6.12 (Jul 01, 2022)
+
+FEATURES:
+
+* Added support for transitive connections using `ns_connection.via` attribute.
+
 ## 0.6.11 (Jun 10, 2022)
 
 FEATURES:
