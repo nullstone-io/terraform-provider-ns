@@ -8,6 +8,7 @@ import (
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"gopkg.in/nullstone-io/nullstone.v0/workspaces"
 	"log"
+	"strings"
 )
 
 type ErrViaConnectionNotFound struct {
@@ -25,6 +26,21 @@ func (e *ErrViaConnectionNotFound) Error() string {
 	return fmt.Sprintf("via connection (%s) was not found in workspace %s", e.Via, e.Workspace.Id())
 }
 
+// walkViaConnection traverses one or many connections to retrieve the target workspace and its connections
+// If a via connection contains "/", it will use followViaConnection for each token separated by "/"
+func walkViaConnection(nsConfig api.Config, sourceWorkspace types.WorkspaceTarget, connections types.Connections, localConnections workspaces.ManifestConnections, via string) (types.WorkspaceTarget, types.Connections, error) {
+	curWorkspace, curConnections := sourceWorkspace, connections
+	for _, via := range strings.Split(via, "/") {
+		var err error
+		curWorkspace, curConnections, err = followViaConnection(nsConfig, curWorkspace, curConnections, localConnections, via)
+		if err != nil {
+			return curWorkspace, curConnections, fmt.Errorf("error traversing via %q: %w", via, err)
+		}
+	}
+	return curWorkspace, curConnections, nil
+}
+
+// followViaConnection traverses a single connection to retrieve the target workspace and its connections
 func followViaConnection(nsConfig api.Config, sourceWorkspace types.WorkspaceTarget, connections types.Connections, localConnections workspaces.ManifestConnections, via string) (types.WorkspaceTarget, types.Connections, error) {
 	viaWorkspace := findViaWorkspace(sourceWorkspace, connections, localConnections, via)
 	if viaWorkspace == nil {

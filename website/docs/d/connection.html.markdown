@@ -45,8 +45,29 @@ data "ns_connection" "cluster" {
 
 data "ns_connection" "network" {
   name     = "network"
-  contract = "network/aws"
+  contract = "network/aws/vpc"
   via      = data.ns_connection.cluster.name
+}
+```
+
+#### Example using `via` through another `via` connection
+
+```hcl
+data "ns_connection" "app" {
+  name     = "app"
+  contract = "app:container/aws/ecs"
+}
+
+data "ns_connection" "cluster" {
+  name     = "cluster"
+  contract = "cluster/aws/ecs"
+  via      = data.ns_connection.app.name
+}
+
+data "ns_connection" "network" {
+  name     = "network"
+  contract = "network/aws/vpc"
+  via      = "${data.ns_connection.app.name}/${data.ns_connection.cluster.name}"
 }
 ```
 
@@ -54,7 +75,7 @@ data "ns_connection" "network" {
 # cluster configuration
 data "ns_connection" "network" {
   name     = "network"
-  contract = "network/aws"
+  contract = "network/aws/vpc"
 }
 ```
 

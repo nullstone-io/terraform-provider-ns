@@ -223,7 +223,7 @@ func (d *dataConnection) getConnectionWorkspace(name string, contractName types.
 	// If this data_connection has `via` specified, then we need to
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
-		sourceWorkspace, connections, err = followViaConnection(d.p.NsConfig, sourceWorkspace, connections, localConnections, via)
+		sourceWorkspace, connections, err = walkViaConnection(d.p.NsConfig, sourceWorkspace, connections, localConnections, via)
 		if errors.Is(err, &ErrViaConnectionNotFound{}) {
 			log.Printf("(getConnectionWorkspace) %s\n", err)
 			return nil, nil
