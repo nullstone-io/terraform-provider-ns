@@ -26,7 +26,6 @@ func TestDataAppEnv(t *testing.T) {
 			},
 			OrgName:   "org0",
 			StackId:   core.Id,
-			StackName: core.Name,
 			Name:      "app1",
 			Reference: "yellow-giraffe",
 		},

@@ -16,10 +16,9 @@ func mockNsServerWithSubdomains() http.Handler {
 			subdomain := types.Subdomain{
 				DnsName: "api",
 				Block: types.Block{
-					IdModel:   types.IdModel{Id: 123},
-					OrgName:   "org0",
-					StackId:   100,
-					StackName: "demo",
+					IdModel: types.IdModel{Id: 123},
+					OrgName: "org0",
+					StackId: 100,
 				},
 			}
 			raw, _ := json.Marshal(subdomain)

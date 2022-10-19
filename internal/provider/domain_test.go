@@ -16,10 +16,9 @@ func mockNsServerWithDomains() http.Handler {
 			domain := types.Domain{
 				DnsName: "nullstone.io",
 				Block: types.Block{
-					IdModel:   types.IdModel{Id: 117},
-					OrgName:   "org0",
-					StackId:   100,
-					StackName: "global",
+					IdModel: types.IdModel{Id: 117},
+					OrgName: "org0",
+					StackId: 100,
 				},
 			}
 			raw, _ := json.Marshal(domain)
