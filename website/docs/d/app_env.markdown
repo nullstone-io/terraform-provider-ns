@@ -37,4 +37,5 @@ locals {
 
 ## Attributes Reference
 
-* `version` - The version configured in nullstone for the application in the specific environment.
+* `version` - The version of the latest deployment of this application in the specific environment.
+* `commit_sha` - The commit SHA of the latest deployment of this application in this specific environment.
