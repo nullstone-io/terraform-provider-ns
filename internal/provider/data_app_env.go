@@ -48,7 +48,14 @@ func (*dataAppEnv) Schema(ctx context.Context) *tfprotov5.Schema {
 			Name:            "version",
 			Type:            tftypes.String,
 			Computed:        true,
-			Description:     "The version configured for the application in the specific environment.",
+			Description:     "The version of the latest deployment of this application in the specific environment.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+		},
+		{
+			Name:            "commit_sha",
+			Type:            tftypes.String,
+			Computed:        true,
+			Description:     "The commit SHA of the latest deployment of this application in this specific environment.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 		},
 	}
@@ -73,8 +80,9 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 	envId := extractInt64FromConfig(config, "env_id")
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	var appEnvId int64
+	var appEnvId string
 	var appEnvVersion string
+	var appEnvCommitSha string
 
 	nsClient := api.Client{Config: d.p.NsConfig}
 	app, err := d.findApp(stackId, appId)
@@ -113,17 +121,19 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 				Summary:  fmt.Sprintf("Unable to find the application environment (stackId=%d, appId=%d, envName=%s).", stackId, appId, env.Name),
 			})
 		} else {
-			appEnvId = appEnv.Id
+			appEnvId = fmt.Sprintf("%d-%d", appEnv.AppId, appEnv.EnvId)
 			appEnvVersion = appEnv.Version
+			appEnvCommitSha = appEnv.CommitSha
 		}
 	}
 
 	return map[string]tftypes.Value{
-		"id":       tftypes.NewValue(tftypes.String, fmt.Sprintf("%d", appEnvId)),
-		"app_id":   tftypes.NewValue(tftypes.Number, &appId),
-		"stack_id": tftypes.NewValue(tftypes.Number, &stackId),
-		"env_id":   tftypes.NewValue(tftypes.Number, &envId),
-		"version":  tftypes.NewValue(tftypes.String, appEnvVersion),
+		"id":         tftypes.NewValue(tftypes.String, appEnvId),
+		"app_id":     tftypes.NewValue(tftypes.Number, &appId),
+		"stack_id":   tftypes.NewValue(tftypes.Number, &stackId),
+		"env_id":     tftypes.NewValue(tftypes.Number, &envId),
+		"version":    tftypes.NewValue(tftypes.String, appEnvVersion),
+		"commit_sha": tftypes.NewValue(tftypes.String, appEnvCommitSha),
 	}, diags, nil
 }
 

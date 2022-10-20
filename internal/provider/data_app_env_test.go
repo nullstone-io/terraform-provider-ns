@@ -26,7 +26,6 @@ func TestDataAppEnv(t *testing.T) {
 			},
 			OrgName:   "org0",
 			StackId:   core.Id,
-			StackName: core.Name,
 			Name:      "app1",
 			Reference: "yellow-giraffe",
 		},
@@ -88,7 +87,7 @@ data "ns_app_env" "this" {
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "10"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "1-1"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "2"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "1"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "1"),
@@ -134,7 +133,7 @@ data "ns_app_env" "this" {
 }
 `)
 		checks := resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "5"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "1-1"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "2"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "1"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "2"),
