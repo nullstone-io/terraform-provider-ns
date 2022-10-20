@@ -34,19 +34,17 @@ func TestDataAppEnv(t *testing.T) {
 		IdModel: types.IdModel{
 			Id: 1,
 		},
-		Name:      "dev",
-		OrgName:   "org0",
-		StackId:   core.Id,
-		StackName: core.Name,
+		Name:    "dev",
+		OrgName: "org0",
+		StackId: core.Id,
 	}
 	prod := &types.Environment{
 		IdModel: types.IdModel{
 			Id: 2,
 		},
-		Name:      "prod",
-		OrgName:   "org0",
-		StackId:   core.Id,
-		StackName: core.Name,
+		Name:    "prod",
+		OrgName: "org0",
+		StackId: core.Id,
 	}
 
 	appEnvs := []*types.AppEnv{

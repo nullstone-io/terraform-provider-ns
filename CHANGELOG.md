@@ -1,3 +1,10 @@
+## 0.6.13 (Oct 20, 2022)
+
+FEATURES:
+
+* Added `commit_sha` attribute to `ns_app_env` data source.
+* Updated `go-api-client` that includes improved error messages.
+
 ## 0.6.12 (Jul 01, 2022)
 
 FEATURES:
