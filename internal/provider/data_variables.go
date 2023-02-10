@@ -2,10 +2,10 @@ package provider
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"hash/fnv"
 	"regexp"
 )
 
@@ -80,7 +80,30 @@ func (*dataVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 }
 
 func (d *dataVariables) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
-	return nil, nil
+	inputEnvVariables := extractMapFromConfig(config, "input_env_variables")
+	inputSecrets := extractMapFromConfig(config, "input_secrets")
+
+	errors := make([]*tfprotov5.Diagnostic, 0)
+	for key, _ := range inputEnvVariables {
+		if !validEnvVariableKey(key) {
+			errors = append(errors, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  fmt.Sprintf("Invalid environment variable key: %s", key),
+				Detail:   "An environment variable key can only contain letters, numbers, and the underscore character. It also can not begin with a number.",
+			})
+		}
+	}
+	for key, _ := range inputSecrets {
+		if !validEnvVariableKey(key) {
+			errors = append(errors, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  fmt.Sprintf("Invalid environment variable key: %s", key),
+				Detail:   "An environment variable key can only contain letters, numbers, and the underscore character. It also can not begin with a number.",
+			})
+		}
+	}
+
+	return errors, nil
 }
 
 func (d *dataVariables) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
@@ -144,18 +167,10 @@ func (d *dataVariables) Read(ctx context.Context, config map[string]tftypes.Valu
 	}
 
 	// calculate the unique id for this data source based on a hash of the resulting env variables and secrets
-	id, err := d.HashFromValues(envVariables, secrets)
-	if err != nil {
-		diagnostic := &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Error generating a unique id for the data source",
-			Detail:   fmt.Sprintf("%s", err),
-		}
-		return nil, []*tfprotov5.Diagnostic{diagnostic}, fmt.Errorf("error generating a unique id for the data source: %w", err)
-	}
+	id := d.HashFromValues(envVariables, secrets)
 
 	return map[string]tftypes.Value{
-		"id":                  tftypes.NewValue(tftypes.String, *id),
+		"id":                  tftypes.NewValue(tftypes.String, id),
 		"input_env_variables": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, inputEnvVariables),
 		"input_secrets":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, inputSecrets),
 		"env_variable_keys":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, envVariableKeys),
@@ -165,7 +180,7 @@ func (d *dataVariables) Read(ctx context.Context, config map[string]tftypes.Valu
 	}, nil, nil
 }
 
-func (d *dataVariables) HashFromValues(envVariables, secrets map[string]tftypes.Value) (*string, error) {
+func (d *dataVariables) HashFromValues(envVariables, secrets map[string]tftypes.Value) string {
 	hashString := ""
 	for k, v := range envVariables {
 		hashString += fmt.Sprintf("%s=%s;", k, extractStringFromTfValue(v))
@@ -174,11 +189,6 @@ func (d *dataVariables) HashFromValues(envVariables, secrets map[string]tftypes.
 		hashString += fmt.Sprintf("%s=%s;", k, extractStringFromTfValue(v))
 	}
 
-	h := fnv.New32a()
-	_, err := h.Write([]byte(hashString))
-	if err != nil {
-		return nil, fmt.Errorf("unable to write the encoded results to the hash: %w", err)
-	}
-	id := fmt.Sprintf("%d", h.Sum32())
-	return &id, nil
+	sum := sha256.Sum256([]byte(hashString))
+	return fmt.Sprintf("%x", sum)
 }

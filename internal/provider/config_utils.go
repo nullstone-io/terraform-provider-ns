@@ -3,6 +3,7 @@ package provider
 import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"math/big"
+	"regexp"
 )
 
 func extractStringFromTfValue(tfvalue tftypes.Value) string {
@@ -90,4 +91,11 @@ func copyMap(m map[string]tftypes.Value) map[string]tftypes.Value {
 		copy[k] = v
 	}
 	return copy
+}
+
+const envVariableKeyRegex = "^[a-zA-Z_][a-zA-Z0-9_]*$"
+
+func validEnvVariableKey(key string) bool {
+	regex := regexp.MustCompile(envVariableKeyRegex)
+	return regex.MatchString(key)
 }
