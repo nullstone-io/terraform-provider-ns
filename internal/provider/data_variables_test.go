@@ -9,10 +9,10 @@ import (
 
 func TestDataVariables(t *testing.T) {
 	checks := resource.ComposeTestCheckFunc(
-		resource.TestCheckResourceAttr("data.ns_variables.this", "input_env_variables.%", "7"),
+		resource.TestCheckResourceAttr("data.ns_variables.this", "input_env_variables.%", "6"),
 		resource.TestCheckResourceAttr("data.ns_variables.this", "input_secrets.%", "1"),
-		resource.TestCheckResourceAttr("data.ns_variables.this", "env_variable_keys.#", "6"),
-		resource.TestCheckResourceAttr("data.ns_variables.this", "env_variables.%", "6"),
+		resource.TestCheckResourceAttr("data.ns_variables.this", "env_variable_keys.#", "5"),
+		resource.TestCheckResourceAttr("data.ns_variables.this", "env_variables.%", "5"),
 		resource.TestCheckResourceAttr("data.ns_variables.this", "env_variables.FEATURE_FLAG_0115", "true"),
 		resource.TestCheckResourceAttr("data.ns_variables.this", "env_variables.IDENTIFIER", "primary.acme-api.dev"),
 		resource.TestCheckResourceAttr("data.ns_variables.this", "secret_keys.#", "2"),
