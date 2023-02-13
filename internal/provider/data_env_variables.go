@@ -9,18 +9,18 @@ import (
 	"regexp"
 )
 
-type dataVariables struct {
+type dataEnvVariables struct {
 	p *provider
 }
 
-func newDataVariables(p *provider) (*dataVariables, error) {
+func newDataEnvVariables(p *provider) (*dataEnvVariables, error) {
 	if p == nil {
 		return nil, fmt.Errorf("a provider is required")
 	}
-	return &dataVariables{p: p}, nil
+	return &dataEnvVariables{p: p}, nil
 }
 
-func (*dataVariables) Schema(ctx context.Context) *tfprotov5.Schema {
+func (*dataEnvVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 	attrs := []*tfprotov5.SchemaAttribute{
 		deprecatedIDAttribute(),
 		{
@@ -40,7 +40,7 @@ func (*dataVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 		},
 		{
 			Name:            "env_variable_keys",
-			Type:            tftypes.List{ElementType: tftypes.String},
+			Type:            tftypes.Set{ElementType: tftypes.String},
 			Description:     "The keys of all the environment variables.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Computed:        true,
@@ -54,7 +54,7 @@ func (*dataVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 		},
 		{
 			Name:            "secret_keys",
-			Type:            tftypes.List{ElementType: tftypes.String},
+			Type:            tftypes.Set{ElementType: tftypes.String},
 			Description:     "The keys of all the secrets.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Computed:        true,
@@ -79,7 +79,7 @@ func (*dataVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 	}
 }
 
-func (d *dataVariables) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
+func (d *dataEnvVariables) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
 	inputEnvVariables := extractMapFromConfig(config, "input_env_variables")
 	inputSecrets := extractMapFromConfig(config, "input_secrets")
 
@@ -106,7 +106,7 @@ func (d *dataVariables) Validate(ctx context.Context, config map[string]tftypes.
 	return errors, nil
 }
 
-func (d *dataVariables) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
+func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
 	inputEnvVariables := extractMapFromConfig(config, "input_env_variables")
 	inputSecrets := extractMapFromConfig(config, "input_secrets")
 
@@ -173,14 +173,14 @@ func (d *dataVariables) Read(ctx context.Context, config map[string]tftypes.Valu
 		"id":                  tftypes.NewValue(tftypes.String, id),
 		"input_env_variables": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, inputEnvVariables),
 		"input_secrets":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, inputSecrets),
-		"env_variable_keys":   tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, envVariableKeys),
+		"env_variable_keys":   tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, envVariableKeys),
 		"env_variables":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, envVariables),
-		"secret_keys":         tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, secretKeys),
+		"secret_keys":         tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, secretKeys),
 		"secrets":             tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, secrets),
 	}, nil, nil
 }
 
-func (d *dataVariables) HashFromValues(envVariables, secrets map[string]tftypes.Value) string {
+func (d *dataEnvVariables) HashFromValues(envVariables, secrets map[string]tftypes.Value) string {
 	hashString := ""
 	for k, v := range envVariables {
 		hashString += fmt.Sprintf("%s=%s;", k, extractStringFromTfValue(v))
