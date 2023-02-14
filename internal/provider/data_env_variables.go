@@ -129,7 +129,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 			result := regex.ReplaceAllString(extractStringFromTfValue(v), extractStringFromTfValue(secret))
 			// if a match was found and replaced, this env variable is now a secret
 			if result != extractStringFromTfValue(v) {
-				tflog.Debug(ctx, fmt.Sprintf("Found and replaced secret in env variable: %s", k), result)
+				tflog.Debug(ctx, fmt.Sprintf("Found and replaced secret (%s) in env variable: %s", key, k), result)
 				delete(envVariables, k)
 				secrets[k] = tftypes.NewValue(tftypes.String, result)
 			}
@@ -140,7 +140,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 			if k != key {
 				result := regex.ReplaceAllString(extractStringFromTfValue(v), extractStringFromTfValue(secret))
 				if result != extractStringFromTfValue(v) {
-					tflog.Debug(ctx, fmt.Sprintf("Found and replaced secret (%s) in secret: %s", k), result)
+					tflog.Debug(ctx, fmt.Sprintf("Found and replaced secret (%s) in secret: %s", key, k), result)
 				}
 				secrets[k] = tftypes.NewValue(tftypes.String, result)
 			}
@@ -156,7 +156,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 			if k != key {
 				result := regex.ReplaceAllString(extractStringFromTfValue(v), extractStringFromTfValue(value))
 				if result != extractStringFromTfValue(v) {
-					tflog.Debug(ctx, fmt.Sprintf("Found and replaced env variable (%s) in env variable: %s", k), result)
+					tflog.Debug(ctx, fmt.Sprintf("Found and replaced env variable (%s) in env variable: %s", key, k), result)
 				}
 				envVariables[k] = tftypes.NewValue(tftypes.String, result)
 			}
@@ -164,7 +164,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 		for k, v := range secrets {
 			result := regex.ReplaceAllString(extractStringFromTfValue(v), extractStringFromTfValue(value))
 			if result != extractStringFromTfValue(v) {
-				tflog.Debug(ctx, fmt.Sprintf("Found and replaced env variable (%s) in secret: %s", k), result)
+				tflog.Debug(ctx, fmt.Sprintf("Found and replaced env variable (%s) in secret: %s", key, k), result)
 			}
 			secrets[k] = tftypes.NewValue(tftypes.String, result)
 		}
