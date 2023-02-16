@@ -99,3 +99,22 @@ func validEnvVariableKey(key string) bool {
 	regex := regexp.MustCompile(envVariableKeyRegex)
 	return regex.MatchString(key)
 }
+
+func extractSetFromConfig(config map[string]tftypes.Value, key string) []tftypes.Value {
+	if config[key].IsNull() {
+		return make([]tftypes.Value, 0)
+	}
+	val := make([]tftypes.Value, 0)
+	if err := config[key].As(&val); err != nil {
+		return make([]tftypes.Value, 0)
+	}
+	return val
+}
+
+func copySet(s []tftypes.Value) []tftypes.Value {
+	copy := make([]tftypes.Value, 0)
+	for _, v := range s {
+		copy = append(copy, v)
+	}
+	return copy
+}

@@ -1,3 +1,8 @@
+## 0.6.18 (Feb 16, 2023)
+* Added `ns_env_variables` which takes in all the environment variables and secrets, performing interpolation and returning the results.
+* Added `ns_secret_keys` which takes in all the environment variables and secret keys.
+  * This is useful when you need to do a for_each over the set of secret keys; this keeps the result static.
+
 ## 0.6.13 (Oct 20, 2022)
 
 FEATURES:
