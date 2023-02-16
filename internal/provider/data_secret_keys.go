@@ -93,25 +93,30 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	tflog.Debug(ctx, "input_secret_keys", inputSecretKeys)
 
 	// make sure we copy these so our changes below don't affect the original values
-	envVariables := copyMap(inputEnvVariables)
 	secretKeys := copySet(inputSecretKeys)
 
 	regexPattern := "{{\\s?%s\\s?}}"
 
 	// loop through and determine if any of the environment variables contain interpolation using any of the secret keys
 	//   if they do, add their keys to the final set of secret keys
+	added := map[string]bool{}
 	for _, secretKey := range inputSecretKeys {
 		regex := regexp.MustCompile(fmt.Sprintf(regexPattern, extractStringFromTfValue(secretKey)))
 		// first try and replace in the env variables
-		for k, v := range envVariables {
+		for k, v := range inputEnvVariables {
+			// don't add the key more than once, the "added" map keeps track of whether it has already been added
+			if added[k] {
+				continue
+			}
 			if found := regex.MatchString(extractStringFromTfValue(v)); found {
 				secretKeys = append(secretKeys, tftypes.NewValue(tftypes.String, k))
+				added[k] = true
 			}
 		}
 	}
 
 	// calculate the unique id for this data source based on a hash of the resulting env variables and secrets
-	id := d.HashFromValues(envVariables, secretKeys)
+	id := d.HashFromValues(secretKeys)
 
 	tflog.Debug(ctx, "id", id)
 	tflog.Debug(ctx, "secret_keys", secretKeys)
@@ -124,11 +129,8 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	}, nil, nil
 }
 
-func (d *dataSecretKeys) HashFromValues(envVariables map[string]tftypes.Value, secretKeys []tftypes.Value) string {
+func (d *dataSecretKeys) HashFromValues(secretKeys []tftypes.Value) string {
 	hashString := ""
-	for k, v := range envVariables {
-		hashString += fmt.Sprintf("%s=%s;", k, extractStringFromTfValue(v))
-	}
 	for _, v := range secretKeys {
 		hashString += fmt.Sprintf("%s=%s;", v, extractStringFromTfValue(v))
 	}

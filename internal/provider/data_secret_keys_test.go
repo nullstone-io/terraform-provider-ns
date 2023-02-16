@@ -9,9 +9,9 @@ import (
 
 func TestSecretKeys(t *testing.T) {
 	checks := resource.ComposeTestCheckFunc(
-		resource.TestCheckResourceAttr("data.ns_secret_keys.this", "input_env_variables.%", "6"),
-		resource.TestCheckResourceAttr("data.ns_secret_keys.this", "input_secret_keys.#", "1"),
-		resource.TestCheckResourceAttr("data.ns_secret_keys.this", "secret_keys.#", "2"),
+		resource.TestCheckResourceAttr("data.ns_secret_keys.this", "input_env_variables.%", "7"),
+		resource.TestCheckResourceAttr("data.ns_secret_keys.this", "input_secret_keys.#", "2"),
+		resource.TestCheckResourceAttr("data.ns_secret_keys.this", "secret_keys.#", "4"),
 	)
 
 	t.Run("sets up attributes properly hard-coded", func(t *testing.T) {
@@ -27,9 +27,11 @@ data "ns_secret_keys" "this" {
 		FEATURE_FLAG_0115 = "true"
 		DATABASE_URL = "{{POSTGRES_URL}}"
 		IDENTIFIER = "{{ NULLSTONE_STACK }}.{{ NULLSTONE_BLOCK }}.{{ NULLSTONE_ENV }}"
+		DUPLICATE_TEST = "{{ SECRET_KEY_BASE }}{{ POSTGRES_URL }}"
 	}
 	input_secret_keys = [
-		"POSTGRES_URL"
+		"POSTGRES_URL",
+		"SECRET_KEY_BASE"
 	]
 }
 `)
