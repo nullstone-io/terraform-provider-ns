@@ -40,23 +40,9 @@ func (*dataEnvVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 			Sensitive:       true,
 		},
 		{
-			Name:            "env_variable_keys",
-			Type:            tftypes.Set{ElementType: tftypes.String},
-			Description:     "The keys of all the environment variables.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Computed:        true,
-		},
-		{
 			Name:            "env_variables",
 			Type:            tftypes.Map{ElementType: tftypes.String},
 			Description:     "The processed environment variables after they are interpolated.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-			Computed:        true,
-		},
-		{
-			Name:            "secret_keys",
-			Type:            tftypes.Set{ElementType: tftypes.String},
-			Description:     "The keys of all the secrets.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Computed:        true,
 		},
@@ -170,22 +156,10 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 		}
 	}
 
-	// extract the keys from the maps
-	envVariableKeys := make([]tftypes.Value, 0, len(envVariables))
-	for k, _ := range envVariables {
-		envVariableKeys = append(envVariableKeys, tftypes.NewValue(tftypes.String, k))
-	}
-	secretKeys := make([]tftypes.Value, 0, len(secrets))
-	for k, _ := range secrets {
-		secretKeys = append(secretKeys, tftypes.NewValue(tftypes.String, k))
-	}
-
 	// calculate the unique id for this data source based on a hash of the resulting env variables and secrets
 	id := d.HashFromValues(envVariables, secrets)
 
 	tflog.Debug(ctx, "id", id)
-	tflog.Debug(ctx, "env_variable_keys", envVariableKeys)
-	tflog.Debug(ctx, "secret_keys", secretKeys)
 	tflog.Debug(ctx, "env_variables", envVariables)
 	tflog.Debug(ctx, "secrets", secrets)
 
@@ -193,9 +167,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 		"id":                  tftypes.NewValue(tftypes.String, id),
 		"input_env_variables": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, inputEnvVariables),
 		"input_secrets":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, inputSecrets),
-		"env_variable_keys":   tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, envVariableKeys),
 		"env_variables":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, envVariables),
-		"secret_keys":         tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, secretKeys),
 		"secrets":             tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, secrets),
 	}, nil, nil
 }
