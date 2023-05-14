@@ -28,9 +28,9 @@ func (c PlanConfig) WorkspaceTarget() types.WorkspaceTarget {
 // LoadPlanConfig loads nullstone context for the current workspace
 // Originally, this was in a file named `.nullstone.json`, but moved to `.nullstone/active-workspace.yml`
 // As a result, this function will attempt the following:
-//   1. Load `.nullstone/active-workspace.yml`
-//   2. If not found, load `.nullstone.json`
-//   3. Fall back to environment variables for each attribute
+//  1. Load `.nullstone/active-workspace.yml`
+//  2. If not found, load `.nullstone.json`
+//  3. Fall back to environment variables for each attribute
 func LoadPlanConfig() (PlanConfig, error) {
 	c := planConfigFromEnv()
 
