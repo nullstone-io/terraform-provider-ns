@@ -1,3 +1,9 @@
+## 0.6.20 (May 15, 2023)
+
+BUG FIXES:
+
+* Fixed issue reading environment type in `ns_env` data source.
+
 ## 0.6.19 (May 13, 2023)
 
 FEATURES:

@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"gopkg.in/nullstone-io/go-api-client.v0"
-	"gopkg.in/nullstone-io/go-api-client.v0/types"
 )
 
 type dataEnv struct {
@@ -82,7 +81,7 @@ func (d *dataEnv) Read(ctx context.Context, config map[string]tftypes.Value) (ma
 	envId := extractInt64FromConfig(config, "env_id")
 
 	var envName string
-	var envType types.EnvironmentType
+	var envType string
 	var pipelineOrder int
 
 	env, err := nsClient.Environments().Get(stackId, envId)
@@ -94,7 +93,7 @@ func (d *dataEnv) Read(ctx context.Context, config map[string]tftypes.Value) (ma
 		})
 	} else if env != nil {
 		envName = env.Name
-		envType = env.Type
+		envType = string(env.Type)
 		if env.PipelineOrder != nil {
 			pipelineOrder = *env.PipelineOrder
 		}
