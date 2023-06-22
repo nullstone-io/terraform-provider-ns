@@ -211,7 +211,7 @@ func (r *resourceAutogenSubdomain) Destroy(ctx context.Context, prior map[string
 	} else if !found {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  fmt.Sprintf("The autogen_subdomain for the subdomain %d and env %q is missing.", subdomainId, envId),
+			Summary:  fmt.Sprintf("The autogen_subdomain for the subdomain %d and env %d is missing.", subdomainId, envId),
 		})
 	}
 

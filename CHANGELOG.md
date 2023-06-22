@@ -1,3 +1,9 @@
+## 0.6.21 (Jun 22, 2023)
+
+BUG FIXES:
+
+* Fixed error message when autogen subdomain is unable to destroy.
+
 ## 0.6.20 (May 15, 2023)
 
 BUG FIXES:
