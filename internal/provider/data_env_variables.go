@@ -117,7 +117,9 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 	regex := regexp.MustCompile(refRegexPattern)
 	for k, v := range envVariables {
 		result := regex.FindStringSubmatch(extractStringFromTfValue(v))
-		if len(result) > 0 {
+		// if we found a proper match, the result will contain a slice
+		// with the full match as the first item and the capture group as the second
+		if len(result) > 1 {
 			ref := result[1]
 			secretRefs[k] = tftypes.NewValue(tftypes.String, ref)
 			delete(envVariables, k)
