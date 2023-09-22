@@ -8,8 +8,10 @@ import (
 )
 
 func TestDataVariables(t *testing.T) {
+	arn := "arn:aws:secretsmanager:us-east-1:522657839841:secret:scarlet-eagle-kvoty/conn_url-lPd8oL"
+
 	checks := resource.ComposeTestCheckFunc(
-		resource.TestCheckResourceAttr("data.ns_env_variables.this", "input_env_variables.%", "6"),
+		resource.TestCheckResourceAttr("data.ns_env_variables.this", "input_env_variables.%", "7"),
 		resource.TestCheckResourceAttr("data.ns_env_variables.this", "input_secrets.%", "1"),
 		resource.TestCheckResourceAttr("data.ns_env_variables.this", "env_variables.%", "5"),
 		resource.TestCheckResourceAttr("data.ns_env_variables.this", "env_variables.FEATURE_FLAG_0115", "true"),
@@ -17,6 +19,8 @@ func TestDataVariables(t *testing.T) {
 		resource.TestCheckResourceAttr("data.ns_env_variables.this", "secrets.%", "2"),
 		resource.TestCheckResourceAttr("data.ns_env_variables.this", "secrets.POSTGRES_URL", "postgres://user:pass@host:port/db"),
 		resource.TestCheckResourceAttr("data.ns_env_variables.this", "secrets.DATABASE_URL", "postgres://user:pass@host:port/db"),
+		resource.TestCheckResourceAttr("data.ns_env_variables.this", "secret_refs.%", "1"),
+		resource.TestCheckResourceAttr("data.ns_env_variables.this", "secret_refs.VAR_WITH_REF", arn),
 	)
 
 	t.Run("sets up attributes properly hard-coded", func(t *testing.T) {
@@ -32,12 +36,13 @@ data "ns_env_variables" "this" {
 		FEATURE_FLAG_0115 = "true"
 		DATABASE_URL = "{{POSTGRES_URL}}"
 		IDENTIFIER = "{{ NULLSTONE_STACK }}.{{ NULLSTONE_BLOCK }}.{{ NULLSTONE_ENV }}"
+		VAR_WITH_REF = "{{ secret(%s) }}"
 	}
 	input_secrets = {
 		POSTGRES_URL = "postgres://user:pass@host:port/db"
 	}
 }
-`)
+`, arn)
 		getNsConfig, _ := mockNs(nil)
 		getTfeConfig, _ := mockTfe(nil)
 

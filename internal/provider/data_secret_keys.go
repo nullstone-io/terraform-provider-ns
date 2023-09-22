@@ -93,17 +93,30 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	tflog.Debug(ctx, "input_secret_keys", inputSecretKeys)
 
 	// make sure we copy these so our changes below don't affect the original values
+	envVariables := copyMap(inputEnvVariables)
+
+	// first pull out any env variables that contain refs to secrets in their interpolation
+	refRegexPattern := "{{\\s?secret\\((.+)\\)\\s?}}"
+	regex := regexp.MustCompile(refRegexPattern)
+	for k, v := range envVariables {
+		// if extractStringFromTfValue(v) contains the regex pattern, and the interpolation is set to `secret(arn)`
+		// then we need to skip this replacement and output the arn as a secret_ref
+		if regex.MatchString(extractStringFromTfValue(v)) {
+			delete(envVariables, k)
+		}
+	}
+
+	// make sure we copy these so our changes below don't affect the original values
 	secretKeys := copySet(inputSecretKeys)
 
 	regexPattern := "{{\\s?%s\\s?}}"
-
 	// loop through and determine if any of the environment variables contain interpolation using any of the secret keys
 	//   if they do, add their keys to the final set of secret keys
 	added := map[string]bool{}
 	for _, secretKey := range inputSecretKeys {
 		regex := regexp.MustCompile(fmt.Sprintf(regexPattern, extractStringFromTfValue(secretKey)))
 		// first try and replace in the env variables
-		for k, v := range inputEnvVariables {
+		for k, v := range envVariables {
 			// don't add the key more than once, the "added" map keeps track of whether it has already been added
 			if added[k] {
 				continue
