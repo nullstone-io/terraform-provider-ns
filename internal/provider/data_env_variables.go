@@ -113,7 +113,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 
 	// if any env variables contain secret refs, pull them out
 	secretRefs := make(map[string]tftypes.Value, 0)
-	refRegexPattern := "{{\\s?secret\\((.+)\\)\\s?}}"
+	refRegexPattern := "{{\\s*secret\\((.+)\\)\\s*}}"
 	regex := regexp.MustCompile(refRegexPattern)
 	for k, v := range envVariables {
 		result := regex.FindStringSubmatch(extractStringFromTfValue(v))
@@ -126,7 +126,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 		}
 	}
 
-	regexPattern := "{{\\s?%s\\s?}}"
+	regexPattern := "{{\\s*%s\\s*}}"
 	// we are going to first loop through all the input secrets
 	//   find and replace this secret in all the rest of the env variables and secrets
 	for key, secret := range secrets {

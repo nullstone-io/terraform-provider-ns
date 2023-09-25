@@ -96,7 +96,7 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	envVariables := copyMap(inputEnvVariables)
 
 	// first pull out any env variables that contain refs to secrets in their interpolation
-	refRegexPattern := "{{\\s?secret\\((.+)\\)\\s?}}"
+	refRegexPattern := "{{\\s*secret\\((.+)\\)\\s*}}"
 	regex := regexp.MustCompile(refRegexPattern)
 	for k, v := range envVariables {
 		// if extractStringFromTfValue(v) contains the regex pattern, and the interpolation is set to `secret(arn)`
@@ -109,7 +109,7 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	// make sure we copy these so our changes below don't affect the original values
 	secretKeys := copySet(inputSecretKeys)
 
-	regexPattern := "{{\\s?%s\\s?}}"
+	regexPattern := "{{\\s*%s\\s*}}"
 	// loop through and determine if any of the environment variables contain interpolation using any of the secret keys
 	//   if they do, add their keys to the final set of secret keys
 	added := map[string]bool{}

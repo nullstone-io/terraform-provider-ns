@@ -8,7 +8,7 @@ import (
 )
 
 func TestSecretKeys(t *testing.T) {
-	arn := "arn:aws:secretsmanager:us-east-1:522657839841:secret:scarlet-eagle-kvoty/conn_url-lPd8oL"
+	arn := "arn:aws:secretsmanager:us-east-1:0123456789012:secret:my_little_secret"
 
 	checks := resource.ComposeTestCheckFunc(
 		resource.TestCheckResourceAttr("data.ns_secret_keys.this", "input_env_variables.%", "8"),
