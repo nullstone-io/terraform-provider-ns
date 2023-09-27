@@ -54,6 +54,13 @@ func (*dataEnvVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 			Computed:        true,
 			Sensitive:       true,
 		},
+		{
+			Name:            "secret_refs",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Description:     "Map of environment variables that refer to an existing secret key for their values.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
+		},
 	}
 
 	return &tfprotov5.Schema{
@@ -104,8 +111,22 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 	envVariables := copyMap(inputEnvVariables)
 	secrets := copyMap(inputSecrets)
 
-	regexPattern := "{{\\s?%s\\s?}}"
+	// if any env variables contain secret refs, pull them out
+	secretRefs := make(map[string]tftypes.Value, 0)
+	refRegexPattern := "{{\\s*secret\\((.+)\\)\\s*}}"
+	regex := regexp.MustCompile(refRegexPattern)
+	for k, v := range envVariables {
+		result := regex.FindStringSubmatch(extractStringFromTfValue(v))
+		// if we found a proper match, the result will contain a slice
+		// with the full match as the first item and the capture group as the second
+		if len(result) > 1 {
+			ref := result[1]
+			secretRefs[k] = tftypes.NewValue(tftypes.String, ref)
+			delete(envVariables, k)
+		}
+	}
 
+	regexPattern := "{{\\s*%s\\s*}}"
 	// we are going to first loop through all the input secrets
 	//   find and replace this secret in all the rest of the env variables and secrets
 	for key, secret := range secrets {
@@ -157,7 +178,7 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 	}
 
 	// calculate the unique id for this data source based on a hash of the resulting env variables and secrets
-	id := d.HashFromValues(envVariables, secrets)
+	id := d.HashFromValues(envVariables, secrets, secretRefs)
 
 	tflog.Debug(ctx, "id", id)
 	tflog.Debug(ctx, "env_variables", envVariables)
@@ -169,15 +190,19 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 		"input_secrets":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, inputSecrets),
 		"env_variables":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, envVariables),
 		"secrets":             tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, secrets),
+		"secret_refs":         tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, secretRefs),
 	}, nil, nil
 }
 
-func (d *dataEnvVariables) HashFromValues(envVariables, secrets map[string]tftypes.Value) string {
+func (d *dataEnvVariables) HashFromValues(envVariables, secrets, secretRefs map[string]tftypes.Value) string {
 	hashString := ""
 	for k, v := range envVariables {
 		hashString += fmt.Sprintf("%s=%s;", k, extractStringFromTfValue(v))
 	}
 	for k, v := range secrets {
+		hashString += fmt.Sprintf("%s=%s;", k, extractStringFromTfValue(v))
+	}
+	for k, v := range secretRefs {
 		hashString += fmt.Sprintf("%s=%s;", k, extractStringFromTfValue(v))
 	}
 
