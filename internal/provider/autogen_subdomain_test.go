@@ -9,20 +9,22 @@ import (
 )
 
 func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]map[string]*types.AutogenSubdomain) http.Handler {
+	indexFn := func(orgName, subdomainId, envId string) string {
+		return fmt.Sprintf("%s/%s/%s", orgName, subdomainId, envId)
+	}
+
+	indexed := map[string]*types.AutogenSubdomain{}
+	for org, orgScoped := range autogenSubdomains {
+		for subdomainId, subScoped := range orgScoped {
+			for envId, as := range subScoped {
+				indexed[indexFn(org, subdomainId, envId)] = as
+			}
+		}
+	}
+
 	findAutogenSubdomain := func(orgName string, subdomainId string, envId string) *types.AutogenSubdomain {
-		orgScoped, ok := autogenSubdomains[orgName]
-		if !ok {
-			return nil
-		}
-		subdomainScoped, ok := orgScoped[subdomainId]
-		if !ok {
-			return nil
-		}
-		result, ok := subdomainScoped[envId]
-		if !ok {
-			return nil
-		}
-		return result
+		as, _ := indexed[indexFn(orgName, subdomainId, envId)]
+		return as
 	}
 	createAutogenSubdomain := func(orgName string, subdomainId string, envId string) types.AutogenSubdomain {
 		as := types.AutogenSubdomain{
@@ -33,17 +35,7 @@ func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]m
 			Fqdn:        "xyz123.nullstone.app.",
 			Nameservers: []string{},
 		}
-		orgScoped, ok := autogenSubdomains[orgName]
-		if !ok {
-			orgScoped = map[string]map[string]*types.AutogenSubdomain{}
-			autogenSubdomains[orgName] = orgScoped
-		}
-		subdomainScoped, ok := orgScoped[subdomainId]
-		if !ok {
-			subdomainScoped = map[string]*types.AutogenSubdomain{}
-			orgScoped[subdomainId] = subdomainScoped
-		}
-		subdomainScoped[envId] = &as
+		indexed[indexFn(orgName, subdomainId, envId)] = &as
 		return as
 	}
 
@@ -52,9 +44,10 @@ func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]m
 		Methods(http.MethodPost).
 		Path("/orgs/{orgName}/subdomains/{subdomainId}/envs/{envId}/autogen_subdomain").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			orgName := mux.Vars(r)["orgName"]
+			vars := mux.Vars(r)
+			orgName, subdomainId, envId := vars["orgName"], vars["subdomainId"], vars["envId"]
 			// NOTE: We're going to always return the same one we created instead of being random
-			autogenSubdomain := createAutogenSubdomain(orgName, "", "")
+			autogenSubdomain := createAutogenSubdomain(orgName, subdomainId, envId)
 			raw, _ := json.Marshal(autogenSubdomain)
 			w.Write(raw)
 		})
