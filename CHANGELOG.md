@@ -1,3 +1,20 @@
+## 0.6.23 (May 16, 2024)
+
+FEATURES:
+
+* Added support for overriding `ns_app_env.version` with `NULLSTONE_DEPLOY_VERSION` env variable.
+* Added support for overriding `ns_app_env.commit_sha` with `NULLSTONE_DEPLOY_COMMIT_SHA` env variable.
+
+# 0.6.22 (Sep 27, 2023)
+
+BUG FIXES:
+
+* Fixed support for `secret(...)` in `data.ns_secret_keys`.
+
+FEATURES:
+
+* Added `data.ns_env_variables.secret_refs` attribute for listing the keys that use `secret(...)` as their value.
+
 ## 0.6.21 (Jun 22, 2023)
 
 BUG FIXES:
