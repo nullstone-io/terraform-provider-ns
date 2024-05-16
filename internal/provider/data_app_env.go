@@ -7,6 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
+	"os"
+)
+
+const (
+	DeployInfoVersionEnvVar   = "NULLSTONE_DEPLOY_VERSION"
+	DeployInfoCommitShaEnvVar = "NULLSTONE_DEPLOY_COMMIT_SHA"
 )
 
 type dataAppEnv struct {
@@ -125,6 +131,14 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 			appEnvVersion = appEnv.Version
 			appEnvCommitSha = appEnv.CommitSha
 		}
+	}
+
+	// If present, override with env variables
+	if val := os.Getenv(DeployInfoVersionEnvVar); val != "" {
+		appEnvVersion = val
+	}
+	if val := os.Getenv(DeployInfoCommitShaEnvVar); val != "" {
+		appEnvCommitSha = val
 	}
 
 	return map[string]tftypes.Value{
