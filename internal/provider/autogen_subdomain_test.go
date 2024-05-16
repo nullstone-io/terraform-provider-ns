@@ -24,6 +24,28 @@ func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]m
 		}
 		return result
 	}
+	createAutogenSubdomain := func(orgName string, subdomainId string, envId string) types.AutogenSubdomain {
+		as := types.AutogenSubdomain{
+			IdModel:     types.IdModel{Id: 1},
+			DnsName:     "xyz123",
+			OrgName:     orgName,
+			DomainName:  "nullstone.app",
+			Fqdn:        "xyz123.nullstone.app.",
+			Nameservers: []string{},
+		}
+		orgScoped, ok := autogenSubdomains[orgName]
+		if !ok {
+			orgScoped = map[string]map[string]*types.AutogenSubdomain{}
+			autogenSubdomains[orgName] = orgScoped
+		}
+		subdomainScoped, ok := orgScoped[subdomainId]
+		if !ok {
+			subdomainScoped = map[string]*types.AutogenSubdomain{}
+			orgScoped[subdomainId] = subdomainScoped
+		}
+		subdomainScoped[envId] = &as
+		return as
+	}
 
 	router := mux.NewRouter()
 	router.
@@ -32,14 +54,7 @@ func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]m
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			orgName := mux.Vars(r)["orgName"]
 			// NOTE: We're going to always return the same one we created instead of being random
-			autogenSubdomain := types.AutogenSubdomain{
-				IdModel:     types.IdModel{Id: 1},
-				DnsName:     "xyz123",
-				OrgName:     orgName,
-				DomainName:  "nullstone.app",
-				Fqdn:        "xyz123.nullstone.app.",
-				Nameservers: []string{},
-			}
+			autogenSubdomain := createAutogenSubdomain(orgName, "", "")
 			raw, _ := json.Marshal(autogenSubdomain)
 			w.Write(raw)
 		})
