@@ -38,4 +38,6 @@ locals {
 ## Attributes Reference
 
 * `version` - The version of the latest deployment of this application in the specific environment.
+  The `NULLSTONE_DEPLOY_VERSION` environment variable will override this value.
 * `commit_sha` - The commit SHA of the latest deployment of this application in this specific environment.
+  The `NULLSTONE_DEPLOY_COMMIT_SHA` environment variable will override this value.

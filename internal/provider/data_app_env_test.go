@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"net/http"
+	"os"
 	"strconv"
 	"testing"
 )
@@ -137,6 +138,58 @@ data "ns_app_env" "this" {
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "2"),
 			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, "1.0.0"),
 		)
+
+		getNsConfig, closeNsFn := mockNs(mockNsHandlerAppEnvs(&appEnvs, apps, envs))
+		defer closeNsFn()
+		getTfeConfig, closeTfeFn := mockTfe(nil)
+		defer closeTfeFn()
+
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
+			Steps: []resource.TestStep{
+				{
+					Config: tfconfig,
+					Check:  checks,
+				},
+			},
+		})
+	})
+
+	t.Run("sets up attributes properly with override env vars", func(t *testing.T) {
+		tfconfig := fmt.Sprintf(`
+provider "ns" {
+  organization = "org0"
+}
+
+data "ns_workspace" "this" {
+  stack_id   = 2
+  stack_name = "stack0"
+  block_id   = 1
+  block_name = "app1"
+  block_ref  = "yellow-giraffe"
+  env_id     = 2
+  env_name   = "prod"
+}
+
+data "ns_app_env" "this" {
+  stack_id = data.ns_workspace.this.stack_id
+  app_id   = data.ns_workspace.this.block_id
+  env_id   = data.ns_workspace.this.env_id
+}
+`)
+		checks := resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `id`, "1-1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `stack_id`, "2"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `app_id`, "1"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `env_id`, "2"),
+			resource.TestCheckResourceAttr("data.ns_app_env.this", `version`, "1.2.0"),
+		)
+
+		original := os.Getenv(DeployInfoVersionEnvVar)
+		t.Cleanup(func() {
+			os.Setenv(DeployInfoVersionEnvVar, original)
+		})
+		os.Setenv(DeployInfoVersionEnvVar, "1.2.0")
 
 		getNsConfig, closeNsFn := mockNs(mockNsHandlerAppEnvs(&appEnvs, apps, envs))
 		defer closeNsFn()
