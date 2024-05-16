@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"net/http"
+	"strconv"
 )
 
 func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]map[string]*types.AutogenSubdomain) http.Handler {
@@ -27,8 +28,12 @@ func mockNsServerWithAutogenSubdomains(autogenSubdomains map[string]map[string]m
 		return as
 	}
 	createAutogenSubdomain := func(orgName string, subdomainId string, envId string) types.AutogenSubdomain {
+		id, _ := strconv.ParseInt(subdomainId, 64, 10)
+		if id == 0 {
+			id = 1
+		}
 		as := types.AutogenSubdomain{
-			IdModel:     types.IdModel{Id: 1},
+			IdModel:     types.IdModel{Id: id},
 			DnsName:     "xyz123",
 			OrgName:     orgName,
 			DomainName:  "nullstone.app",
