@@ -6,6 +6,54 @@ import (
 	"regexp"
 )
 
+func MapToTfValue(m map[string]string) tftypes.Value {
+	tfMap := map[string]tftypes.Value{}
+	for k, v := range m {
+		tfMap[k] = tftypes.NewValue(tftypes.String, v)
+	}
+	return tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tfMap)
+}
+
+func TfValueToMap(tfVal tftypes.Value) map[string]string {
+	result := map[string]string{}
+	if tfVal.IsNull() {
+		return result
+	}
+
+	temp := make(map[string]tftypes.Value)
+	if err := tfVal.As(&temp); err != nil {
+		return result
+	}
+
+	for k, tfv := range temp {
+		result[k] = extractStringFromTfValue(tfv)
+	}
+	return result
+}
+
+func TfSetValueToStringSlice(tfVal tftypes.Value) []string {
+	result := make([]string, 0)
+	if tfVal.IsNull() {
+		return result
+	}
+	temp := make([]tftypes.Value, 0)
+	if err := tfVal.As(&temp); err != nil {
+		return result
+	}
+	for _, tfv := range temp {
+		result = append(result, extractStringFromTfValue(tfv))
+	}
+	return result
+}
+
+func SliceToTfSet(s []string) tftypes.Value {
+	tfSlice := make([]tftypes.Value, 0)
+	for _, v := range s {
+		tfSlice = append(tfSlice, tftypes.NewValue(tftypes.String, v))
+	}
+	return tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, tfSlice)
+}
+
 func extractStringFromTfValue(tfvalue tftypes.Value) string {
 	if tfvalue.IsNull() {
 		return ""
@@ -31,16 +79,6 @@ func extractBoolFromConfig(config map[string]tftypes.Value, key string) bool {
 	val := false
 	config[key].As(&val)
 	return val
-}
-
-func extractIntFromConfig(config map[string]tftypes.Value, key string) int {
-	if config[key].IsNull() {
-		return -1
-	}
-	val := new(big.Float)
-	config[key].As(&val)
-	i, _ := val.Int64()
-	return int(i)
 }
 
 func extractInt64FromConfig(config map[string]tftypes.Value, key string) int64 {
@@ -74,47 +112,9 @@ func extractStringSliceFromConfig(config map[string]tftypes.Value, key string) (
 	return slice, nil
 }
 
-func extractMapFromConfig(config map[string]tftypes.Value, key string) map[string]tftypes.Value {
-	if config[key].IsNull() {
-		return make(map[string]tftypes.Value)
-	}
-	val := make(map[string]tftypes.Value)
-	if err := config[key].As(&val); err != nil {
-		return make(map[string]tftypes.Value)
-	}
-	return val
-}
-
-func copyMap(m map[string]tftypes.Value) map[string]tftypes.Value {
-	copy := make(map[string]tftypes.Value)
-	for k, v := range m {
-		copy[k] = v
-	}
-	return copy
-}
-
 const envVariableKeyRegex = "^[a-zA-Z_][a-zA-Z0-9_]*$"
 
 func validEnvVariableKey(key string) bool {
 	regex := regexp.MustCompile(envVariableKeyRegex)
 	return regex.MatchString(key)
-}
-
-func extractSetFromConfig(config map[string]tftypes.Value, key string) []tftypes.Value {
-	if config[key].IsNull() {
-		return make([]tftypes.Value, 0)
-	}
-	val := make([]tftypes.Value, 0)
-	if err := config[key].As(&val); err != nil {
-		return make([]tftypes.Value, 0)
-	}
-	return val
-}
-
-func copySet(s []tftypes.Value) []tftypes.Value {
-	copy := make([]tftypes.Value, 0)
-	for _, v := range s {
-		copy = append(copy, v)
-	}
-	return copy
 }
