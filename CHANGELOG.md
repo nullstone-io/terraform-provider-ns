@@ -1,3 +1,9 @@
+## 0.6.24 (Oct 25, 2025)
+
+BUG FIXES:
+
+* Fixed issues with `data.ns_secret_keys` and `data.ns_env_variables` producing inconsistent results.
+
 ## 0.6.23 (May 16, 2024)
 
 FEATURES:
