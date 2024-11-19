@@ -1,9 +1,11 @@
 module github.com/nullstone-io/terraform-provider-ns
 
-go 1.21
+go 1.22.0
+
+toolchain go1.22.9
 
 require (
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-argmapper v0.0.0-20200721221215-04ae500ede3b
@@ -13,10 +15,10 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.2.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/nullstone-io/module v0.2.8
-	github.com/stretchr/testify v1.7.0
-	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20221020203207-202b0a6d808a
+	github.com/stretchr/testify v1.8.4
+	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20241119204526-78bd885b8046
 	gopkg.in/nullstone-io/nullstone.v0 v0.0.61
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -25,12 +27,16 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
+	github.com/cristalhq/jwt/v3 v3.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
+	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -54,6 +60,7 @@ require (
 	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
+	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/klauspost/compress v1.11.13 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
@@ -75,8 +82,12 @@ require (
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/zclconf/go-cty v1.11.1 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
+	go.opentelemetry.io/otel v1.24.0 // indirect
+	go.opentelemetry.io/otel/metric v1.24.0 // indirect
+	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/mod v0.6.0 // indirect
+	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
