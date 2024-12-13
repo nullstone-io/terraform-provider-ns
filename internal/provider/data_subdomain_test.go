@@ -17,6 +17,7 @@ provider "ns" {
 data "ns_subdomain" "subdomain" {
   stack_id = 100
   block_id = 126
+  env_id   = 136
 }
 `)
 
@@ -46,13 +47,18 @@ provider "ns" {
 data "ns_subdomain" "subdomain" {
   stack_id = 100
   block_id = 123
+  env_id   = 136
 }
 `)
 
 		checks := resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `stack_id`, "100"),
 			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `block_id`, "123"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `env_id`, "136"),
 			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `dns_name`, "api"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `subdomain_name`, "api.dev"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `domain_name`, "acme.com"),
+			resource.TestCheckResourceAttr("data.ns_subdomain.subdomain", `fqdn`, "api.dev.acme.com."),
 		)
 
 		getNsConfig, closeNsFn := mockNs(mockNsServerWithSubdomains())
