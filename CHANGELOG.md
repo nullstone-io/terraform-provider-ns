@@ -1,3 +1,9 @@
+## 0.7.0 (Unreleased)
+
+FEATURES:
+
+* Updated `data.ns_subdomain` to retrieve `subdomain_name`, `domain_name`, and `fqdn` from Nullstone.
+
 ## 0.6.24 (Oct 25, 2025)
 
 BUG FIXES:
