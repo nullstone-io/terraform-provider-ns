@@ -106,7 +106,7 @@ func (r *resourceAutogenSubdomain) Read(ctx context.Context, config map[string]t
 	envId := extractInt64FromConfig(config, "env_id")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
-	autogenSubdomain, err := nsClient.AutogenSubdomain().Get(subdomainId, envId)
+	autogenSubdomain, err := nsClient.AutogenSubdomain().Get(ctx, subdomainId, envId)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -145,7 +145,7 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 	var fqdn string
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
-	if autogenSubdomain, err := nsClient.AutogenSubdomain().Create(subdomainId, envId); err != nil {
+	if autogenSubdomain, err := nsClient.AutogenSubdomain().Create(ctx, subdomainId, envId); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  "error creating autogen subdomain",
@@ -156,7 +156,7 @@ func (r *resourceAutogenSubdomain) Create(ctx context.Context, planned map[strin
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  "unable to create autogen subdomain",
 		}
-		if subdomain, err := nsClient.Subdomains().GlobalGet(subdomainId); err != nil {
+		if subdomain, err := nsClient.Subdomains().GlobalGet(ctx, subdomainId); err != nil {
 			diag.Detail = fmt.Sprintf("error retrieving subdomain: %s", err)
 		} else if subdomain == nil {
 			diag.Detail = fmt.Sprintf("unable to find subdomain (id=%d)", subdomainId)
@@ -202,7 +202,7 @@ func (r *resourceAutogenSubdomain) Destroy(ctx context.Context, prior map[string
 	envId := extractInt64FromConfig(prior, "env_id")
 
 	nsClient := &api.Client{Config: r.p.NsConfig}
-	if found, err := nsClient.AutogenSubdomain().Destroy(subdomainId, envId); err != nil {
+	if found, err := nsClient.AutogenSubdomain().Destroy(ctx, subdomainId, envId); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  "error destroying autogen subdomain",

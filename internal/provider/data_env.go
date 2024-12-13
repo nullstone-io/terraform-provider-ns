@@ -84,7 +84,7 @@ func (d *dataEnv) Read(ctx context.Context, config map[string]tftypes.Value) (ma
 	var envType string
 	var pipelineOrder int
 
-	env, err := nsClient.Environments().Get(stackId, envId)
+	env, err := nsClient.Environments().Get(ctx, stackId, envId, false)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,

@@ -69,7 +69,7 @@ func (d *dataDomain) Read(ctx context.Context, config map[string]tftypes.Value) 
 	var domainId int64
 	var dnsName string
 
-	domain, err := nsClient.Domains().Get(stackId, blockId)
+	domain, err := nsClient.Domains().Get(ctx, stackId, blockId)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,

@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
+	"gopkg.in/nullstone-io/go-api-client.v0/auth"
 	"net/http"
 	"net/http/httptest"
 )
@@ -19,7 +20,7 @@ func protoV5ProviderFactories(getNsConfig func() api.Config, getTfeConfig func()
 
 func mockNs(handler http.Handler) (func() api.Config, func()) {
 	cfg := api.DefaultConfig()
-	cfg.ApiKey = "abcdefgh012345789"
+	cfg.AccessTokenSource = auth.RawAccessTokenSource{AccessToken: "abcdefgh012345789"}
 	fn := func() api.Config {
 		return cfg
 	}

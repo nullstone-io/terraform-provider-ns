@@ -134,7 +134,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 
 	outputsValue := tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, map[string]tftypes.Value{})
 
-	workspace, err := d.getConnectionWorkspace(name, contractName, type_, via)
+	workspace, err := d.getConnectionWorkspace(ctx, name, contractName, type_, via)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -143,7 +143,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 		})
 	} else if workspace != nil {
 		workspaceId = workspace.Id()
-		nfWorkspace, err := nsClient.Workspaces().Get(workspace.StackId, workspace.BlockId, workspace.EnvId)
+		nfWorkspace, err := nsClient.Workspaces().Get(ctx, workspace.StackId, workspace.BlockId, workspace.EnvId)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
@@ -189,7 +189,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 	}, diags, nil
 }
 
-func (d *dataConnection) getConnectionWorkspace(name string, contractName types.ModuleContractName, type_, via string) (*types.WorkspaceTarget, error) {
+func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string, contractName types.ModuleContractName, type_, via string) (*types.WorkspaceTarget, error) {
 	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityId=%d", name, contractName, type_, via, d.p.PlanConfig.CapabilityId)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
@@ -210,7 +210,7 @@ func (d *dataConnection) getConnectionWorkspace(name string, contractName types.
 	}
 
 	log.Printf("(getConnectionWorkspace) Pulling workspace run config for @ %s", sourceWorkspace.Id())
-	runConfig, err := ns.GetWorkspaceConfig(d.p.NsConfig, sourceWorkspace)
+	runConfig, err := ns.GetWorkspaceConfig(ctx, d.p.NsConfig, sourceWorkspace)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (d *dataConnection) getConnectionWorkspace(name string, contractName types.
 	// If this data_connection has `via` specified, then we need to
 	//   get the connections for *that* workspace instead of the current workspace
 	if via != "" {
-		sourceWorkspace, connections, err = walkViaConnection(d.p.NsConfig, sourceWorkspace, connections, localConnections, via)
+		sourceWorkspace, connections, err = walkViaConnection(ctx, d.p.NsConfig, sourceWorkspace, connections, localConnections, via)
 		if errors.Is(err, &ErrViaConnectionNotFound{}) {
 			log.Printf("(getConnectionWorkspace) %s\n", err)
 			return nil, nil

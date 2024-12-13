@@ -109,7 +109,7 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 			})
 		}
 	}
-	if p.NsConfig.ApiKey == "" {
+	if p.NsConfig.AccessTokenSource == nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  fmt.Sprintf("Nullstone API Key is required (Set %q environment variable)", api.ApiKeyEnvVar),
