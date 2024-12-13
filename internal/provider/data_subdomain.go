@@ -58,14 +58,14 @@ func (*dataSubdomain) Schema(ctx context.Context) *tfprotov5.Schema {
 				{
 					Name:            "subdomain_name",
 					Type:            tftypes.String,
-					Description:     `The subdomain identified on this subdomain workspace. FQDN = "<subdomain>.<domain>."`,
+					Description:     `The subdomain identified on this subdomain workspace. FQDN = "<subdomain_name>.<domain>.". This is equivalent to "<dns_name>[.<env-chunk>]".`,
 					Computed:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
 					Name:            "domain_name",
 					Type:            tftypes.String,
-					Description:     `The domain identified on the parent domain for this subdomain workspace. FQDN = "<subdomain>.<domain>."`,
+					Description:     `The domain identified on the parent domain for this subdomain workspace. FQDN = "<subdomain_name>.<domain_name>".`,
 					Computed:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
@@ -96,14 +96,14 @@ func (d *dataSubdomain) Read(ctx context.Context, config map[string]tftypes.Valu
 	envId := extractInt64FromConfig(config, "env_id")
 
 	result := map[string]tftypes.Value{
-		"id":        tftypes.NewValue(tftypes.String, ""),
-		"stack_id":  config["stack_id"],
-		"block_id":  config["block_id"],
-		"env_id":    config["env_id"],
-		"dns_name":  tftypes.NewValue(tftypes.String, ""),
-		"subdomain": tftypes.NewValue(tftypes.String, ""),
-		"domain":    tftypes.NewValue(tftypes.String, ""),
-		"fqdn":      tftypes.NewValue(tftypes.String, ""),
+		"id":             tftypes.NewValue(tftypes.String, ""),
+		"stack_id":       config["stack_id"],
+		"block_id":       config["block_id"],
+		"env_id":         config["env_id"],
+		"dns_name":       tftypes.NewValue(tftypes.String, ""),
+		"subdomain_name": tftypes.NewValue(tftypes.String, ""),
+		"domain_name":    tftypes.NewValue(tftypes.String, ""),
+		"fqdn":           tftypes.NewValue(tftypes.String, ""),
 	}
 
 	subdomainWorkspace, err := nsClient.SubdomainWorkspaces().Get(ctx, stackId, blockId, envId)
