@@ -91,7 +91,7 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 	var appEnvCommitSha string
 
 	nsClient := api.Client{Config: d.p.NsConfig}
-	app, err := d.findApp(stackId, appId)
+	app, err := d.findApp(ctx, stackId, appId)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -103,7 +103,7 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  fmt.Sprintf("The application (stackId=%d, appId=%d) is missing.", stackId, appId),
 		})
-	} else if env, err := d.findEnv(stackId, envId); err != nil {
+	} else if env, err := d.findEnv(ctx, stackId, envId); err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
 			Summary:  fmt.Sprintf("An error occurred when fetching the environment (stackId=%d, envId=%d).", stackId, envId),
@@ -114,7 +114,7 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 			Summary:  fmt.Sprintf("The environment (stackId=%d, envId=%d) is missing.", stackId, envId),
 		})
 	} else {
-		appEnv, err := nsClient.AppEnvs().Get(stackId, app.Id, env.Name)
+		appEnv, err := nsClient.AppEnvs().Get(ctx, stackId, app.Id, env.Name)
 		if err != nil {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
@@ -151,9 +151,9 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 	}, diags, nil
 }
 
-func (d *dataAppEnv) findApp(stackId, appId int64) (*types.Application, error) {
+func (d *dataAppEnv) findApp(ctx context.Context, stackId, appId int64) (*types.Application, error) {
 	nsClient := api.Client{Config: d.p.NsConfig}
-	apps, err := nsClient.Apps().List()
+	apps, err := nsClient.Apps().List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to list applications.")
 	}
@@ -165,7 +165,7 @@ func (d *dataAppEnv) findApp(stackId, appId int64) (*types.Application, error) {
 	return nil, nil
 }
 
-func (d *dataAppEnv) findEnv(stackId, envId int64) (*types.Environment, error) {
+func (d *dataAppEnv) findEnv(ctx context.Context, stackId, envId int64) (*types.Environment, error) {
 	nsClient := api.Client{Config: d.p.NsConfig}
-	return nsClient.Environments().Get(stackId, envId)
+	return nsClient.Environments().Get(ctx, stackId, envId, false)
 }

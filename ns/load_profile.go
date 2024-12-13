@@ -2,6 +2,7 @@ package ns
 
 import (
 	"gopkg.in/nullstone-io/go-api-client.v0"
+	"gopkg.in/nullstone-io/go-api-client.v0/auth"
 	"gopkg.in/nullstone-io/nullstone.v0/config"
 	"os"
 )
@@ -26,9 +27,9 @@ func LoadProfile() (*config.Profile, api.Config, error) {
 		cfg.BaseAddress = profile.Address
 	}
 	if profile.ApiKey != "" {
-		cfg.ApiKey = profile.ApiKey
+		apiKey := config.CleanseApiKey(profile.ApiKey)
+		cfg.AccessTokenSource = auth.RawAccessTokenSource{AccessToken: apiKey}
 	}
-	cfg.ApiKey = config.CleanseApiKey(cfg.ApiKey)
 
 	// Load org name with the following precedence
 	//  1. NULLSTONE_ORG env var
