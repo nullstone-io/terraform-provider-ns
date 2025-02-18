@@ -233,14 +233,14 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 	}
 
 	conn, ok := connections[name]
-	if !ok || conn.Reference == nil {
+	if !ok || conn.EffectiveTarget == nil {
 		log.Printf("(getConnectionWorkspace) Connection (%s) was not found in %s", name, sourceWorkspace.Id())
 		return nil, nil
 	}
 	if err := d.validateConnection(conn, contractName, type_); err != nil {
 		return nil, fmt.Errorf("workspace (%s) is configured with invalid connection: %w", sourceWorkspace.Id(), err)
 	}
-	found := sourceWorkspace.FindRelativeConnection(*conn.Reference)
+	found := sourceWorkspace.FindRelativeConnection(*conn.EffectiveTarget)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
 	return &found, nil
 }

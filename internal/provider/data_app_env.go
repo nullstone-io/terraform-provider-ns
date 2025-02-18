@@ -153,7 +153,7 @@ func (d *dataAppEnv) Read(ctx context.Context, config map[string]tftypes.Value) 
 
 func (d *dataAppEnv) findApp(ctx context.Context, stackId, appId int64) (*types.Application, error) {
 	nsClient := api.Client{Config: d.p.NsConfig}
-	apps, err := nsClient.Apps().List(ctx)
+	apps, err := nsClient.Apps().GlobalList(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to list applications.")
 	}

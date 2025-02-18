@@ -73,8 +73,8 @@ func findViaWorkspace(sourceWorkspace types.WorkspaceTarget, connections types.C
 
 	// 2. Try connections normally
 	viaWorkspaceConn, ok := connections[via]
-	if ok && viaWorkspaceConn.Reference != nil {
-		ct := sourceWorkspace.FindRelativeConnection(*viaWorkspaceConn.Reference)
+	if ok && viaWorkspaceConn.EffectiveTarget != nil {
+		ct := sourceWorkspace.FindRelativeConnection(*viaWorkspaceConn.EffectiveTarget)
 		return &ct
 	}
 
