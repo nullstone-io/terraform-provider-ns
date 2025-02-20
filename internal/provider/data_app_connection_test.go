@@ -77,7 +77,7 @@ func TestDataAppConnection(t *testing.T) {
 							Type:     "cluster/aws-fargate",
 							Optional: false,
 						},
-						Target: &types.ConnectionTarget{BlockName: "lycan"},
+						DesiredTarget: &types.ConnectionTarget{BlockName: "lycan"},
 						EffectiveTarget: &types.ConnectionTarget{
 							StackId: lycanEnv0.StackId,
 							BlockId: lycanEnv0.BlockId,
@@ -96,7 +96,7 @@ func TestDataAppConnection(t *testing.T) {
 							Type:     "network/aws",
 							Optional: false,
 						},
-						Target: &types.ConnectionTarget{BlockName: "rikimaru"},
+						DesiredTarget: &types.ConnectionTarget{BlockName: "rikimaru"},
 						EffectiveTarget: &types.ConnectionTarget{
 							StackId: rikiEnv0.StackId,
 							BlockId: rikiEnv0.BlockId,

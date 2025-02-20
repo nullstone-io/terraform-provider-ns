@@ -92,7 +92,7 @@ func TestDataConnection(t *testing.T) {
 							Contract: "cluster/aws/ecs",
 							Optional: false,
 						},
-						Target: &types.ConnectionTarget{BlockName: "lycan"},
+						DesiredTarget: &types.ConnectionTarget{BlockName: "lycan"},
 						EffectiveTarget: &types.ConnectionTarget{
 							StackId: lycanEnv0.StackId,
 							BlockId: lycanEnv0.BlockId,
@@ -112,7 +112,7 @@ func TestDataConnection(t *testing.T) {
 							Contract: "network/aws/vpc",
 							Optional: false,
 						},
-						Target: &types.ConnectionTarget{BlockName: "rikimaru"},
+						DesiredTarget: &types.ConnectionTarget{BlockName: "rikimaru"},
 						EffectiveTarget: &types.ConnectionTarget{
 							StackId: rikiEnv0.StackId,
 							BlockId: rikiEnv0.BlockId,
@@ -139,7 +139,7 @@ func TestDataConnection(t *testing.T) {
 							Contract: "app/aws/ecs",
 							Optional: false,
 						},
-						Target: &types.ConnectionTarget{BlockName: "faceless"},
+						DesiredTarget: &types.ConnectionTarget{BlockName: "faceless"},
 						EffectiveTarget: &types.ConnectionTarget{
 							StackId: facelessEnv0.StackId,
 							BlockId: facelessEnv0.BlockId,
