@@ -70,35 +70,39 @@ func TestDataAppConnection(t *testing.T) {
 	runConfigs := map[string]types.RunConfig{
 		uid1.String(): {
 			WorkspaceUid: uid1,
-			Connections: map[string]types.Connection{
-				"cluster": {
-					Connection: config.Connection{
-						Type:     "cluster/aws-fargate",
-						Optional: false,
+			WorkspaceConfig: types.WorkspaceConfig{
+				Connections: map[string]types.Connection{
+					"cluster": {
+						Connection: config.Connection{
+							Type:     "cluster/aws-fargate",
+							Optional: false,
+						},
+						DesiredTarget: &types.ConnectionTarget{BlockName: "lycan"},
+						EffectiveTarget: &types.ConnectionTarget{
+							StackId: lycanEnv0.StackId,
+							BlockId: lycanEnv0.BlockId,
+						},
+						Unused: false,
 					},
-					Target: "lycan",
-					Reference: &types.ConnectionTarget{
-						StackId: lycanEnv0.StackId,
-						BlockId: lycanEnv0.BlockId,
-					},
-					Unused: false,
 				},
 			},
 		},
 		uid2.String(): {
 			WorkspaceUid: uid2,
-			Connections: map[string]types.Connection{
-				"network": {
-					Connection: config.Connection{
-						Type:     "network/aws",
-						Optional: false,
+			WorkspaceConfig: types.WorkspaceConfig{
+				Connections: map[string]types.Connection{
+					"network": {
+						Connection: config.Connection{
+							Type:     "network/aws",
+							Optional: false,
+						},
+						DesiredTarget: &types.ConnectionTarget{BlockName: "rikimaru"},
+						EffectiveTarget: &types.ConnectionTarget{
+							StackId: rikiEnv0.StackId,
+							BlockId: rikiEnv0.BlockId,
+						},
+						Unused: false,
 					},
-					Target: "rikimaru",
-					Reference: &types.ConnectionTarget{
-						StackId: rikiEnv0.StackId,
-						BlockId: rikiEnv0.BlockId,
-					},
-					Unused: false,
 				},
 			},
 		},

@@ -1,3 +1,9 @@
+## 0.7.1 (Feb 20, 2025)
+
+FEATURES:
+
+* Updated Nullstone API client with enhanced workspace config.
+
 ## 0.7.0 (Dec 13, 2024)
 
 FEATURES:
