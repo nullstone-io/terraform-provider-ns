@@ -87,9 +87,6 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	inputEnvVariables := config["input_env_variables"]
 	inputSecretKeys := config["input_secret_keys"]
 
-	tflog.Debug(ctx, "input_env_variables", inputEnvVariables)
-	tflog.Debug(ctx, "input_secret_keys", inputSecretKeys)
-
 	// Shuffle secret keys slice into a map so we can use Interpolate to check secret keys
 	inputSecrets := map[string]string{}
 	for _, v := range TfSetValueToStringSlice(inputSecretKeys) {
@@ -102,8 +99,12 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	id := ev.KeysHash()
 	secretKeys := ev.SecretKeys()
 
-	tflog.Debug(ctx, "id", id)
-	tflog.Debug(ctx, "secret_keys", secretKeys)
+	tflog.Debug(ctx, "Read Secrets", map[string]interface{}{
+		"id":                  id,
+		"input_env_variables": inputEnvVariables,
+		"input_secret_keys":   inputSecretKeys,
+		"secret_keys":         secretKeys,
+	})
 
 	return map[string]tftypes.Value{
 		"id":                  tftypes.NewValue(tftypes.String, id),

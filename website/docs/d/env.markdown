@@ -38,4 +38,4 @@ locals {
 * `name` (string) - The name of the environment in Nullstone.
 * `type` (string) - The type of environment in Nullstone. Possible values: `PipelineEnv`, `PreviewEnv`, `PreviewsSharedEnv`, `GlobalEnv`.
 * `pipeline_order` (number) - [Only for `PipelineEnv`] A number that dictates which order the environment falls in the pipeline.
-* `is_prod` (bool) - Indicates whether the environment is marked as a production environment. 
+* `is_prod` (bool) - Indicates whether the environment is marked as a production environment.

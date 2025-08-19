@@ -102,9 +102,6 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 	inputEnvVariables := config["input_env_variables"]
 	inputSecrets := config["input_secrets"]
 
-	tflog.Debug(ctx, "input_env_variables", inputEnvVariables)
-	tflog.Debug(ctx, "input_secrets", inputSecrets)
-
 	ev := NewEnvVars(TfValueToMap(inputEnvVariables), TfValueToMap(inputSecrets))
 	ev.Interpolate()
 
@@ -114,9 +111,14 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 	secrets := ev.Secrets()
 	secretRefs := ev.SecretRefs()
 
-	tflog.Debug(ctx, "id", id)
-	tflog.Debug(ctx, "env_variables", envVariables)
-	tflog.Debug(ctx, "secrets", secrets)
+	tflog.Debug(ctx, "Read EnvVariables", map[string]interface{}{
+		"id":                  id,
+		"input_env_variables": inputEnvVariables,
+		"input_secrets":       inputSecrets,
+		"env_variables":       envVariables,
+		"secrets":             secrets,
+		"secret_refs":         secretRefs,
+	})
 
 	return map[string]tftypes.Value{
 		"id":                  tftypes.NewValue(tftypes.String, id),

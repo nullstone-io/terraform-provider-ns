@@ -25,7 +25,7 @@ func GetStateFile(tfeClient *tfe.Client, orgName string, workspaceName string) (
 	}
 	log.Printf("[DEBUG] Found workspace (org=%s, workspace=%s), workspace id=%s", orgName, workspaceName, workspace.ID)
 
-	sv, err := tfeClient.StateVersions.Current(context.Background(), workspace.ID)
+	sv, err := tfeClient.StateVersions.Read(context.Background(), workspace.CurrentStateVersion.ID)
 	if err != nil {
 		return nil, fmt.Errorf(`error reading current state version (org=%s, workspace=%s): %w`, orgName, workspaceName, err)
 	}

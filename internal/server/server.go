@@ -16,6 +16,8 @@ var (
 
 	resourceType   = reflect.TypeOf((*Resource)(nil)).Elem()
 	dataSourceType = reflect.TypeOf((*DataSource)(nil)).Elem()
+
+	_ tfprotov5.ProviderServer = (*Server)(nil)
 )
 
 func MustNew(providerFactoryFunc interface{}) *Server {
@@ -171,6 +173,22 @@ func (s *Server) resource(typeName string) (Resource, error) {
 	return r, nil
 }
 
+func (s *Server) GetMetadata(ctx context.Context, request *tfprotov5.GetMetadataRequest) (*tfprotov5.GetMetadataResponse, error) {
+	//TODO implement me
+	return &tfprotov5.GetMetadataResponse{
+		ServerCapabilities: &tfprotov5.ServerCapabilities{
+			GetProviderSchemaOptional: false,
+			MoveResourceState:         false,
+			PlanDestroy:               false,
+		},
+		Diagnostics:        nil,
+		DataSources:        nil,
+		Functions:          nil,
+		Resources:          nil,
+		EphemeralResources: nil,
+	}, nil
+}
+
 func (s *Server) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	resp := &tfprotov5.GetProviderSchemaResponse{
 		Provider:          s.p.Schema(ctx),
@@ -195,6 +213,11 @@ func (s *Server) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProvid
 	}
 
 	return resp, nil
+}
+
+func (s *Server) GetResourceIdentitySchemas(ctx context.Context, request *tfprotov5.GetResourceIdentitySchemasRequest) (*tfprotov5.GetResourceIdentitySchemasResponse, error) {
+	//TODO implement me
+	return &tfprotov5.GetResourceIdentitySchemasResponse{}, nil
 }
 
 func (s *Server) PrepareProviderConfig(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
@@ -256,8 +279,7 @@ func (s *Server) ConfigureProvider(ctx context.Context, req *tfprotov5.Configure
 }
 
 func (s *Server) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
-	// TODO: close/reopen? db connection
-	panic("not implemented")
+	return &tfprotov5.StopProviderResponse{Error: ""}, nil
 }
 
 // ResourceServer methods
@@ -284,6 +306,11 @@ func (s *Server) ValidateResourceTypeConfig(ctx context.Context, req *tfprotov5.
 	}, nil
 }
 
+func (s *Server) UpgradeResourceIdentity(ctx context.Context, request *tfprotov5.UpgradeResourceIdentityRequest) (*tfprotov5.UpgradeResourceIdentityResponse, error) {
+	//TODO implement me
+	return &tfprotov5.UpgradeResourceIdentityResponse{}, nil
+}
+
 func (s *Server) UpgradeResourceState(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {
 	r, err := s.resource(req.TypeName)
 	if err != nil {
@@ -305,6 +332,11 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *tfprotov5.Upgrad
 	return &tfprotov5.UpgradeResourceStateResponse{
 		UpgradedState: &rawStateValue,
 	}, nil
+}
+
+func (s *Server) MoveResourceState(ctx context.Context, request *tfprotov5.MoveResourceStateRequest) (*tfprotov5.MoveResourceStateResponse, error) {
+	//TODO implement me
+	return &tfprotov5.MoveResourceStateResponse{}, nil
 }
 
 func (s *Server) ReadResource(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error) {
@@ -584,4 +616,49 @@ func (s *Server) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDataSour
 		State:       &stateValue,
 		Diagnostics: diags,
 	}, nil
+}
+
+// FunctionServer methods
+
+func (s *Server) GetFunctions(ctx context.Context, request *tfprotov5.GetFunctionsRequest) (*tfprotov5.GetFunctionsResponse, error) {
+	//TODO implement me
+	return &tfprotov5.GetFunctionsResponse{
+		Diagnostics: []*tfprotov5.Diagnostic{},
+		Functions:   map[string]*tfprotov5.Function{},
+	}, nil
+}
+
+// CallFunction implements the tfprotov5.ProviderServer interface.
+// It's called when a Terraform configuration calls a function defined by this provider.
+func (s *Server) CallFunction(ctx context.Context, req *tfprotov5.CallFunctionRequest) (*tfprotov5.CallFunctionResponse, error) {
+	//TODO implement me
+	return &tfprotov5.CallFunctionResponse{
+		Error: &tfprotov5.FunctionError{
+			Text:             "Function not implemented",
+			FunctionArgument: nil,
+		},
+		Result: nil,
+	}, nil
+}
+
+// EphemeralResourceServer methods
+
+func (s *Server) ValidateEphemeralResourceConfig(ctx context.Context, request *tfprotov5.ValidateEphemeralResourceConfigRequest) (*tfprotov5.ValidateEphemeralResourceConfigResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Server) OpenEphemeralResource(ctx context.Context, request *tfprotov5.OpenEphemeralResourceRequest) (*tfprotov5.OpenEphemeralResourceResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Server) RenewEphemeralResource(ctx context.Context, request *tfprotov5.RenewEphemeralResourceRequest) (*tfprotov5.RenewEphemeralResourceResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *Server) CloseEphemeralResource(ctx context.Context, request *tfprotov5.CloseEphemeralResourceRequest) (*tfprotov5.CloseEphemeralResourceResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
