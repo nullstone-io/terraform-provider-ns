@@ -2,9 +2,9 @@ name: Acceptance Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 env:
   GO_VERSION: "1.24"
