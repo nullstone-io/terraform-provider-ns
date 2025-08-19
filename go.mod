@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/hashicorp/go-argmapper v0.0.0-20200721221215-04ae500ede3b
-	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
+	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-tfe v0.11.1
 	github.com/hashicorp/terraform-plugin-go v0.7.1
 	github.com/hashicorp/terraform-plugin-log v0.2.1
