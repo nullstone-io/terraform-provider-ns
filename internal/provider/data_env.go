@@ -62,6 +62,13 @@ func (*dataEnv) Schema(ctx context.Context) *tfprotov5.Schema {
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 					Computed:        true,
 				},
+				{
+					Name:            "is_prod",
+					Type:            tftypes.Bool,
+					Description:     "This indicates whether the environment is marked as a production environment.",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+					Computed:        true,
+				},
 			},
 		},
 	}
@@ -83,6 +90,7 @@ func (d *dataEnv) Read(ctx context.Context, config map[string]tftypes.Value) (ma
 	var envName string
 	var envType string
 	var pipelineOrder int
+	var isProd bool
 
 	env, err := nsClient.Environments().Get(ctx, stackId, envId, false)
 	if err != nil {
@@ -97,6 +105,7 @@ func (d *dataEnv) Read(ctx context.Context, config map[string]tftypes.Value) (ma
 		if env.PipelineOrder != nil {
 			pipelineOrder = *env.PipelineOrder
 		}
+		isProd = env.IsProd
 	} else {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -111,5 +120,6 @@ func (d *dataEnv) Read(ctx context.Context, config map[string]tftypes.Value) (ma
 		"name":           tftypes.NewValue(tftypes.String, envName),
 		"type":           tftypes.NewValue(tftypes.String, envType),
 		"pipeline_order": tftypes.NewValue(tftypes.Number, pipelineOrder),
+		"is_prod":        tftypes.NewValue(tftypes.Bool, isProd),
 	}, diags, nil
 }

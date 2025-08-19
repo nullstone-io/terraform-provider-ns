@@ -1,3 +1,9 @@
+## 0.7.2 (Aug 19, 2025)
+
+FEATURES:
+
+* Added `is_prod` to `data.ns_env` data source to indicate whether the environment is a production environment.
+
 ## 0.7.1 (Feb 20, 2025)
 
 FEATURES:
