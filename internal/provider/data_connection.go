@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
-	"log"
-	"regexp"
 )
 
 var validConnectionName = regexp.MustCompile("^[_a-z0-9/-]+$")
@@ -190,7 +191,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 }
 
 func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string, contractName types.ModuleContractName, type_, via string) (*types.WorkspaceTarget, error) {
-	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityId=%d", name, contractName, type_, via, d.p.PlanConfig.CapabilityId)
+	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityName=%d", name, contractName, type_, via, d.p.PlanConfig.CapabilityName)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	// Let's search for a configured connection in .nullstone/active-workspace.yml first
@@ -218,7 +219,7 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 	// If this data_connection is established on the capability, we need to pull from the correct set of connections
 	connections := d.getConnectionsFromRunConfig(runConfig)
 	raw, _ := json.Marshal(connections)
-	log.Printf("(getConnectionWorkspace) Utilizing connections (capability id=%d) %s", d.p.PlanConfig.CapabilityId, string(raw))
+	log.Printf("(getConnectionWorkspace) Utilizing connections (capability name=%d) %s", d.p.PlanConfig.CapabilityName, string(raw))
 
 	// If this data_connection has `via` specified, then we need to
 	//   get the connections for *that* workspace instead of the current workspace
@@ -254,13 +255,12 @@ func (d *dataConnection) getConnectionsFromRunConfig(runConfig *types.RunConfig)
 	if d.isAppConnection {
 		return runConfig.Connections
 	}
-	// If the provider is configured with a non-zero capability
+	// If the provider is configured with a non-empty capability name
 	//   we should use the connections from that capability
-	capabilityId := d.p.PlanConfig.CapabilityId
-	if capabilityId > 0 {
-		for _, cap := range runConfig.Capabilities {
-			if cap.Id == capabilityId {
-				return cap.Connections
+	if capabilityName := d.p.PlanConfig.CapabilityName; capabilityName != "" {
+		for _, cur := range runConfig.Capabilities {
+			if cur.Name == capabilityName {
+				return cur.Connections
 			}
 		}
 		return types.Connections{}
