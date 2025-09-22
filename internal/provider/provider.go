@@ -157,9 +157,6 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	p.NsConfig.OrgName = p.PlanConfig.OrgName
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
-	p.PlanConfig.CapabilityId = extractInt64FromConfig(config, "capability_id")
-	log.Printf("[DEBUG] capability_id set to %d\n", p.PlanConfig.CapabilityId)
-
 	p.PlanConfig.CapabilityName = extractStringFromConfig(config, "capability_name")
 	log.Printf("[DEBUG] capability_name set to %s\n", p.PlanConfig.CapabilityName)
 

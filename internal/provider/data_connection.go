@@ -191,7 +191,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 }
 
 func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string, contractName types.ModuleContractName, type_, via string) (*types.WorkspaceTarget, error) {
-	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityName=%d", name, contractName, type_, via, d.p.PlanConfig.CapabilityName)
+	log.Printf("(getConnectionWorkspace) name=%s contract=%s type=%s via=%s capabilityName=%s", name, contractName, type_, via, d.p.PlanConfig.CapabilityName)
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	// Let's search for a configured connection in .nullstone/active-workspace.yml first
@@ -219,7 +219,7 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 	// If this data_connection is established on the capability, we need to pull from the correct set of connections
 	connections := d.getConnectionsFromRunConfig(runConfig)
 	raw, _ := json.Marshal(connections)
-	log.Printf("(getConnectionWorkspace) Utilizing connections (capability name=%d) %s", d.p.PlanConfig.CapabilityName, string(raw))
+	log.Printf("(getConnectionWorkspace) Utilizing connections (capability name=%s) %s", d.p.PlanConfig.CapabilityName, string(raw))
 
 	// If this data_connection has `via` specified, then we need to
 	//   get the connections for *that* workspace instead of the current workspace
