@@ -17,7 +17,7 @@ This stanza defines the name and type of connection we need.
 During terraform execution, nullstone provides outputs from the connected workspace.
 
 Plan Config affects this data source. See [the main provider documentation](../index.html) for more details.
-The `capability_id` that is normally used in `ns_connection` is ignored in this data source.
+The `capability_name` that is normally used in `ns_connection` is ignored in this data source.
 
 ## Example Usage
 

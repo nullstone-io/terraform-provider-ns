@@ -1,3 +1,9 @@
+## 0.8.0 (Sep 22, 2025)
+
+FEATURES:
+
+* Updated `provider` to use `capability_name` instead of `capability_id` for capability providers.
+
 ## 0.7.2 (Aug 19, 2025)
 
 FEATURES:

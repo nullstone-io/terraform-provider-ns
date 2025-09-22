@@ -85,8 +85,8 @@ This ensures that connections defined within the module pull connection configur
 
 ```terraform
 provider "ns" {
-  capability_id = 5
-  alias         = "cap_5"
+  capability_name = "cap-name" 
+  alias           = "cap_5"
 }
 
 module "cap_5" {

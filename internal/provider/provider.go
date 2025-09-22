@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/hashicorp/go-tfe"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/nullstone-io/terraform-provider-ns/internal/server"
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
-	"log"
 )
 
 func Mock(version string, getNsConfig func() api.Config, getTfeConfig func() *tfe.Config, alterPlanConfig func(config *PlanConfig)) tfprotov5.ProviderServer {
@@ -93,6 +94,14 @@ func (p *provider) Schema(ctx context.Context) *tfprotov5.Schema {
 					Optional:        true,
 					Description:     "Configure provider with the context of the capability's id",
 					DescriptionKind: tfprotov5.StringKindMarkdown,
+					Deprecated:      true,
+				},
+				{
+					Name:            "capability_name",
+					Type:            tftypes.String,
+					Optional:        true,
+					Description:     "Configure provider with the context of the capability's name",
+					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 			},
 		},
@@ -121,6 +130,15 @@ func (p *provider) Validate(ctx context.Context, config map[string]tftypes.Value
 			Summary:  fmt.Sprintf("TFE Token is required (Set %q environment variable)", api.ApiKeyEnvVar),
 		})
 	}
+	if !config["capability_id"].IsNull() {
+		var capabilityId int64
+		if err := config["capability_id"].As(&capabilityId); err == nil {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityWarning,
+				Summary:  fmt.Sprintf("Capability ID is deprecated, use capability_name instead"),
+			})
+		}
+	}
 
 	if len(diags) > 0 {
 		return diags, nil
@@ -139,8 +157,8 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	p.NsConfig.OrgName = p.PlanConfig.OrgName
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
-	p.PlanConfig.CapabilityId = extractInt64FromConfig(config, "capability_id")
-	log.Printf("[DEBUG] capability_id set to %d\n", p.PlanConfig.CapabilityId)
+	p.PlanConfig.CapabilityName = extractStringFromConfig(config, "capability_name")
+	log.Printf("[DEBUG] capability_name set to %s\n", p.PlanConfig.CapabilityName)
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)
 	if err != nil {
