@@ -801,10 +801,10 @@ gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntN
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
 gopkg.in/cheggaaa/pb.v1 v1.0.27/go.mod h1:V/YB90LKu/1FcN3WVnfiiE5oMCibMjukxqG/qStrOgw=
 gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20250920125819-938671ade45c h1:5ClD6JvZkcVdx7BKDIABxJmhjKcZvDzQrvClNYe176w=
-gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20250920125819-938671ade45c/go.mod h1:Bj01hknD135uWb7j+9EIcE775ZXYv9pWSXdryTHMrhM=
-gopkg.in/nullstone-io/nullstone.v0 v0.0.145-0.20250920130317-a26d492e130e h1:yuxrIoxG17Phzzbj1bi+7E2UFt/pbpwH6cSmQ5wd8mk=
-gopkg.in/nullstone-io/nullstone.v0 v0.0.145-0.20250920130317-a26d492e130e/go.mod h1:RSjv65BiPjAjamSABde+soAlmYCZ0K82C8YHaN7Kexg=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20250922133652-cb0e5726b6e2 h1:dE+37jlj+2M9UxfTrsb/FPGMp3ke19uGzi3fm1odP+M=
+gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20250922133652-cb0e5726b6e2/go.mod h1:Bj01hknD135uWb7j+9EIcE775ZXYv9pWSXdryTHMrhM=
+gopkg.in/nullstone-io/nullstone.v0 v0.0.145 h1:Rmf4F7STxxgB4WFBhk/Nud5DCuVtr9rmZ87ebfevWqc=
+gopkg.in/nullstone-io/nullstone.v0 v0.0.145/go.mod h1:lhv1/5zMVMYtAsWCOOpAW2KOsaENmt8IANvY/7ofFUk=
 gopkg.in/warnings.v0 v0.1.2 h1:wFXVbFY8DY5/xOe1ECiWdKCzZlxgshcYVNkBHstARME=
 gopkg.in/warnings.v0 v0.1.2/go.mod h1:jksf8JmL6Qr/oQM2OXTHunEvvTAsrWBLb6OOjuVWRNI=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
