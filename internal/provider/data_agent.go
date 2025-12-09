@@ -36,16 +36,16 @@ func (*dataAgent) Schema(ctx context.Context) *tfprotov5.Schema {
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
-					Name:            "aws_role_name",
+					Name:            "aws_user_name",
 					Type:            tftypes.String,
-					Description:     "The AWS Role Name of the Nullstone Agent",
+					Description:     "The AWS User Name of the Nullstone Agent",
 					Computed:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
 				{
-					Name:            "aws_role_arn",
+					Name:            "aws_user_arn",
 					Type:            tftypes.String,
-					Description:     "The AWS Role ARN of the Nullstone Agent",
+					Description:     "The AWS User ARN of the Nullstone Agent",
 					Computed:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
@@ -78,7 +78,7 @@ func (d *dataAgent) Read(ctx context.Context, config map[string]tftypes.Value) (
 
 	diags := make([]*tfprotov5.Diagnostic, 0)
 
-	var awsAccountId, awsRoleName, awsRoleArn string
+	var awsAccountId, awsUserName, awsUserArn string
 	var gcpProjectId, gcpServiceAccountEmail string
 	agentInfo, err := nsClient.NullstoneAgent().Get(ctx)
 	if err != nil {
@@ -89,8 +89,8 @@ func (d *dataAgent) Read(ctx context.Context, config map[string]tftypes.Value) (
 		})
 	} else if agentInfo != nil {
 		awsAccountId = agentInfo.Aws.AccountId
-		awsRoleName = agentInfo.Aws.RoleName
-		awsRoleArn = agentInfo.Aws.RoleArn
+		awsUserName = agentInfo.Aws.UserName
+		awsUserArn = agentInfo.Aws.UserArn
 		gcpServiceAccountEmail = agentInfo.Gcp.ServiceAccountEmail
 		gcpProjectId = agentInfo.Gcp.ProjectId
 	} else {
@@ -103,8 +103,8 @@ func (d *dataAgent) Read(ctx context.Context, config map[string]tftypes.Value) (
 	return map[string]tftypes.Value{
 		"id":                        tftypes.NewValue(tftypes.String, "nullstone-agent"),
 		"aws_account_id":            tftypes.NewValue(tftypes.String, &awsAccountId),
-		"aws_role_name":             tftypes.NewValue(tftypes.String, &awsRoleName),
-		"aws_role_arn":              tftypes.NewValue(tftypes.String, &awsRoleArn),
+		"aws_user_name":             tftypes.NewValue(tftypes.String, &awsUserName),
+		"aws_user_arn":              tftypes.NewValue(tftypes.String, &awsUserArn),
 		"gcp_project_id":            tftypes.NewValue(tftypes.String, &gcpProjectId),
 		"gcp_service_account_email": tftypes.NewValue(tftypes.String, &gcpServiceAccountEmail),
 	}, diags, nil
