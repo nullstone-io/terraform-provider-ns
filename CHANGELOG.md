@@ -1,3 +1,9 @@
+## 0.8.1 (Dec 09, 2025)
+
+FEATURES:
+
+* Added `data.ns_agent` to retrieve information about the Nullstone Agent.
+
 ## 0.8.0 (Sep 22, 2025)
 
 FEATURES:
