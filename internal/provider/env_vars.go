@@ -87,7 +87,7 @@ func (m EnvVars) Interpolate() {
 	}
 
 	// 2. Interpolate secrets onto other env vars
-	// This has the potential promote env vars to secrets
+	// This has the potential to promote env vars to secrets
 	for k1, v1 := range m.Secrets() {
 		replacer := regexp.MustCompile(fmt.Sprintf(interpolationRefRegexPattern, k1))
 		for k2, v2 := range m.EnvVars() {

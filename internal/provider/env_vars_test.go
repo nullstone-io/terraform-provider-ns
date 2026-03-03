@@ -2,8 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestMixedEnvVars_Interpolate(t *testing.T) {
@@ -17,25 +18,27 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 	}{
 		{
 			inputEnvVars: map[string]string{
-				"NULLSTONE_STACK":   "primary",
-				"NULLSTONE_BLOCK":   "acme-api",
-				"NULLSTONE_ENV":     "dev",
-				"FEATURE_FLAG_0115": "true",
-				"DATABASE_URL":      "{{POSTGRES_URL}}",
-				"IDENTIFIER":        "{{ NULLSTONE_STACK }}.{{ NULLSTONE_BLOCK }}.{{ NULLSTONE_ENV }}",
-				"DUPLICATE_TEST":    "{{ SECRET_KEY_BASE }}/{{ POSTGRES_URL }}",
-				"VAR_WITH_REF":      "{{ secret(arn:aws:something) }}",
+				"NULLSTONE_STACK":    "primary",
+				"NULLSTONE_BLOCK":    "acme-api",
+				"NULLSTONE_ENV":      "dev",
+				"FEATURE_FLAG_0115":  "true",
+				"ANOTHER_IDENTIFIER": "{{ IDENTIFIER }}",
+				"DATABASE_URL":       "{{POSTGRES_URL}}",
+				"IDENTIFIER":         "{{ NULLSTONE_STACK }}.{{ NULLSTONE_BLOCK }}.{{ NULLSTONE_ENV }}",
+				"DUPLICATE_TEST":     "{{ SECRET_KEY_BASE }}/{{ POSTGRES_URL }}",
+				"VAR_WITH_REF":       "{{ secret(arn:aws:something) }}",
 			},
 			inputSecrets: map[string]string{
 				"POSTGRES_URL":    "fake-value1",
 				"SECRET_KEY_BASE": "fake-value2",
 			},
 			wantEnvVars: map[string]string{
-				"NULLSTONE_STACK":   "primary",
-				"NULLSTONE_BLOCK":   "acme-api",
-				"NULLSTONE_ENV":     "dev",
-				"FEATURE_FLAG_0115": "true",
-				"IDENTIFIER":        "primary.acme-api.dev",
+				"NULLSTONE_STACK":    "primary",
+				"NULLSTONE_BLOCK":    "acme-api",
+				"NULLSTONE_ENV":      "dev",
+				"FEATURE_FLAG_0115":  "true",
+				"IDENTIFIER":         "primary.acme-api.dev",
+				"ANOTHER_IDENTIFIER": "primary.acme-api.dev",
 			},
 			wantSecrets: map[string]string{
 				"DATABASE_URL":    "fake-value1",
@@ -52,6 +55,25 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 				"POSTGRES_URL",
 				"SECRET_KEY_BASE",
 			},
+		},
+		{
+			// 3-hop chain: A → B → DATABASE_URL (secret)
+			// B gets promoted to secret in step 2; A must then also be promoted
+			inputEnvVars: map[string]string{
+				"A": "{{ B }}",
+				"B": "{{ DATABASE_URL }}",
+			},
+			inputSecrets: map[string]string{
+				"DATABASE_URL": "fake-db-url",
+			},
+			wantEnvVars: map[string]string{},
+			wantSecrets: map[string]string{
+				"A":            "fake-db-url",
+				"B":            "fake-db-url",
+				"DATABASE_URL": "fake-db-url",
+			},
+			wantSecretRefs: map[string]string{},
+			wantSecretKeys: []string{"A", "B", "DATABASE_URL"},
 		},
 	}
 
