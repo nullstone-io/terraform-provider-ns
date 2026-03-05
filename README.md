@@ -63,3 +63,9 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 ```sh
 $ make testacc
 ```
+
+Publishing a new version
+---------------------------
+Add a git tag `vX.Y.Z` and push to github.
+This triggers a Github Actions workflow that will publish a new version of the provider to the Terraform registry.
+OpenTofu mirrors the Terraform registry so you don't need to do anything to make available for OpenTofu modules.
