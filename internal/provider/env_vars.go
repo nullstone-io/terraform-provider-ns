@@ -87,27 +87,33 @@ func (m EnvVars) Interpolate() {
 	}
 
 	// 2. Interpolate secrets onto other env vars
-	// This has the potential promote env vars to secrets
-	for k1, v1 := range m.Secrets() {
-		replacer := regexp.MustCompile(fmt.Sprintf(interpolationRefRegexPattern, k1))
-		for k2, v2 := range m.EnvVars() {
-			result := replacer.ReplaceAllString(v2, v1)
-			// if a match was found and replaced, this env variable is now a secret
-			if result != v2 {
-				entry := m[k2]
-				entry.IsSensitive = true
-				entry.Value = result
-				m[k2] = entry
-			}
-		}
-		for k2, v2 := range m.Secrets() {
-			if k2 != k1 {
+	// This has the potential to promote env vars to secrets
+	// Loop until convergence to handle chained references (e.g. A → B → SECRET)
+	for changed := true; changed; {
+		changed = false
+		for k1, v1 := range m.Secrets() {
+			replacer := regexp.MustCompile(fmt.Sprintf(interpolationRefRegexPattern, k1))
+			for k2, v2 := range m.EnvVars() {
 				result := replacer.ReplaceAllString(v2, v1)
+				// if a match was found and replaced, this env variable is now a secret
 				if result != v2 {
+					changed = true
 					entry := m[k2]
 					entry.IsSensitive = true
 					entry.Value = result
 					m[k2] = entry
+				}
+			}
+			for k2, v2 := range m.Secrets() {
+				if k2 != k1 {
+					result := replacer.ReplaceAllString(v2, v1)
+					if result != v2 {
+						changed = true
+						entry := m[k2]
+						entry.IsSensitive = true
+						entry.Value = result
+						m[k2] = entry
+					}
 				}
 			}
 		}
@@ -115,25 +121,31 @@ func (m EnvVars) Interpolate() {
 
 	// 3. Interpolate env vars onto other env vars/secrets
 	// This will not promote anybody to a secret
-	for k1, v1 := range m.EnvVars() {
-		regex := regexp.MustCompile(fmt.Sprintf(interpolationRefRegexPattern, k1))
-		for k2, v2 := range m.EnvVars() {
-			// we don't want to replace the env variable with itself (this will prevent an infinite loop)
-			if k2 != k1 {
+	// Loop until convergence to handle chained references (e.g. A → B → C)
+	for changed := true; changed; {
+		changed = false
+		for k1, v1 := range m.EnvVars() {
+			regex := regexp.MustCompile(fmt.Sprintf(interpolationRefRegexPattern, k1))
+			for k2, v2 := range m.EnvVars() {
+				// we don't want to replace the env variable with itself (this will prevent an infinite loop)
+				if k2 != k1 {
+					result := regex.ReplaceAllString(v2, v1)
+					if result != v2 {
+						changed = true
+						entry := m[k2]
+						entry.Value = result
+						m[k2] = entry
+					}
+				}
+			}
+			for k2, v2 := range m.Secrets() {
 				result := regex.ReplaceAllString(v2, v1)
 				if result != v2 {
+					changed = true
 					entry := m[k2]
 					entry.Value = result
 					m[k2] = entry
 				}
-			}
-		}
-		for k2, v2 := range m.Secrets() {
-			result := regex.ReplaceAllString(v2, v1)
-			if result != v2 {
-				entry := m[k2]
-				entry.Value = result
-				m[k2] = entry
 			}
 		}
 	}

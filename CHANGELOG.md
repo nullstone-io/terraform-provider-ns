@@ -1,3 +1,9 @@
+## 0.8.2 (Mar 03, 2026)
+
+BUG FIXES:
+
+* Fixed env var interpolation to work with multiple levels of interpolation.
+
 ## 0.8.1 (Dec 09, 2025)
 
 FEATURES:
