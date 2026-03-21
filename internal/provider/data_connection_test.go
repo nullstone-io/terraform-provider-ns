@@ -401,6 +401,59 @@ data "ns_connection" "network" {
 		})
 
 	})
+
+	t.Run("overrides capability connection through local setup in plan config", func(t *testing.T) {
+		// This simulates capability connections injected via .nullstone/active-workspace.yml
+		// The provider has capability_name set, so ns_connection should pull from
+		// capabilities[cap_name].connections in the plan config
+		tfconfig := fmt.Sprintf(`
+provider "ns" {
+  organization    = "org0"
+  capability_name = "my-cap"
+}
+data "ns_connection" "cluster" {
+  name     = "cluster"
+  contract = "cluster/aws/ecs"
+}
+`)
+		checks := resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `workspace_id`, "100/103/102"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test1`, "value1"),
+			resource.TestCheckResourceAttr("data.ns_connection.cluster", `outputs.test2`, "2"),
+		)
+
+		getNsConfig, closeNsFn := mockNs(mockNsServerWith(allWorkspaces, runConfigs))
+		defer closeNsFn()
+		getTfeConfig, closeTfeFn := mockTfe(mockStateServerWith(enigmaEnv0, lycanEnv0, rikiEnv0))
+		defer closeTfeFn()
+		alterPlanConfig := func(config *PlanConfig) {
+			config.OrgName = facelessEnv0.OrgName
+			config.StackId = facelessEnv0.StackId
+			config.BlockId = facelessEnv0.BlockId
+			config.EnvId = facelessEnv0.EnvId
+			config.WorkspaceUid = facelessEnv0.Uid.String()
+			config.Capabilities = workspaces.ManifestCapabilities{
+				"my-cap": workspaces.ManifestCapability{
+					Connections: workspaces.ManifestConnections{
+						"cluster": { // point at lycan from capability scope
+							StackId: lycanEnv0.StackId,
+							BlockId: lycanEnv0.BlockId,
+						},
+					},
+				},
+			}
+		}
+
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, alterPlanConfig),
+			Steps: []resource.TestStep{
+				{
+					Config: tfconfig,
+					Check:  checks,
+				},
+			},
+		})
+	})
 }
 
 func mockNsServerWith(workspaces []types.Workspace, runConfigs map[string]types.RunConfig) http.Handler {

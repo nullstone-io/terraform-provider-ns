@@ -22,6 +22,123 @@ For local module development, download the [Nullstone CLI](https://docs.nullston
 The `nullstone workspaces select` command prompts you when you define a new `ns_connection` in your module and a target workspace is not configured.
 This configuration information is stored in `.nullstone/active-workspace.yml`; refer to the [main provider documentation](../index.html) for more information.
 
+### Manually Changing Connections
+
+You can manually override connection targets in `.nullstone/active-workspace.yml`.
+The provider checks local connections first before fetching from the Nullstone API, so any connection defined here takes priority.
+
+Where you define connections in the YAML depends on whether you are developing an **app module** or a **capability module**.
+
+#### In an app module
+
+When the provider does not specify `capability_name`, `ns_connection` reads from the root `connections` map.
+Each key is the connection name (matching the `name` argument of a `ns_connection` data source).
+
+```yaml
+org_name: nullstone
+stack_id: 100
+stack_name: core
+block_id: 101
+block_name: my-app
+block_ref: yellow-giraffe
+env_id: 102
+env_name: dev
+connections:
+  cluster:
+    stack_id: 100
+    block_id: 200
+    block_name: my-other-cluster
+  network:
+    stack_id: 100
+    block_id: 300
+    block_name: dev-vpc
+    env_id: 105
+```
+
+This causes `data.ns_connection.cluster` to resolve outputs from `my-other-cluster` and `data.ns_connection.network` to resolve from `dev-vpc`.
+
+#### In a capability module
+
+When the provider specifies `capability_name`, `ns_connection` reads from `capabilities.<capability_name>.connections` instead of the root `connections`.
+This keeps capability connections scoped separately from application connections.
+
+Given the following Terraform configuration in a capability module:
+
+```hcl
+provider "ns" {
+  capability_name = "my-logging-cap"
+  alias           = "cap"
+}
+
+data "ns_connection" "log_destination" {
+  provider = ns.cap
+  name     = "log-destination"
+  contract = "datastore/aws/s3"
+}
+```
+
+Override the connection in `.nullstone/active-workspace.yml`:
+
+```yaml
+org_name: nullstone
+stack_id: 100
+stack_name: core
+block_id: 101
+block_name: my-app
+block_ref: yellow-giraffe
+env_id: 102
+env_name: dev
+capabilities:
+  my-logging-cap:
+    connections:
+      log-destination:
+        stack_id: 100
+        block_id: 400
+        block_name: my-log-bucket
+```
+
+You can define both root connections and capability connections in the same file:
+
+```yaml
+org_name: nullstone
+stack_id: 100
+stack_name: core
+block_id: 101
+block_name: my-app
+block_ref: yellow-giraffe
+env_id: 102
+env_name: dev
+connections:
+  cluster:
+    stack_id: 100
+    block_id: 200
+    block_name: my-cluster
+capabilities:
+  my-logging-cap:
+    connections:
+      log-destination:
+        stack_id: 100
+        block_id: 400
+        block_name: my-log-bucket
+  my-metrics-cap:
+    connections:
+      metrics-sink:
+        stack_id: 100
+        block_id: 500
+        block_name: my-metrics-store
+```
+
+#### Connection target fields
+
+Each connection target supports the following fields:
+
+* `stack_id` - (Required) The stack ID of the target workspace.
+* `block_id` - (Required) The block ID of the target workspace.
+* `block_name` - (Required) The block name of the target workspace.
+* `env_id` - (Optional) The environment ID of the target workspace. If omitted, defaults to the current workspace's `env_id`.
+
+These local overrides also apply when resolving `via` references. If a `via` connection points through a locally overridden connection, the local target is used for the traversal.
+
 ## Example Usage
 
 #### Basic example
