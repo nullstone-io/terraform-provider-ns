@@ -3,16 +3,17 @@ package provider
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"regexp"
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/nullstone-io/module/config"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
 	"gopkg.in/nullstone-io/nullstone.v0/workspaces"
-	"net/http"
-	"os"
-	"regexp"
-	"testing"
 )
 
 func TestDataConnection(t *testing.T) {
@@ -410,10 +411,12 @@ data "ns_connection" "network" {
 provider "ns" {
   organization    = "org0"
   capability_name = "my-cap"
+  alias           = "cap_my-cap"
 }
 data "ns_connection" "cluster" {
   name     = "cluster"
   contract = "cluster/aws/ecs"
+  provider = ns.cap_my-cap
 }
 `)
 		checks := resource.ComposeTestCheckFunc(

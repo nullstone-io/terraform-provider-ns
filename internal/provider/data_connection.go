@@ -211,6 +211,7 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 			log.Printf("(getConnectionWorkspace) Found workspace defined in plan config @ %s", found.Id())
 			return &found, nil
 		}
+		log.Printf("(getConnectionWorkspace) Connection (%s) was not found in local connections", name)
 	}
 
 	log.Printf("(getConnectionWorkspace) Pulling workspace run config for @ %s", sourceWorkspace.Id())
@@ -258,12 +259,22 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 func (d *dataConnection) getLocalConnections() workspaces.ManifestConnections {
 	capabilityName := d.p.PlanConfig.CapabilityName
 	if !d.isAppConnection && capabilityName != "" {
+		log.Printf("(getLocalConnections) Attempting to retrieve local connections for capability %s", capabilityName)
 		if d.p.PlanConfig.Capabilities != nil {
 			if cur, ok := d.p.PlanConfig.Capabilities[capabilityName]; ok {
+				raw, _ := json.Marshal(cur.Connections)
+				log.Printf("(getLocalConnections) Found local configuration of connections for capability %s (%s)", capabilityName, string(raw))
 				return cur.Connections
 			}
 		}
+		log.Printf("(getLocalConnections) No local configuration of connections found for capability %s", capabilityName)
 		return nil
+	}
+	if capabilityName == "" {
+		log.Printf("(getLocalConnections) Using root connections for root provider")
+	}
+	if d.isAppConnection {
+		log.Printf("(getLocalConnections) Using root connections for app connection in capability %s", capabilityName)
 	}
 	return d.p.PlanConfig.Connections
 }
