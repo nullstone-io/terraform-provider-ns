@@ -14,6 +14,7 @@ import (
 	"github.com/nullstone-io/terraform-provider-ns/ns"
 	"gopkg.in/nullstone-io/go-api-client.v0"
 	"gopkg.in/nullstone-io/go-api-client.v0/types"
+	"gopkg.in/nullstone-io/nullstone.v0/workspaces"
 )
 
 var validConnectionName = regexp.MustCompile("^[_a-z0-9/-]+$")
@@ -163,7 +164,7 @@ func (d *dataConnection) Read(ctx context.Context, config map[string]tftypes.Val
 				if ov, err := stateFile.Outputs.ToProtov5(); err != nil {
 					diags = append(diags, &tfprotov5.Diagnostic{
 						Severity: tfprotov5.DiagnosticSeverityWarning,
-						Summary:  fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace),
+						Summary:  fmt.Sprintf(`Unable to read workspace outputs for %q. 'outputs' will be empty`, workspace.Id()),
 						Detail:   err.Error(),
 					})
 				} else {
@@ -195,7 +196,9 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 	sourceWorkspace := d.p.PlanConfig.WorkspaceTarget()
 
 	// Let's search for a configured connection in .nullstone/active-workspace.yml first
-	localConnections := d.p.PlanConfig.Connections
+	// If this is a capability-scoped ns_connection, check capabilities[cap_name].connections first
+	// If this is an ns_app_connection or root ns_connection, check the root connections
+	localConnections := d.getLocalConnections()
 	if localConnections != nil {
 		if reference, ok := localConnections[name]; ok {
 			ct := types.ConnectionTarget{
@@ -208,6 +211,7 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 			log.Printf("(getConnectionWorkspace) Found workspace defined in plan config @ %s", found.Id())
 			return &found, nil
 		}
+		log.Printf("(getConnectionWorkspace) Connection (%s) was not found in local connections", name)
 	}
 
 	log.Printf("(getConnectionWorkspace) Pulling workspace run config for @ %s", sourceWorkspace.Id())
@@ -244,6 +248,35 @@ func (d *dataConnection) getConnectionWorkspace(ctx context.Context, name string
 	found := sourceWorkspace.FindRelativeConnection(*conn.EffectiveTarget)
 	log.Printf("(getConnectionWorkspace) Found workspace in connections @ %s", found.Id())
 	return &found, nil
+}
+
+// getLocalConnections returns the appropriate local connections from the plan config
+// For capability-scoped ns_connection (capabilityName is set and not an app connection),
+//
+//	it returns connections from capabilities[cap_name].connections
+//
+// For ns_app_connection or root ns_connection, it returns the root connections
+func (d *dataConnection) getLocalConnections() workspaces.ManifestConnections {
+	capabilityName := d.p.PlanConfig.CapabilityName
+	if !d.isAppConnection && capabilityName != "" {
+		log.Printf("(getLocalConnections) Attempting to retrieve local connections for capability %s", capabilityName)
+		if d.p.PlanConfig.Capabilities != nil {
+			if cur, ok := d.p.PlanConfig.Capabilities[capabilityName]; ok {
+				raw, _ := json.Marshal(cur.Connections)
+				log.Printf("(getLocalConnections) Found local configuration of connections for capability %s (%s)", capabilityName, string(raw))
+				return cur.Connections
+			}
+		}
+		log.Printf("(getLocalConnections) No local configuration of connections found for capability %s", capabilityName)
+		return nil
+	}
+	if capabilityName == "" {
+		log.Printf("(getLocalConnections) Using root connections for root provider")
+	}
+	if d.isAppConnection {
+		log.Printf("(getLocalConnections) Using root connections for app connection in capability %s", capabilityName)
+	}
+	return d.p.PlanConfig.Connections
 }
 
 func (d *dataConnection) getConnectionsFromRunConfig(runConfig *types.RunConfig) types.Connections {

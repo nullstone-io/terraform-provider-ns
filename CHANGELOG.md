@@ -1,3 +1,9 @@
+## 0.8.3 (Mar 21, 2026)
+
+FEATURES:
+
+* Added support for configuring capability connections (`ns_connection`) during local development.
+
 ## 0.8.2 (Mar 03, 2026)
 
 BUG FIXES:

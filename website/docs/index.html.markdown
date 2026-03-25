@@ -66,6 +66,39 @@ env_id: 102
 env_name: prod
 ```
 
+You can also override connection targets locally by adding `connections` and/or `capabilities` maps.
+See the [ns_connection](d/connection.html) and [ns_app_connection](d/app_connection.html) documentation for details and examples.
+
+- `connections` — overrides for app-level connections, used by `ns_connection` (in app modules) and `ns_app_connection` (in capability modules)
+- `capabilities.<name>.connections` — overrides for capability-scoped connections, used by `ns_connection` when the provider specifies `capability_name`
+
+```yaml
+org_name: nullstone
+stack_id: 100
+stack_name: core
+block_id: 101
+block_name: my-app
+block_ref: yellow-giraffe
+env_id: 102
+env_name: dev
+connections:
+  cluster:
+    stack_id: 100
+    block_id: 200
+    block_name: my-other-cluster
+  network:
+    stack_id: 100
+    block_id: 300
+    block_name: dev-vpc
+capabilities:
+  my-logging-cap:
+    connections:
+      log-destination:
+        stack_id: 100
+        block_id: 400
+        block_name: my-log-bucket
+```
+
 The following environment file describes the same information as above.
 ```
 NULLSTONE_ORG_NAME=nullstone
