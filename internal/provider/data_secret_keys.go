@@ -97,7 +97,17 @@ func (d *dataSecretKeys) Read(ctx context.Context, config map[string]tftypes.Val
 	}
 
 	ev := NewEnvVars(TfValueToMap(inputEnvVariables), inputSecrets)
-	ev.Interpolate()
+	if errs := ev.Interpolate(); len(errs) > 0 {
+		diags := make([]*tfprotov5.Diagnostic, 0, len(errs))
+		for _, err := range errs {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Invalid environment variable template",
+				Detail:   err.Error(),
+			})
+		}
+		return nil, diags, nil
+	}
 
 	id := ev.KeysHash()
 	secretKeys := ev.SecretKeys()

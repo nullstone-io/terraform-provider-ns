@@ -112,6 +112,76 @@ func extractStringSliceFromConfig(config map[string]tftypes.Value, key string) (
 	return slice, nil
 }
 
+var fieldRefObjectType = tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+	"api_version": tftypes.String,
+	"field_path":  tftypes.String,
+}}
+
+var configMapRefObjectType = tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+	"key":      tftypes.String,
+	"name":     tftypes.String,
+	"optional": tftypes.Bool,
+}}
+
+var resourceFieldRefObjectType = tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+	"resource":  tftypes.String,
+	"container": tftypes.String,
+	"divisor":   tftypes.String,
+}}
+
+var fileKeyRefObjectType = tftypes.Object{AttributeTypes: map[string]tftypes.Type{
+	"key":         tftypes.String,
+	"path":        tftypes.String,
+	"volume_name": tftypes.String,
+}}
+
+func FieldRefsToTfValue(refs map[string]FieldRef) tftypes.Value {
+	tfMap := map[string]tftypes.Value{}
+	for k, v := range refs {
+		tfMap[k] = tftypes.NewValue(fieldRefObjectType, map[string]tftypes.Value{
+			"api_version": tftypes.NewValue(tftypes.String, v.ApiVersion),
+			"field_path":  tftypes.NewValue(tftypes.String, v.FieldPath),
+		})
+	}
+	return tftypes.NewValue(tftypes.Map{ElementType: fieldRefObjectType}, tfMap)
+}
+
+func ConfigMapRefsToTfValue(refs map[string]ConfigMapRef) tftypes.Value {
+	tfMap := map[string]tftypes.Value{}
+	for k, v := range refs {
+		tfMap[k] = tftypes.NewValue(configMapRefObjectType, map[string]tftypes.Value{
+			"key":      tftypes.NewValue(tftypes.String, v.Key),
+			"name":     tftypes.NewValue(tftypes.String, v.Name),
+			"optional": tftypes.NewValue(tftypes.Bool, v.Optional),
+		})
+	}
+	return tftypes.NewValue(tftypes.Map{ElementType: configMapRefObjectType}, tfMap)
+}
+
+func ResourceFieldRefsToTfValue(refs map[string]ResourceFieldRef) tftypes.Value {
+	tfMap := map[string]tftypes.Value{}
+	for k, v := range refs {
+		tfMap[k] = tftypes.NewValue(resourceFieldRefObjectType, map[string]tftypes.Value{
+			"resource":  tftypes.NewValue(tftypes.String, v.Resource),
+			"container": tftypes.NewValue(tftypes.String, v.Container),
+			"divisor":   tftypes.NewValue(tftypes.String, v.Divisor),
+		})
+	}
+	return tftypes.NewValue(tftypes.Map{ElementType: resourceFieldRefObjectType}, tfMap)
+}
+
+func FileKeyRefsToTfValue(refs map[string]FileKeyRef) tftypes.Value {
+	tfMap := map[string]tftypes.Value{}
+	for k, v := range refs {
+		tfMap[k] = tftypes.NewValue(fileKeyRefObjectType, map[string]tftypes.Value{
+			"key":         tftypes.NewValue(tftypes.String, v.Key),
+			"path":        tftypes.NewValue(tftypes.String, v.Path),
+			"volume_name": tftypes.NewValue(tftypes.String, v.VolumeName),
+		})
+	}
+	return tftypes.NewValue(tftypes.Map{ElementType: fileKeyRefObjectType}, tfMap)
+}
+
 const envVariableKeyRegex = "^[a-zA-Z_][a-zA-Z0-9_]*$"
 
 func validEnvVariableKey(key string) bool {
