@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -9,14 +8,21 @@ import (
 
 func TestMixedEnvVars_Interpolate(t *testing.T) {
 	tests := []struct {
-		inputEnvVars   map[string]string
-		inputSecrets   map[string]string
-		wantEnvVars    map[string]string
-		wantSecrets    map[string]string
-		wantSecretRefs map[string]string
-		wantSecretKeys []string
+		name                  string
+		inputEnvVars          map[string]string
+		inputSecrets          map[string]string
+		wantEnvVars           map[string]string
+		wantSecrets           map[string]string
+		wantSecretRefs        map[string]string
+		wantFieldRefs         map[string]FieldRef
+		wantConfigMapRefs     map[string]ConfigMapRef
+		wantResourceFieldRefs map[string]ResourceFieldRef
+		wantFileKeyRefs       map[string]FileKeyRef
+		wantSecretKeys        []string
+		wantErrors            int
 	}{
 		{
+			name: "full interpolation with all ref types",
 			inputEnvVars: map[string]string{
 				"NULLSTONE_STACK":    "primary",
 				"NULLSTONE_BLOCK":    "acme-api",
@@ -27,6 +33,12 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 				"IDENTIFIER":         "{{ NULLSTONE_STACK }}.{{ NULLSTONE_BLOCK }}.{{ NULLSTONE_ENV }}",
 				"DUPLICATE_TEST":     "{{ SECRET_KEY_BASE }}/{{ POSTGRES_URL }}",
 				"VAR_WITH_REF":       "{{ secret(arn:aws:something) }}",
+				"IP":                 "{{ k8s.field(v1, status.podIP) }}",
+				"CM":                 "{{ k8s.configMap(my-key, my-cm, true) }}",
+				"CM2":                "{{ k8s.configMap(key, name) }}",
+				"RES":                "{{ k8s.resourceField(limits.cpu) }}",
+				"RES2":               "{{ k8s.resourceField(limits.memory, main, 1Mi) }}",
+				"FK":                 "{{ k8s.fileKey(MY_VAR, config.env, config-vol) }}",
 			},
 			inputSecrets: map[string]string{
 				"POSTGRES_URL":    "fake-value1",
@@ -49,6 +61,20 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 			wantSecretRefs: map[string]string{
 				"VAR_WITH_REF": "arn:aws:something",
 			},
+			wantFieldRefs: map[string]FieldRef{
+				"IP": {ApiVersion: "v1", FieldPath: "status.podIP"},
+			},
+			wantConfigMapRefs: map[string]ConfigMapRef{
+				"CM":  {Key: "my-key", Name: "my-cm", Optional: true},
+				"CM2": {Key: "key", Name: "name", Optional: false},
+			},
+			wantResourceFieldRefs: map[string]ResourceFieldRef{
+				"RES":  {Resource: "limits.cpu"},
+				"RES2": {Resource: "limits.memory", Container: "main", Divisor: "1Mi"},
+			},
+			wantFileKeyRefs: map[string]FileKeyRef{
+				"FK": {Key: "MY_VAR", Path: "config.env", VolumeName: "config-vol"},
+			},
 			wantSecretKeys: []string{
 				"DATABASE_URL",
 				"DUPLICATE_TEST",
@@ -57,8 +83,7 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 			},
 		},
 		{
-			// 3-hop chain: A → B → DATABASE_URL (secret)
-			// B gets promoted to secret in step 2; A must then also be promoted
+			name: "3-hop chain promotes to secret",
 			inputEnvVars: map[string]string{
 				"A": "{{ B }}",
 				"B": "{{ DATABASE_URL }}",
@@ -72,15 +97,70 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 				"B":            "fake-db-url",
 				"DATABASE_URL": "fake-db-url",
 			},
-			wantSecretRefs: map[string]string{},
-			wantSecretKeys: []string{"A", "B", "DATABASE_URL"},
+			wantSecretRefs:        map[string]string{},
+			wantFieldRefs:         map[string]FieldRef{},
+			wantConfigMapRefs:     map[string]ConfigMapRef{},
+			wantResourceFieldRefs: map[string]ResourceFieldRef{},
+			wantFileKeyRefs:       map[string]FileKeyRef{},
+			wantSecretKeys:        []string{"A", "B", "DATABASE_URL"},
+		},
+		{
+			name: "unknown k8s template passes through",
+			inputEnvVars: map[string]string{
+				"FOO": "bar",
+				"UNK": "{{ k8s.future(a,b) }}",
+			},
+			inputSecrets:          map[string]string{},
+			wantEnvVars:           map[string]string{"FOO": "bar", "UNK": "{{ k8s.future(a,b) }}"},
+			wantSecrets:           map[string]string{},
+			wantSecretRefs:        map[string]string{},
+			wantFieldRefs:         map[string]FieldRef{},
+			wantConfigMapRefs:     map[string]ConfigMapRef{},
+			wantResourceFieldRefs: map[string]ResourceFieldRef{},
+			wantFileKeyRefs:       map[string]FileKeyRef{},
+			wantSecretKeys:        []string{},
+		},
+		{
+			name: "malformed k8s.field wrong arg count returns error",
+			inputEnvVars: map[string]string{
+				"BAD": "{{ k8s.field(only-one) }}",
+			},
+			inputSecrets: map[string]string{},
+			wantErrors:   1,
+		},
+		{
+			name: "malformed k8s.configMap returns error",
+			inputEnvVars: map[string]string{
+				"BAD": "{{ k8s.configMap(only-one) }}",
+			},
+			inputSecrets: map[string]string{},
+			wantErrors:   1,
+		},
+		{
+			name: "malformed k8s.fileKey returns error",
+			inputEnvVars: map[string]string{
+				"BAD": "{{ k8s.fileKey(one, two) }}",
+			},
+			inputSecrets: map[string]string{},
+			wantErrors:   1,
 		},
 	}
 
-	for i, test := range tests {
-		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			got := NewEnvVars(test.inputEnvVars, test.inputSecrets)
-			got.Interpolate()
+			errs := got.Interpolate()
+
+			if test.wantErrors > 0 {
+				if len(errs) != test.wantErrors {
+					t.Errorf("expected %d errors, got %d: %v", test.wantErrors, len(errs), errs)
+				}
+				return
+			}
+			if len(errs) > 0 {
+				t.Fatalf("unexpected errors: %v", errs)
+			}
+
 			if diff := cmp.Diff(test.wantEnvVars, got.EnvVars()); diff != "" {
 				t.Errorf("mismatched env vars (-want, +got):\n%s", diff)
 			}
@@ -89,6 +169,18 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 			}
 			if diff := cmp.Diff(test.wantSecretRefs, got.SecretRefs()); diff != "" {
 				t.Errorf("mismatched secret refs (-want, +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(test.wantFieldRefs, got.FieldRefs()); diff != "" {
+				t.Errorf("mismatched field refs (-want, +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(test.wantConfigMapRefs, got.ConfigMapRefs()); diff != "" {
+				t.Errorf("mismatched config map refs (-want, +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(test.wantResourceFieldRefs, got.ResourceFieldRefs()); diff != "" {
+				t.Errorf("mismatched resource field refs (-want, +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(test.wantFileKeyRefs, got.FileKeyRefs()); diff != "" {
+				t.Errorf("mismatched file key refs (-want, +got):\n%s", diff)
 			}
 			if diff := cmp.Diff(test.wantSecretKeys, got.SecretKeys()); diff != "" {
 				t.Errorf("mismatched secret keys (-want, +got):\n%s", diff)

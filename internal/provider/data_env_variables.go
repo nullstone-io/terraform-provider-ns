@@ -59,6 +59,34 @@ func (*dataEnvVariables) Schema(ctx context.Context) *tfprotov5.Schema {
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Computed:        true,
 		},
+		{
+			Name:            "field_refs",
+			Type:            tftypes.Map{ElementType: fieldRefObjectType},
+			Description:     "Map of environment variables that refer to a Kubernetes field for their values.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
+		},
+		{
+			Name:            "config_map_refs",
+			Type:            tftypes.Map{ElementType: configMapRefObjectType},
+			Description:     "Map of environment variables that refer to a Kubernetes ConfigMap key for their values.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
+		},
+		{
+			Name:            "resource_field_refs",
+			Type:            tftypes.Map{ElementType: resourceFieldRefObjectType},
+			Description:     "Map of environment variables that refer to a Kubernetes resource field for their values.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
+		},
+		{
+			Name:            "file_key_refs",
+			Type:            tftypes.Map{ElementType: fileKeyRefObjectType},
+			Description:     "Map of environment variables that refer to a Kubernetes file key for their values.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Computed:        true,
+		},
 	}
 
 	return &tfprotov5.Schema{
@@ -106,7 +134,17 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 	tflog.Debug(ctx, "input_secrets", inputSecrets)
 
 	ev := NewEnvVars(TfValueToMap(inputEnvVariables), TfValueToMap(inputSecrets))
-	ev.Interpolate()
+	if errs := ev.Interpolate(); len(errs) > 0 {
+		diags := make([]*tfprotov5.Diagnostic, 0, len(errs))
+		for _, err := range errs {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Invalid environment variable template",
+				Detail:   err.Error(),
+			})
+		}
+		return nil, diags, nil
+	}
 
 	// calculate the unique id for this data source based on a hash of the resulting env variables and secrets
 	id := ev.Hash()
@@ -125,5 +163,9 @@ func (d *dataEnvVariables) Read(ctx context.Context, config map[string]tftypes.V
 		"env_variables":       MapToTfValue(envVariables),
 		"secrets":             MapToTfValue(secrets),
 		"secret_refs":         MapToTfValue(secretRefs),
+		"field_refs":          FieldRefsToTfValue(ev.FieldRefs()),
+		"config_map_refs":     ConfigMapRefsToTfValue(ev.ConfigMapRefs()),
+		"resource_field_refs": ResourceFieldRefsToTfValue(ev.ResourceFieldRefs()),
+		"file_key_refs":       FileKeyRefsToTfValue(ev.FileKeyRefs()),
 	}, nil, nil
 }
