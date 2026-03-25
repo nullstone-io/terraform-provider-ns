@@ -1,7 +1,10 @@
-## 0.8.3 (Mar 21, 2026)
+## 0.8.3 (Mar 25, 2026)
 
 FEATURES:
 
+* Added Kubernetes `valueFrom` template support in `ns_env_variables`: `k8s.field(...)`, `k8s.configMap(...)`, `k8s.resourceField(...)`, and `k8s.fileKey(...)`.
+* New computed outputs on `ns_env_variables`: `field_refs`, `config_map_refs`, `resource_field_refs`, `file_key_refs`.
+* Malformed K8s templates now produce a diagnostic error at plan time.
 * Added support for configuring capability connections (`ns_connection`) during local development.
 
 ## 0.8.2 (Mar 03, 2026)
