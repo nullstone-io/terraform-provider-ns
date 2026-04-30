@@ -232,7 +232,7 @@ func (m EnvVars) Interpolate() []error {
 		for k1, v1 := range m.Secrets() {
 			replacer := regexp.MustCompile(fmt.Sprintf(interpolationRefRegexPattern, k1))
 			for k2, v2 := range m.EnvVars() {
-				result := replacer.ReplaceAllString(v2, v1)
+				result := replacer.ReplaceAllLiteralString(v2, v1)
 				// if a match was found and replaced, this env variable is now a secret
 				if result != v2 {
 					changed = true
@@ -244,7 +244,7 @@ func (m EnvVars) Interpolate() []error {
 			}
 			for k2, v2 := range m.Secrets() {
 				if k2 != k1 {
-					result := replacer.ReplaceAllString(v2, v1)
+					result := replacer.ReplaceAllLiteralString(v2, v1)
 					if result != v2 {
 						changed = true
 						entry := m[k2]
@@ -267,7 +267,7 @@ func (m EnvVars) Interpolate() []error {
 			for k2, v2 := range m.EnvVars() {
 				// we don't want to replace the env variable with itself (this will prevent an infinite loop)
 				if k2 != k1 {
-					result := regex.ReplaceAllString(v2, v1)
+					result := regex.ReplaceAllLiteralString(v2, v1)
 					if result != v2 {
 						changed = true
 						entry := m[k2]
@@ -277,7 +277,7 @@ func (m EnvVars) Interpolate() []error {
 				}
 			}
 			for k2, v2 := range m.Secrets() {
-				result := regex.ReplaceAllString(v2, v1)
+				result := regex.ReplaceAllLiteralString(v2, v1)
 				if result != v2 {
 					changed = true
 					entry := m[k2]

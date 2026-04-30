@@ -1,3 +1,9 @@
+## 0.8.4 (Apr 30, 2026)
+
+BUG FIXES:
+
+* Fixed `ns_secret_keys` and `ns_env_variables` clipping interpolated values that contain `$` characters.
+
 ## 0.8.3 (Mar 25, 2026)
 
 FEATURES:
