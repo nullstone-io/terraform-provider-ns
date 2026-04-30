@@ -144,6 +144,39 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 			inputSecrets: map[string]string{},
 			wantErrors:   1,
 		},
+		{
+			// Reproduces a bug where Go's regex.ReplaceAllString interprets `$` in
+			// the replacement (e.g., `$1`, `$abc`) as capture-group references,
+			// clipping the value. Both secret-onto-envvar (step 2) and
+			// envvar-onto-envvar/secret (step 3) must preserve `$` literally.
+			name: "values containing $ are preserved during interpolation",
+			inputEnvVars: map[string]string{
+				"DATABASE_URL":   "{{ POSTGRES_PASSWORD }}",
+				"API_BASE":       "prefix/{{ API_KEY }}/suffix",
+				"EV_WITH_DOLLAR": "abc$xyz$1",
+				"USES_EV":        "got:{{ EV_WITH_DOLLAR }}",
+			},
+			inputSecrets: map[string]string{
+				"POSTGRES_PASSWORD": "p$ssw0rd$abc",
+				"API_KEY":           "key$1$2",
+			},
+			wantEnvVars: map[string]string{
+				"EV_WITH_DOLLAR": "abc$xyz$1",
+				"USES_EV":        "got:abc$xyz$1",
+			},
+			wantSecrets: map[string]string{
+				"POSTGRES_PASSWORD": "p$ssw0rd$abc",
+				"DATABASE_URL":      "p$ssw0rd$abc",
+				"API_KEY":           "key$1$2",
+				"API_BASE":          "prefix/key$1$2/suffix",
+			},
+			wantSecretRefs:        map[string]string{},
+			wantFieldRefs:         map[string]FieldRef{},
+			wantConfigMapRefs:     map[string]ConfigMapRef{},
+			wantResourceFieldRefs: map[string]ResourceFieldRef{},
+			wantFileKeyRefs:       map[string]FileKeyRef{},
+			wantSecretKeys:        []string{"API_BASE", "API_KEY", "DATABASE_URL", "POSTGRES_PASSWORD"},
+		},
 	}
 
 	for _, test := range tests {

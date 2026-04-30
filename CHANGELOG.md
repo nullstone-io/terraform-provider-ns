@@ -1,3 +1,15 @@
+## 0.9.0 (Apr 30, 2026)
+
+BUG FIXES:
+
+* Fixed `ns_secret_keys` and `ns_env_variables` clipping interpolated values that contain `$` characters.
+
+INTERNAL UPDATES:
+
+* Upgraded `github.com/hashicorp/terraform-plugin-sdk/v2` to `v2.40`.
+* Upgraded `github.com/hashicorp/terraform-plugin-go` to `v0.31`.
+* Upgraded `github.com/hashicorp/terraform-plugin-log` to `v0.10`.
+
 ## 0.8.3 (Mar 25, 2026)
 
 FEATURES:
