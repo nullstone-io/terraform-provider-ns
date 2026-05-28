@@ -177,6 +177,35 @@ func TestMixedEnvVars_Interpolate(t *testing.T) {
 			wantFileKeyRefs:       map[string]FileKeyRef{},
 			wantSecretKeys:        []string{"API_BASE", "API_KEY", "DATABASE_URL", "POSTGRES_PASSWORD"},
 		},
+		{
+			// Go's Expand treats `$$` in a replacement as an escaped literal `$`,
+			// so ReplaceAllString would convert `$$` to `$`. ReplaceAllLiteralString
+			// must preserve `$$` verbatim, both when a value is emitted standalone
+			// and when it is interpolated into another env var/secret.
+			name: "values containing $$ are preserved during interpolation",
+			inputEnvVars: map[string]string{
+				"USES_SECRET": "url://{{ DB_PASSWORD }}",
+				"EV_DOLLARS":  "a$$b",
+				"USES_EV":     "got:{{ EV_DOLLARS }}",
+			},
+			inputSecrets: map[string]string{
+				"DB_PASSWORD": "p$$word$$",
+			},
+			wantEnvVars: map[string]string{
+				"EV_DOLLARS": "a$$b",
+				"USES_EV":    "got:a$$b",
+			},
+			wantSecrets: map[string]string{
+				"DB_PASSWORD": "p$$word$$",
+				"USES_SECRET": "url://p$$word$$",
+			},
+			wantSecretRefs:        map[string]string{},
+			wantFieldRefs:         map[string]FieldRef{},
+			wantConfigMapRefs:     map[string]ConfigMapRef{},
+			wantResourceFieldRefs: map[string]ResourceFieldRef{},
+			wantFileKeyRefs:       map[string]FileKeyRef{},
+			wantSecretKeys:        []string{"DB_PASSWORD", "USES_SECRET"},
+		},
 	}
 
 	for _, test := range tests {
