@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -72,13 +73,6 @@ This is typically used to construct unique resource names. See unique_name.`,
 			Computed:        true,
 		},
 		{
-			Name:            "capability_name",
-			Type:            tftypes.String,
-			Computed:        true,
-			Description:     "The name of the capability this module is deployed as. Empty when not running as a capability.",
-			DescriptionKind: tfprotov5.StringKindMarkdown,
-		},
-		{
 			Name:            "tags",
 			Type:            tftypes.Map{ElementType: tftypes.String},
 			Computed:        true,
@@ -143,15 +137,14 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 	}
 
 	return map[string]tftypes.Value{
-		"id":              tftypes.NewValue(tftypes.String, id),
-		"stack_id":        tftypes.NewValue(tftypes.Number, &stackId),
-		"stack_name":      tftypes.NewValue(tftypes.String, stackName),
-		"block_id":        tftypes.NewValue(tftypes.Number, &blockId),
-		"block_name":      tftypes.NewValue(tftypes.String, blockName),
-		"block_ref":       tftypes.NewValue(tftypes.String, blockRef),
-		"env_id":          tftypes.NewValue(tftypes.Number, &envId),
-		"env_name":        tftypes.NewValue(tftypes.String, envName),
-		"capability_name": tftypes.NewValue(tftypes.String, planConfig.CapabilityName),
-		"tags":            tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tags),
+		"id":         tftypes.NewValue(tftypes.String, id),
+		"stack_id":   tftypes.NewValue(tftypes.Number, &stackId),
+		"stack_name": tftypes.NewValue(tftypes.String, stackName),
+		"block_id":   tftypes.NewValue(tftypes.Number, &blockId),
+		"block_name": tftypes.NewValue(tftypes.String, blockName),
+		"block_ref":  tftypes.NewValue(tftypes.String, blockRef),
+		"env_id":     tftypes.NewValue(tftypes.Number, &envId),
+		"env_name":   tftypes.NewValue(tftypes.String, envName),
+		"tags":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tags),
 	}, nil, nil
 }
