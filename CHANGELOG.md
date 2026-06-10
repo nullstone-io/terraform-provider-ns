@@ -3,6 +3,7 @@
 FEATURES:
 
 * Added `ns_capability` data source that enables retrieval of information about the current capability.
+* Added missing site docs for `ns_agent` and `ns_secret_keys`. 
 
 ## 0.9.0 (Apr 30, 2026)
 
