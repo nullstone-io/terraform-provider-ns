@@ -1,3 +1,9 @@
+## 0.10.0 (Jun 10, 2026)
+
+FEATURES:
+
+* Added `ns_capability` data source that enables retrieval of information about the current capability.
+
 ## 0.9.0 (Apr 30, 2026)
 
 BUG FIXES:
