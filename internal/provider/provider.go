@@ -59,6 +59,7 @@ func newProviderServer(version string, fn func() (api.Config, *tfe.Config, PlanC
 	s.MustRegisterDataSource("ns_secret_keys", newDataSecretKeys)
 	s.MustRegisterDataSource("ns_env", newDataEnv)
 	s.MustRegisterDataSource("ns_agent", newDataAgent)
+	s.MustRegisterDataSource("ns_capability", newDataCapability)
 
 	// resources
 	s.MustRegisterResource("ns_autogen_subdomain", newResourceAutogenSubdomain)
@@ -158,8 +159,12 @@ func (p *provider) Configure(ctx context.Context, config map[string]tftypes.Valu
 	p.NsConfig.OrgName = p.PlanConfig.OrgName
 	log.Printf("[DEBUG] Configured Nullstone API client (Address=%s)\n", p.NsConfig.BaseAddress)
 
-	p.PlanConfig.CapabilityName = extractStringFromConfig(config, "capability_name")
-	log.Printf("[DEBUG] capability_name set to %s\n", p.PlanConfig.CapabilityName)
+	p.PlanConfig.CapabilityId = extractInt64FromConfig(config, "capability_id")
+	log.Printf("[DEBUG] capability_id set to %d\n", p.PlanConfig.CapabilityId)
+	if capName := extractStringFromConfig(config, "capability_name"); capName != "" {
+		p.PlanConfig.CapabilityName = capName
+	}
+	log.Printf("[DEBUG] capability_name set to %q\n", p.PlanConfig.CapabilityName)
 
 	p.TfeClient, err = tfe.NewClient(p.TfeConfig)
 	if err != nil {
