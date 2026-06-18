@@ -94,6 +94,13 @@ This is typically used to construct unique resource names. See unique_name.`,
 			Description:     "A default set of labels formatted for GCP (lowercase, sanitized keys/values), derived from this workspace's nullstone configuration.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 		},
+		{
+			Name:            "k8s_labels",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Computed:        true,
+			Description:     "A default set of Kubernetes labels (the recommended `app.kubernetes.io/*` labels plus `nullstone.io/*` labels) derived from this workspace's nullstone configuration.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+		},
 	}
 
 	return &tfprotov5.Schema{
@@ -155,13 +162,16 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		stackName: stackName,
 		envName:   envName,
 		blockName: blockName,
+		blockRef:  blockRef,
 		orgName:   planConfig.OrgName,
 		// dataClassification is populated once NUL-99 threads the value through;
 		// until then the key is omitted by the builders.
 		dataClassification: "",
 	}
+
 	awsTags := toTfStringMap(buildAwsTags(labels))
 	gcpLabels := toTfStringMap(buildGcpLabels(labels))
+	k8sLabels := toTfStringMap(buildK8sLabels(labels))
 
 	return map[string]tftypes.Value{
 		"id":         tftypes.NewValue(tftypes.String, id),
@@ -175,5 +185,6 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"tags":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tags),
 		"aws_tags":   tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, awsTags),
 		"gcp_labels": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, gcpLabels),
+		"k8s_labels": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, k8sLabels),
 	}, nil, nil
 }

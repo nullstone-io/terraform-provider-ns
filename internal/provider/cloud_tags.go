@@ -22,6 +22,7 @@ const (
 	awsTagKeyMaxLen   = 128
 	awsTagValueMaxLen = 256
 	gcpLabelMaxLen    = 63
+	k8sLabelMaxLen    = 63
 )
 
 // labelSource is the cloud-agnostic set of workspace values that get formatted
@@ -31,6 +32,7 @@ type labelSource struct {
 	stackName          string
 	envName            string
 	blockName          string
+	blockRef           string
 	orgName            string
 	dataClassification string
 }
@@ -168,6 +170,78 @@ func truncateRunes(s string, max int) string {
 		return s
 	}
 	return string(runes[:max])
+}
+
+// buildK8sLabels formats the workspace values as the recommended Kubernetes
+// labels (https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/)
+// plus nullstone.io/* labels. Keys are fixed, valid label keys; values are
+// sanitized to Kubernetes' value rules. Empty values are omitted.
+func buildK8sLabels(s labelSource) map[string]string {
+	type kv struct{ key, value string }
+	pairs := []kv{
+		{"app.kubernetes.io/name", s.blockName},
+		// version and component are intentionally left blank here; the consuming
+		// module populates them (e.g. via merge). Empty values are omitted below.
+		{"app.kubernetes.io/version", ""},
+		{"app.kubernetes.io/component", ""},
+		{"app.kubernetes.io/part-of", s.stackName},
+		{"app.kubernetes.io/managed-by", "nullstone"},
+		{"nullstone.io/block", s.blockName},
+		{"nullstone.io/stack", s.stackName},
+		{"nullstone.io/env", s.envName},
+		{"nullstone.io/block-ref", s.blockRef},
+	}
+
+	out := map[string]string{}
+	for _, p := range pairs {
+		v := sanitizeK8sLabelValue(p.value)
+		if v == "" {
+			continue
+		}
+		out[p.key] = v
+	}
+	return out
+}
+
+// sanitizeK8sLabelValue coerces v into a valid Kubernetes label value:
+//   - replaces any char outside [A-Za-z0-9_.-] with a dash;
+//   - truncates to 63 chars;
+//   - trims leading/trailing chars until it begins and ends with an alphanumeric.
+//
+// An empty input (or a value that reduces to nothing) returns "".
+func sanitizeK8sLabelValue(v string) string {
+	if v == "" {
+		return ""
+	}
+	var b strings.Builder
+	for _, r := range v {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '-', r == '_', r == '.':
+			b.WriteRune(r)
+		default:
+			b.WriteRune('-')
+		}
+	}
+	return trimToAlphanumeric(truncateRunes(b.String(), k8sLabelMaxLen))
+}
+
+func isAsciiAlphanumeric(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')
+}
+
+// trimToAlphanumeric strips leading and trailing characters until the string
+// begins and ends with an alphanumeric, as required for Kubernetes label values.
+func trimToAlphanumeric(s string) string {
+	runes := []rune(s)
+	start := 0
+	for start < len(runes) && !isAsciiAlphanumeric(runes[start]) {
+		start++
+	}
+	end := len(runes)
+	for end > start && !isAsciiAlphanumeric(runes[end-1]) {
+		end--
+	}
+	return string(runes[start:end])
 }
 
 // toTfStringMap converts a Go string map into a tftypes string-valued map.

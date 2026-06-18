@@ -141,6 +141,82 @@ func TestSanitizeAws(t *testing.T) {
 	})
 }
 
+func TestBuildK8sLabels(t *testing.T) {
+	src := labelSource{
+		stackName: "stack0",
+		envName:   "env0",
+		blockName: "block0",
+		blockRef:  "yellow-giraffe",
+		orgName:   "org0",
+	}
+
+	t.Run("full label set omits blank labels", func(t *testing.T) {
+		got := buildK8sLabels(src)
+		want := map[string]string{
+			"app.kubernetes.io/name":       "block0",
+			"app.kubernetes.io/part-of":    "stack0",
+			"app.kubernetes.io/managed-by": "nullstone",
+			"nullstone.io/block":           "block0",
+			"nullstone.io/stack":           "stack0",
+			"nullstone.io/env":             "env0",
+			"nullstone.io/block-ref":       "yellow-giraffe",
+		}
+		assertStringMapEqual(t, want, got)
+		// version and component are intentionally blank, so they are omitted.
+		if _, ok := got["app.kubernetes.io/version"]; ok {
+			t.Fatalf("expected app.kubernetes.io/version to be omitted")
+		}
+		if _, ok := got["app.kubernetes.io/component"]; ok {
+			t.Fatalf("expected app.kubernetes.io/component to be omitted")
+		}
+	})
+}
+
+func TestSanitizeK8sLabelValue(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"empty stays empty", "", ""},
+		{"reference style passes through", "yellow-giraffe", "yellow-giraffe"},
+		{"keeps mixed case dots underscores", "My.App_1", "My.App_1"},
+		{"replaces spaces and punctuation", "a b/c@d", "a-b-c-d"},
+		{"trims leading and trailing non-alphanumeric", "-_.value._-", "value"},
+		{"truncates to 63", strings.Repeat("a", 80), strings.Repeat("a", 63)},
+		{"truncation then trims trailing dash", strings.Repeat("a", 62) + "-bbb", strings.Repeat("a", 62)},
+		{"all punctuation reduces to empty", "@@@", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := sanitizeK8sLabelValue(tt.in)
+			if got != tt.want {
+				t.Fatalf("sanitizeK8sLabelValue(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+			if got != "" {
+				assertValidK8sValue(t, got)
+			}
+		})
+	}
+}
+
+func assertValidK8sValue(t *testing.T, s string) {
+	t.Helper()
+	if len([]rune(s)) > k8sLabelMaxLen {
+		t.Fatalf("value %q exceeds %d chars", s, k8sLabelMaxLen)
+	}
+	runes := []rune(s)
+	if !isAsciiAlphanumeric(runes[0]) || !isAsciiAlphanumeric(runes[len(runes)-1]) {
+		t.Fatalf("value %q must begin and end with an alphanumeric", s)
+	}
+	for _, r := range runes {
+		ok := isAsciiAlphanumeric(r) || r == '-' || r == '_' || r == '.'
+		if !ok {
+			t.Fatalf("value %q contains disallowed char %q", s, r)
+		}
+	}
+}
+
 func assertValidGcpValue(t *testing.T, s string) {
 	t.Helper()
 	if len([]rune(s)) > gcpLabelMaxLen {
