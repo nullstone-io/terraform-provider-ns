@@ -1,3 +1,15 @@
+## 0.11.0 (Jun 18, 2026)
+
+FEATURES:
+
+* Added `aws_tags` which is a pre-formatted map of AWS tags that are compliant with proper attribution.
+* Added `gcp_labels` which is a pre-formatted map of GCP labels that are compliant with proper attribution.
+* Added `k8s_labels` which is a pre-formatted map of Kubernetes labels that are compliant with proper attribution.
+
+DEPRECATIONS:
+
+* `tags` are deprecated in favor of `aws_tags`, `gcp_labels`, and `k8s_labels`.
+
 ## 0.10.0 (Jun 10, 2026)
 
 FEATURES:

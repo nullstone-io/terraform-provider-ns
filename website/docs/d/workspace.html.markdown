@@ -33,13 +33,50 @@ There are no arguments to this data source.
 * `block_ref` - Workspace block reference. Unique name used for constructing resource names. (Environment variable: `NULLSTONE_BLOCK_REF`)
 * `env_id` - Workspace environment ID. (Environment variable: `NULLSTONE_ENV_ID`)
 * `env_name` - Workspace environment name. (Environment variable: `NULLSTONE_ENV_NAME`)
-* `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace.
+* `aws_tags` (`map`) - A richer set of tags formatted for AWS, with PascalCase keys. Use this when tagging AWS resources.
+* `gcp_labels` (`map`) - The same logical set formatted for GCP labels, with lowercase keys and values sanitized to satisfy GCP's label requirements. Use this when labeling GCP resources.
+* `k8s_labels` (`map`) - The recommended Kubernetes labels (`app.kubernetes.io/*`) plus `nullstone.io/*` labels for this workspace, with values sanitized to satisfy Kubernetes' label value requirements. Use this when labeling Kubernetes resources.
+
+Both `aws_tags` and `gcp_labels` expose the same logical keys, derived from the current workspace:
+
+| Logical key        | Source                            | `aws_tags` key       | `gcp_labels` key     |
+|--------------------|-----------------------------------|----------------------|----------------------|
+| stack              | stack name                        | `Stack`              | `stack`              |
+| env                | env name                          | `Env`                | `env`                |
+| environment        | env name (alias of env)           | `Environment`        | `environment`        |
+| block              | block name                        | `Block`              | `block`              |
+| owner              | org name                          | `Owner`              | `owner`              |
+| project            | stack name (alias)                | `Project`            | `project`            |
+| dataclassification | block data-classification         | `DataClassification` | `dataclassification` |
+| application        | block name                        | `Application`        | `application`        |
+| component          | block name (alias of application) | `Component`          | `component`          |
+
+Notes:
+
+* The `dataclassification` key is only emitted once a data-classification value is present; it is omitted otherwise.
+* `gcp_labels` keys and values are sanitized to GCP's rules (lowercased; characters outside `[a-z0-9_-]` replaced with `-`; truncated to 63 chars; keys forced to start with a letter), so any org/stack/block/env name produces a valid label.
+
+### `k8s_labels`
+
+`k8s_labels` exposes the following Kubernetes labels, derived from the current workspace:
+
+| Label                          | Source                                                         |
+|--------------------------------|----------------------------------------------------------------|
+| `app.kubernetes.io/name`       | block name                                                     |
+| `app.kubernetes.io/version`    | _(left blank; intended to be set by the consuming module)_     |
+| `app.kubernetes.io/component`  | _(left blank; intended to be set by the consuming module)_     |
+| `app.kubernetes.io/part-of`    | stack name                                                     |
+| `app.kubernetes.io/managed-by` | `nullstone`                                                    |
+| `nullstone.io/block`           | block name                                                     |
+| `nullstone.io/stack`           | stack name                                                     |
+| `nullstone.io/env`             | env name                                                       |
+| `nullstone.io/block-ref`       | block reference                                                |
+
+Notes:
+
+* Labels with a blank value (e.g. `app.kubernetes.io/version` and `app.kubernetes.io/component`) are omitted; the consuming module is expected to set them (typically via `merge`).
+* Values are sanitized to Kubernetes' label value rules (characters outside `[A-Za-z0-9_.-]` replaced with `-`; truncated to 63 chars; trimmed so they begin and end with an alphanumeric).
 
 #### Deprecated
 
-* `workspace_id` - Use `id` instead.
-* `stack` - Use `stack_name` instead.
-* `env` - Use `env_name` instead.
-* `block` - Use `block_name` instead.
-* `hyphenated_name`
-* `slashed_name` 
+* `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace. Use `aws_tags` or `gcp_labels` instead.
