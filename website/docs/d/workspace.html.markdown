@@ -34,6 +34,27 @@ There are no arguments to this data source.
 * `env_id` - Workspace environment ID. (Environment variable: `NULLSTONE_ENV_ID`)
 * `env_name` - Workspace environment name. (Environment variable: `NULLSTONE_ENV_NAME`)
 * `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace.
+* `aws_tags` (`map`) - A richer set of tags formatted for AWS, with PascalCase keys. Use this when tagging AWS resources.
+* `gcp_labels` (`map`) - The same logical set formatted for GCP labels, with lowercase keys and values sanitized to satisfy GCP's label requirements. Use this when labeling GCP resources.
+
+Both `aws_tags` and `gcp_labels` expose the same logical keys, derived from the current workspace:
+
+| Logical key        | Source                            | `aws_tags` key       | `gcp_labels` key     |
+|--------------------|-----------------------------------|----------------------|----------------------|
+| stack              | stack name                        | `Stack`              | `stack`              |
+| env                | env name                          | `Env`                | `env`                |
+| environment        | env name (alias of env)           | `Environment`        | `environment`        |
+| block              | block name                        | `Block`              | `block`              |
+| owner              | org name                          | `Owner`              | `owner`              |
+| project            | stack name (alias)                | `Project`            | `project`            |
+| dataclassification | block data-classification         | `DataClassification` | `dataclassification` |
+| application        | block name                        | `Application`        | `application`        |
+| component          | block name (alias of application) | `Component`          | `component`          |
+
+Notes:
+
+* The `dataclassification` key is only emitted once a data-classification value is present; it is omitted otherwise.
+* `gcp_labels` keys and values are sanitized to GCP's rules (lowercased; characters outside `[a-z0-9_-]` replaced with `-`; truncated to 63 chars; keys forced to start with a letter), so any org/stack/block/env name produces a valid label.
 
 #### Deprecated
 

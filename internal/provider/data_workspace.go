@@ -79,6 +79,20 @@ This is typically used to construct unique resource names. See unique_name.`,
 			Description:     "A default list of tags including all nullstone configuration for this workspace.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 		},
+		{
+			Name:            "aws_tags",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Computed:        true,
+			Description:     "A default set of tags formatted for AWS (PascalCase keys), derived from this workspace's nullstone configuration.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+		},
+		{
+			Name:            "gcp_labels",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Computed:        true,
+			Description:     "A default set of labels formatted for GCP (lowercase, sanitized keys/values), derived from this workspace's nullstone configuration.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+		},
 	}
 
 	return &tfprotov5.Schema{
@@ -136,6 +150,18 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"Block": tftypes.NewValue(tftypes.String, blockName),
 	}
 
+	labels := labelSource{
+		stackName: stackName,
+		envName:   envName,
+		blockName: blockName,
+		orgName:   planConfig.OrgName,
+		// dataClassification is populated once NUL-99 threads the value through;
+		// until then the key is omitted by the builders.
+		dataClassification: "",
+	}
+	awsTags := toTfStringMap(buildAwsTags(labels))
+	gcpLabels := toTfStringMap(buildGcpLabels(labels))
+
 	return map[string]tftypes.Value{
 		"id":         tftypes.NewValue(tftypes.String, id),
 		"stack_id":   tftypes.NewValue(tftypes.Number, &stackId),
@@ -146,5 +172,7 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"env_id":     tftypes.NewValue(tftypes.Number, &envId),
 		"env_name":   tftypes.NewValue(tftypes.String, envName),
 		"tags":       tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, tags),
+		"aws_tags":   tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, awsTags),
+		"gcp_labels": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, gcpLabels),
 	}, nil, nil
 }
