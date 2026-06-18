@@ -33,7 +33,6 @@ There are no arguments to this data source.
 * `block_ref` - Workspace block reference. Unique name used for constructing resource names. (Environment variable: `NULLSTONE_BLOCK_REF`)
 * `env_id` - Workspace environment ID. (Environment variable: `NULLSTONE_ENV_ID`)
 * `env_name` - Workspace environment name. (Environment variable: `NULLSTONE_ENV_NAME`)
-* `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace.
 * `aws_tags` (`map`) - A richer set of tags formatted for AWS, with PascalCase keys. Use this when tagging AWS resources.
 * `gcp_labels` (`map`) - The same logical set formatted for GCP labels, with lowercase keys and values sanitized to satisfy GCP's label requirements. Use this when labeling GCP resources.
 
@@ -58,9 +57,4 @@ Notes:
 
 #### Deprecated
 
-* `workspace_id` - Use `id` instead.
-* `stack` - Use `stack_name` instead.
-* `env` - Use `env_name` instead.
-* `block` - Use `block_name` instead.
-* `hyphenated_name`
-* `slashed_name` 
+* `tags` (`map`) - A default list of tags including all nullstone configuration for this workspace. Use `aws_tags` or `gcp_labels` instead.
