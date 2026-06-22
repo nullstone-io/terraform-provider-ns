@@ -18,11 +18,17 @@ import (
 //   - keys 1-63 chars, values 0-63 chars
 //   - only lowercase letters, digits, underscores, dashes (international letters allowed)
 //   - keys must start with a lowercase letter
+//
+// Azure: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/tag-resources
+//   - tag name <= 512 chars, value <= 256 chars
+//   - names may not contain < > % & \ ? /
 const (
-	awsTagKeyMaxLen   = 128
-	awsTagValueMaxLen = 256
-	gcpLabelMaxLen    = 63
-	k8sLabelMaxLen    = 63
+	awsTagKeyMaxLen     = 128
+	awsTagValueMaxLen   = 256
+	gcpLabelMaxLen      = 63
+	k8sLabelMaxLen      = 63
+	azureTagKeyMaxLen   = 512
+	azureTagValueMaxLen = 256
 )
 
 // labelSource is the cloud-agnostic set of workspace values that get formatted
@@ -46,7 +52,8 @@ type labelEntry struct {
 }
 
 // entries returns the logical label set in a stable order. Entries with an empty
-// value (e.g. dataClassification before NUL-99 lands) are skipped by the builders.
+// value (e.g. dataClassification on an unclassified workspace) are skipped by
+// the builders.
 func (s labelSource) entries() []labelEntry {
 	return []labelEntry{
 		{"Stack", "stack", s.stackName},
@@ -93,6 +100,42 @@ func buildGcpLabels(s labelSource) map[string]string {
 		out[key] = sanitizeGcpLabel(e.value, false)
 	}
 	return out
+}
+
+// buildAzureTags formats the workspace values as Azure tags (PascalCase keys,
+// sanitized values). Azure tag names may not contain < > % & \ ? / and are
+// limited to 512 chars; values are limited to 256 chars. Empty values are
+// omitted. Owner is not classification — it is the org name (matching aws_tags).
+func buildAzureTags(s labelSource) map[string]string {
+	out := map[string]string{}
+	for _, e := range s.entries() {
+		if e.value == "" {
+			continue
+		}
+		key := sanitizeAzureKey(e.awsKey)
+		if key == "" {
+			continue
+		}
+		out[key] = sanitizeAzureValue(e.value)
+	}
+	return out
+}
+
+// isAzureKeyChar reports whether r is allowed in an Azure tag name.
+func isAzureKeyChar(r rune) bool {
+	switch r {
+	case '<', '>', '%', '&', '\\', '?', '/':
+		return false
+	}
+	return true
+}
+
+func sanitizeAzureKey(k string) string {
+	return truncateRunes(filterRunes(k, isAzureKeyChar), azureTagKeyMaxLen)
+}
+
+func sanitizeAzureValue(v string) string {
+	return truncateRunes(v, azureTagValueMaxLen)
 }
 
 // isAwsTagChar reports whether r is allowed in an AWS tag key or value.
@@ -190,6 +233,7 @@ func buildK8sLabels(s labelSource) map[string]string {
 		{"nullstone.io/stack", s.stackName},
 		{"nullstone.io/env", s.envName},
 		{"nullstone.io/block-ref", s.blockRef},
+		{"nullstone.io/data-classification", s.dataClassification},
 	}
 
 	out := map[string]string{}

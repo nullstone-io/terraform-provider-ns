@@ -12,7 +12,7 @@ func TestBuildAwsTags(t *testing.T) {
 			envName:            "env0",
 			blockName:          "block0",
 			orgName:            "org0",
-			dataClassification: "confidential",
+			dataClassification: "2-customer-content",
 		})
 		want := map[string]string{
 			"Stack":              "stack0",
@@ -21,7 +21,7 @@ func TestBuildAwsTags(t *testing.T) {
 			"Block":              "block0",
 			"Owner":              "org0",
 			"Project":            "stack0",
-			"DataClassification": "confidential",
+			"DataClassification": "2-customer-content",
 			"Application":        "block0",
 			"Component":          "block0",
 		}
@@ -67,7 +67,7 @@ func TestBuildGcpLabels(t *testing.T) {
 			envName:            "env0",
 			blockName:          "block0",
 			orgName:            "org0",
-			dataClassification: "confidential",
+			dataClassification: "2-customer-content",
 		})
 		want := map[string]string{
 			"stack":              "stack0",
@@ -76,7 +76,7 @@ func TestBuildGcpLabels(t *testing.T) {
 			"block":              "block0",
 			"owner":              "org0",
 			"project":            "stack0",
-			"dataclassification": "confidential",
+			"dataclassification": "2-customer-content",
 			"application":        "block0",
 			"component":          "block0",
 		}
@@ -168,6 +168,66 @@ func TestBuildK8sLabels(t *testing.T) {
 		}
 		if _, ok := got["app.kubernetes.io/component"]; ok {
 			t.Fatalf("expected app.kubernetes.io/component to be omitted")
+		}
+		// data-classification is blank in src, so it is omitted.
+		if _, ok := got["nullstone.io/data-classification"]; ok {
+			t.Fatalf("expected nullstone.io/data-classification to be omitted when empty")
+		}
+	})
+
+	t.Run("data-classification label emitted when set", func(t *testing.T) {
+		classified := src
+		classified.dataClassification = "2-customer-content"
+		got := buildK8sLabels(classified)
+		if got["nullstone.io/data-classification"] != "2-customer-content" {
+			t.Fatalf("expected nullstone.io/data-classification=2-customer-content, got %q", got["nullstone.io/data-classification"])
+		}
+	})
+}
+
+func TestBuildAzureTags(t *testing.T) {
+	t.Run("full key set", func(t *testing.T) {
+		got := buildAzureTags(labelSource{
+			stackName:          "stack0",
+			envName:            "env0",
+			blockName:          "block0",
+			orgName:            "org0",
+			dataClassification: "2-customer-content",
+		})
+		want := map[string]string{
+			"Stack":              "stack0",
+			"Env":                "env0",
+			"Environment":        "env0",
+			"Block":              "block0",
+			"Owner":              "org0",
+			"Project":            "stack0",
+			"DataClassification": "2-customer-content",
+			"Application":        "block0",
+			"Component":          "block0",
+		}
+		assertStringMapEqual(t, want, got)
+	})
+
+	t.Run("dataclassification omitted when empty", func(t *testing.T) {
+		got := buildAzureTags(labelSource{stackName: "stack0", envName: "env0", blockName: "block0", orgName: "org0"})
+		if _, ok := got["DataClassification"]; ok {
+			t.Fatalf("expected DataClassification to be omitted")
+		}
+	})
+
+	t.Run("disallowed key chars are stripped", func(t *testing.T) {
+		// Azure tag names may not contain < > %% & \ ? /. The fixed keys here are
+		// clean, so verify the sanitizer drops disallowed chars directly.
+		if got := sanitizeAzureKey(`a<b>c%d&e\f?g/h`); got != "abcdefgh" {
+			t.Fatalf("unexpected sanitized azure key: %q", got)
+		}
+	})
+
+	t.Run("value truncated to 256", func(t *testing.T) {
+		long := strings.Repeat("a", 400)
+		got := buildAzureTags(labelSource{stackName: long, envName: "e", blockName: "b", orgName: "o"})
+		if l := len([]rune(got["Stack"])); l != azureTagValueMaxLen {
+			t.Fatalf("expected value truncated to %d, got %d", azureTagValueMaxLen, l)
 		}
 	})
 }

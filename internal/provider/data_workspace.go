@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"gopkg.in/nullstone-io/go-api-client.v0/types"
 )
 
 type dataWorkspace struct {
@@ -101,6 +102,13 @@ This is typically used to construct unique resource names. See unique_name.`,
 			Description:     "A default set of Kubernetes labels (the recommended `app.kubernetes.io/*` labels plus `nullstone.io/*` labels) derived from this workspace's nullstone configuration.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 		},
+		{
+			Name:            "azure_tags",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Computed:        true,
+			Description:     "A default set of tags formatted for Azure (PascalCase keys, sanitized values), derived from this workspace's nullstone configuration.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+		},
 	}
 
 	return &tfprotov5.Schema{
@@ -164,14 +172,16 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		blockName: blockName,
 		blockRef:  blockRef,
 		orgName:   planConfig.OrgName,
-		// dataClassification is populated once NUL-99 threads the value through;
-		// until then the key is omitted by the builders.
-		dataClassification: "",
+		// dataClassification is the composite "<#>-<slug>" cloud-tag value derived
+		// from the workspace's classification level (empty = unclassified, omitted
+		// by the builders).
+		dataClassification: types.ClassificationLevel(planConfig.ClassificationLevel).Composite(),
 	}
 
 	awsTags := toTfStringMap(buildAwsTags(labels))
 	gcpLabels := toTfStringMap(buildGcpLabels(labels))
 	k8sLabels := toTfStringMap(buildK8sLabels(labels))
+	azureTags := toTfStringMap(buildAzureTags(labels))
 
 	return map[string]tftypes.Value{
 		"id":         tftypes.NewValue(tftypes.String, id),
@@ -186,5 +196,6 @@ func (d *dataWorkspace) Read(ctx context.Context, config map[string]tftypes.Valu
 		"aws_tags":   tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, awsTags),
 		"gcp_labels": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, gcpLabels),
 		"k8s_labels": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, k8sLabels),
+		"azure_tags": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, azureTags),
 	}, nil, nil
 }

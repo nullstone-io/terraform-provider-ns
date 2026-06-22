@@ -45,6 +45,17 @@ func TestDataWorkspace(t *testing.T) {
 		resource.TestCheckNoResourceAttr("data.ns_workspace.this", `k8s_labels.app.kubernetes.io/version`),
 		resource.TestCheckNoResourceAttr("data.ns_workspace.this", `k8s_labels.app.kubernetes.io/component`),
 		resource.TestCheckNoResourceAttr("data.ns_workspace.this", `k8s_labels.nullstone.io/app`),
+		resource.TestCheckNoResourceAttr("data.ns_workspace.this", `k8s_labels.nullstone.io/data-classification`),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.%`, "8"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Stack`, "stack0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Env`, "env0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Environment`, "env0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Block`, "block0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Owner`, "org0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Project`, "stack0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Application`, "block0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.Component`, "block0"),
+		resource.TestCheckNoResourceAttr("data.ns_workspace.this", `azure_tags.DataClassification`),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", "stack_id", "100"),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", "stack_name", "stack0"),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", "block_id", "101"),
@@ -110,5 +121,51 @@ data "ns_workspace" "this" {}
 				},
 			},
 		})
+	})
+}
+
+// TestDataWorkspace_Classified verifies that a workspace's data-classification
+// level (threaded via NULLSTONE_DATA_CLASSIFICATION) is emitted as the composite
+// "<#>-<slug>" value across AWS tags, GCP labels, K8s labels, and Azure tags.
+func TestDataWorkspace_Classified(t *testing.T) {
+	const composite = "2-customer-content"
+	checks := resource.ComposeTestCheckFunc(
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `aws_tags.%`, "9"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `aws_tags.DataClassification`, composite),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `gcp_labels.%`, "9"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `gcp_labels.dataclassification`, composite),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `k8s_labels.nullstone.io/data-classification`, composite),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.%`, "9"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", `azure_tags.DataClassification`, composite),
+	)
+
+	config := `
+provider "ns" {
+  organization = "org0"
+}
+data "ns_workspace" "this" {
+  stack_id   = "100"
+  stack_name = "stack0"
+  block_id   = "101"
+  block_name = "block0"
+  block_ref  = "yellow-giraffe"
+  env_id     = "102"
+  env_name   = "env0"
+}
+`
+	getNsConfig, _ := mockNs(nil)
+	getTfeConfig, _ := mockTfe(nil)
+
+	os.Setenv("NULLSTONE_DATA_CLASSIFICATION", "customer-content")
+	defer os.Unsetenv("NULLSTONE_DATA_CLASSIFICATION")
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(getNsConfig, getTfeConfig, nil),
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check:  checks,
+			},
+		},
 	})
 }
