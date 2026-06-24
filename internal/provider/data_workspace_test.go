@@ -63,6 +63,7 @@ func TestDataWorkspace(t *testing.T) {
 		resource.TestCheckResourceAttr("data.ns_workspace.this", "block_ref", "yellow-giraffe"),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", "env_id", "102"),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", "env_name", "env0"),
+		resource.TestCheckResourceAttr("data.ns_workspace.this", "data_classification", ""),
 	)
 
 	t.Run("sets up attributes properly hard-coded", func(t *testing.T) {
@@ -130,6 +131,7 @@ data "ns_workspace" "this" {}
 func TestDataWorkspace_Classified(t *testing.T) {
 	const composite = "2-customer-content"
 	checks := resource.ComposeTestCheckFunc(
+		resource.TestCheckResourceAttr("data.ns_workspace.this", "data_classification", "customer-content"),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", `aws_tags.%`, "9"),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", `aws_tags.DataClassification`, composite),
 		resource.TestCheckResourceAttr("data.ns_workspace.this", `gcp_labels.%`, "9"),

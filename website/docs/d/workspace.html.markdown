@@ -33,6 +33,7 @@ There are no arguments to this data source.
 * `block_ref` - Workspace block reference. Unique name used for constructing resource names. (Environment variable: `NULLSTONE_BLOCK_REF`)
 * `env_id` - Workspace environment ID. (Environment variable: `NULLSTONE_ENV_ID`)
 * `env_name` - Workspace environment name. (Environment variable: `NULLSTONE_ENV_NAME`)
+* `data_classification` - The data classification (sensitivity) level configured for this workspace, e.g. `customer-content`. Empty when unclassified. (Environment variable: `NULLSTONE_DATA_CLASSIFICATION`)
 * `aws_tags` (`map`) - A richer set of tags formatted for AWS, with PascalCase keys. Use this when tagging AWS resources.
 * `gcp_labels` (`map`) - The same logical set formatted for GCP labels, with lowercase keys and values sanitized to satisfy GCP's label requirements. Use this when labeling GCP resources.
 * `k8s_labels` (`map`) - The recommended Kubernetes labels (`app.kubernetes.io/*`) plus `nullstone.io/*` labels for this workspace, with values sanitized to satisfy Kubernetes' label value requirements. Use this when labeling Kubernetes resources.
