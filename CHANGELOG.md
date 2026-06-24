@@ -1,10 +1,18 @@
+## 0.11.1 (Jun 24, 2026) 
+
+FEATURES:
+
+* Added `azure_tags` to `data.ns_workspace` which is a pre-formatted map of Azure tags that are compliant with proper attribution.
+* Added `data_classification` to `aws_tags`, `gcp_labels`, `azure_tags`, and `k8s_labels`.
+* Added `data_classification` attribute to `data.ns_workspace`.
+
 ## 0.11.0 (Jun 18, 2026)
 
 FEATURES:
 
-* Added `aws_tags` which is a pre-formatted map of AWS tags that are compliant with proper attribution.
-* Added `gcp_labels` which is a pre-formatted map of GCP labels that are compliant with proper attribution.
-* Added `k8s_labels` which is a pre-formatted map of Kubernetes labels that are compliant with proper attribution.
+* Added `aws_tags` to `data.ns_workspace` which is a pre-formatted map of AWS tags that are compliant with proper attribution.
+* Added `gcp_labels` to `data.ns_workspace` which is a pre-formatted map of GCP labels that are compliant with proper attribution.
+* Added `k8s_labels` to `data.ns_workspace` which is a pre-formatted map of Kubernetes labels that are compliant with proper attribution.
 
 DEPRECATIONS:
 

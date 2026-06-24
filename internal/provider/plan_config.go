@@ -67,6 +67,8 @@ func planConfigFromEnv() PlanConfig {
 
 		EnvId:   readIntFromEnvVars("NULLSTONE_ENV_ID"),
 		EnvName: os.Getenv("NULLSTONE_ENV_NAME"),
+
+		ClassificationLevel: os.Getenv("NULLSTONE_DATA_CLASSIFICATION"),
 	}
 }
 
