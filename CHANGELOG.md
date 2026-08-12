@@ -1,3 +1,14 @@
+## 0.12.0 (Aug 11, 2026)
+
+INTERNAL UPDATES:
+
+* Upgraded Go to `1.26.5`.
+* Upgraded `github.com/hashicorp/go-tfe` from `v0.11` to `v1.110`. This is a major-version jump of the Terraform Enterprise API client used to retrieve workspace state; behavior is unchanged.
+* Upgraded `github.com/hashicorp/go-argmapper` from a 2020 pre-release to `v0.2.4`.
+* Upgraded `github.com/hashicorp/terraform-plugin-log` to `v0.11`.
+* Upgraded Nullstone dependencies: `module` to `v0.2.11`, `go-api-client.v0` and `nullstone.v0` (`v0.0.192`) to latest.
+* Patched vulnerable indirect dependencies flagged by security advisories: `go-git` to `v5.19.2`, `grpc` to `v1.82.1`, and `go-slug` to `v0.16.8`.
+
 ## 0.11.1 (Jun 24, 2026) 
 
 FEATURES:
