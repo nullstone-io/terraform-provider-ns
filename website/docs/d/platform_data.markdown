@@ -35,20 +35,35 @@ data "ns_platform_data" "env" {
   kind    = "env"
   version = 1
   data = jsonencode({
-    variables = {
-      for key, value in data.ns_env_variables.this.env_variables : key => {
+    variables = merge(
+      { for key, value in data.ns_env_variables.this.env_variables : key => {
         template = lookup(var.env_vars, key, "")
         value    = value
-      }
-    }
-    secret_keys = keys(data.ns_env_variables.this.secrets)
-    secret_refs = data.ns_env_variables.this.secret_refs
+      } },
+      { for key, value in nonsensitive(data.ns_env_variables.this.secrets) : key => {
+        template  = lookup(var.secrets, key, "")
+        sensitive = true
+      } },
+      { for key, ref in data.ns_env_variables.this.secret_refs : key => {
+        sensitive = true
+        ref       = { type = "secret", id = ref }
+      } },
+    )
   })
 }
 ```
 
-The `env` kind never carries secret values; `secret_keys` and `secret_refs` carry names and references only.
-A key that appears in both `variables` and `secret_keys` is rejected.
+Every entry in `variables` is one of:
+
+* a resolved value: `{ template?, value }`
+* a sensitive value: `{ template?, sensitive = true }` (the value is never carried)
+* a reference resolved at runtime: `{ template?, ref = { type, ... } }`
+
+`ref.type` is one of `secret` (`id`), `k8s_field` (`api_version?`, `field_path`), `k8s_config_map` (`name`, `key`, `optional?`),
+`k8s_resource_field` (`resource`, `container?`, `divisor?`), `k8s_file_key` (`volume_name`, `path`, `key`).
+A `secret` ref is sensitive by definition.
+
+The `env` kind never carries secret values: a sensitive entry with a `value`, or an entry with both a `value` and a `ref`, is rejected at plan time.
 
 ## Arguments Reference
 

@@ -28,8 +28,10 @@ data "ns_platform_data" "env" {
     variables = {
       NULLSTONE_ENV = { value = "dev" }
       DATABASE_NAME = { template = "{{ NULLSTONE_ENV }}-db", value = "dev-db" }
+      DATABASE_PASSWORD = { sensitive = true }
+      API_TOKEN = { ref = { type = "secret", id = "arn:aws:secretsmanager:us-east-1:123456789012:secret:api" } }
+      POD_IP = { ref = { type = "k8s_field", field_path = "status.podIP" } }
     }
-    secret_keys = ["DATABASE_PASSWORD"]
   })
 }
 `
@@ -60,9 +62,8 @@ data "ns_platform_data" "env" {
   version = 1
   data = jsonencode({
     variables = {
-      DATABASE_PASSWORD = { value = "leaked" }
+      DATABASE_PASSWORD = { value = "leaked", sensitive = true }
     }
-    secret_keys = ["DATABASE_PASSWORD"]
   })
 }
 `
@@ -71,7 +72,7 @@ data "ns_platform_data" "env" {
 			Steps: []resource.TestStep{
 				{
 					Config:      config,
-					ExpectError: regexp.MustCompile(`cannot be both a\s+variable and a secret`),
+					ExpectError: regexp.MustCompile(`a\s+sensitive\s+variable\s+cannot\s+carry\s+a\s+value`),
 				},
 			},
 		})
@@ -191,7 +192,7 @@ func TestDataPlatformData_Validate(t *testing.T) {
 		config := map[string]tftypes.Value{
 			"kind":    tftypes.NewValue(tftypes.String, "env"),
 			"version": tftypes.NewValue(tftypes.Number, 1),
-			"data":    tftypes.NewValue(tftypes.String, `{"secret_keys":[]}`),
+			"data":    tftypes.NewValue(tftypes.String, `{}`),
 		}
 		diags, err := ds.Validate(context.Background(), config)
 		require.NoError(t, err)
