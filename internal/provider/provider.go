@@ -56,6 +56,7 @@ func newProviderServer(version string, fn func() (api.Config, *tfe.Config, PlanC
 	s.MustRegisterDataSource("ns_domain", newDataDomain)
 	s.MustRegisterDataSource("ns_app_env", newDataAppEnv)
 	s.MustRegisterDataSource("ns_env_variables", newDataEnvVariables)
+	s.MustRegisterDataSource("ns_platform_data", newDataPlatformData)
 	s.MustRegisterDataSource("ns_secret_keys", newDataSecretKeys)
 	s.MustRegisterDataSource("ns_env", newDataEnv)
 	s.MustRegisterDataSource("ns_agent", newDataAgent)

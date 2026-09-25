@@ -1,0 +1,64 @@
+---
+layout: "ns"
+page_title: "Nullstone: ns_platform_data"
+sidebar_current: "docs-ns-datasource-platform-data"
+description: |-
+  No-op data source that persists platform data (data consumed only by Nullstone) into Terraform state.
+---
+
+# ns_platform_data
+
+No-op data source that persists platform data into Terraform state.
+
+Platform data is the *platform contract* of a module: data consumed only by Nullstone (UI, API, CLI, deployment tooling).
+This is distinct from Terraform outputs, which are the module-to-module contract.
+Nullstone extracts platform data from state each time a state version is saved and serves it by `kind`.
+
+This data source makes no API calls. It validates the payload against the schema for `kind`/`version` and echoes the inputs into state.
+
+Validation follows a forward-compatibility rule:
+- A `kind` or `version` that this version of the provider does not recognize produces a **warning** and is stored without validation, so an older provider never blocks a newer module.
+- A recognized `kind`/`version` whose `data` is invalid produces an **error** at plan time.
+- `data` must always be a JSON-encoded object.
+
+## Example Usage
+
+#### `env` kind, version 1
+
+```hcl
+data "ns_env_variables" "this" {
+  input_env_variables = var.env_vars
+  input_secrets       = var.secrets
+}
+
+data "ns_platform_data" "env" {
+  kind    = "env"
+  version = 1
+  data = jsonencode({
+    variables = {
+      for key, value in data.ns_env_variables.this.env_variables : key => {
+        template = lookup(var.env_vars, key, "")
+        value    = value
+      }
+    }
+    secret_keys = keys(data.ns_env_variables.this.secrets)
+    secret_refs = data.ns_env_variables.this.secret_refs
+  })
+}
+```
+
+The `env` kind never carries secret values; `secret_keys` and `secret_refs` carry names and references only.
+A key that appears in both `variables` and `secret_keys` is rejected.
+
+## Arguments Reference
+
+* `kind` - (Required) The kind of platform data (e.g. `env`). Determines the schema used to validate `data`.
+* `version` - (Required) The schema version of `kind` that `data` conforms to. Must be a positive integer.
+* `data` - (Required) A JSON-encoded object (typically produced with `jsonencode(...)`) that conforms to the schema for `kind`/`version`.
+
+## Attributes Reference
+
+* `id` - (Deprecated) `<kind>/<version>`. Present only for compatibility and should not be used.
+* `kind` - The `kind` as provided.
+* `version` - The `version` as provided.
+* `data` - The `data` string as provided, unchanged.

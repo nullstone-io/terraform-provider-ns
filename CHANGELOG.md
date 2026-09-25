@@ -1,3 +1,9 @@
+## 0.13.0 (Unreleased)
+
+FEATURES:
+
+* Added `ns_platform_data` data source. It is a no-op data source that validates and persists platform data (data consumed only by Nullstone, such as the resolved `env` of an application) into Terraform state. Unrecognized `kind`/`version` values produce a warning; invalid payloads for a recognized `kind`/`version` produce an error at plan time.
+
 ## 0.12.0 (Aug 11, 2026)
 
 INTERNAL UPDATES:
