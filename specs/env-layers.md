@@ -43,17 +43,19 @@ Both data sources accept:
 | `standard` | map(string), optional | |
 | `cloud` | map(string), optional | |
 | `otel` | map(string), optional | |
-| `capability_env` | list(object({cap_tf_id=string, name=string, value=string})), optional | pass `local.capabilities.env` verbatim |
-| `capability_prefixes` | map(string), optional | `local.cap_env_prefixes` verbatim: cap_tf_id → prefix; final key = prefix + name |
+| `capability_env` | list(object({capability=string, name=string, value=string})), optional | pass `local.capabilities.env` verbatim |
+| `capability_prefixes` | map(string), optional | `local.cap_prefixes` verbatim: capability name → prefix; final key = prefix + name |
+
+`capability` is the **capability name** (what users see in the UI), not the legacy `tfId`. The generated `capabilities.tf` (from each module's `capabilities.tf.tmpl`, scaffolded by `nullstone modules generate`) emits items as `merge({ cap_tf_id = mod.tfId, capability = mod.name }, x)` and a `cap_prefixes` local keyed by `mod.name` next to the legacy `cap_env_prefixes`. Terraform drops the extra `cap_tf_id` attribute when converting to the provider's object type (covered by `TestDataEnvValues_ExtraCapabilityAttributesTolerated`), so existing modules that still read `cap_tf_id` are unaffected and upgraded modules pass the locals verbatim.
 | `user_env` | map(string), optional | `var.env_vars` |
 
 Secrets differ:
 
 | data source | attribute | type |
 |---|---|---|
-| `ns_env_layout` | `capability_secret_keys` | list(object({cap_tf_id=string, name=string})) |
+| `ns_env_layout` | `capability_secret_keys` | list(object({capability=string, name=string})) |
 | `ns_env_layout` | `user_secret_keys` | set(string) — `nonsensitive(keys(var.secrets))` |
-| `ns_env_values` | `capability_secrets` | list(object({cap_tf_id=string, name=string, value=string})), sensitive |
+| `ns_env_values` | `capability_secrets` | list(object({capability=string, name=string, value=string})), sensitive |
 | `ns_env_values` | `user_secrets` | map(string), sensitive — `var.secrets` |
 
 Use object-typed attributes (not nested blocks); all object attributes are required (tfprotov5 object types have no optionals in provider schemas).
@@ -82,7 +84,7 @@ Use object-typed attributes (not nested blocks); all object attributes are requi
 | `unmanaged_secret_keys` | set(string) | `secret(...)` refs |
 | `all_secret_keys` | set(string) | union |
 | `sources` | map(string) | key → source label |
-| `capabilities` | map(string) | key → cap_tf_id (only capability-sourced keys) |
+| `capabilities` | map(string) | key → capability (only capability-sourced keys) |
 
 `ns_env_values` (computed):
 
@@ -107,9 +109,9 @@ Use object-typed attributes (not nested blocks); all object attributes are requi
   "platform": "k8s",
   "variables": {
     "NULLSTONE_ENV":     { "template": "prod", "value": "prod", "source": "standard" },
-    "PG_HOST":           { "template": "{{ ... }}", "value": "db.internal", "source": "capability", "capability": "cap_postgres0" },
+    "PG_HOST":           { "template": "{{ ... }}", "value": "db.internal", "source": "capability", "capability": "postgres0" },
     "DATABASE_PASSWORD": { "template": "{{ secret(...) }}", "sensitive": true, "ref": { "type": "secret", "id": "arn:..." }, "source": "user" },
-    "PG_PASSWORD":       { "sensitive": true, "source": "capability", "capability": "cap_postgres0" },
+    "PG_PASSWORD":       { "sensitive": true, "source": "capability", "capability": "postgres0" },
     "POD_IP":            { "ref": { "type": "k8s_field", "api_version": "v1", "field_path": "status.podIP" }, "source": "user" }
   }
 }
@@ -126,8 +128,8 @@ data "ns_env_layout" "this" {
   cloud               = local.google_env_vars
   otel                = local.otel_env_vars
   capability_env      = local.capabilities.env
-  capability_secret_keys = [for s in local.capabilities.secrets : { cap_tf_id = s.cap_tf_id, name = s.name }]
-  capability_prefixes = local.cap_env_prefixes
+  capability_secret_keys = [for s in local.capabilities.secrets : { capability = s.capability, name = s.name }]
+  capability_prefixes = local.cap_prefixes
   user_env            = var.env_vars
   user_secret_keys    = nonsensitive(keys(var.secrets))
 }
@@ -139,7 +141,7 @@ data "ns_env_values" "this" {
   otel                = local.otel_env_vars
   capability_env      = local.capabilities.env
   capability_secrets  = local.capabilities.secrets
-  capability_prefixes = local.cap_env_prefixes
+  capability_prefixes = local.cap_prefixes
   user_env            = var.env_vars
   user_secrets        = var.secrets
 }

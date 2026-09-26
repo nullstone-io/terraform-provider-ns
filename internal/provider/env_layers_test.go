@@ -17,8 +17,8 @@ func TestResolveLayers(t *testing.T) {
 			Cloud:    map[string]string{"B": "cloud", "C": "cloud", "D": "cloud", "E": "cloud"},
 			Otel:     map[string]string{"C": "otel", "D": "otel", "E": "otel"},
 			CapabilityEnv: []capabilityEntry{
-				{CapTfId: "cap_pg", Name: "D", Value: "capability"},
-				{CapTfId: "cap_pg", Name: "E", Value: "capability"},
+				{Capability: "cap_pg", Name: "D", Value: "capability"},
+				{Capability: "cap_pg", Name: "E", Value: "capability"},
 			},
 			UserEnv: map[string]string{"E": "user-{{ A }}"},
 		}
@@ -46,12 +46,12 @@ func TestResolveLayers(t *testing.T) {
 			Platform: platformdata.PlatformEcs,
 			Standard: map[string]string{"NULLSTONE_ENV": "dev"},
 			CapabilityEnv: []capabilityEntry{
-				{CapTfId: "cap_postgres0", Name: "HOST", Value: "db.internal"},
+				{Capability: "postgres0", Name: "HOST", Value: "db.internal"},
 			},
 			CapabilitySecrets: []capabilityEntry{
-				{CapTfId: "cap_postgres0", Name: "PASSWORD", Value: "hunter2"},
+				{Capability: "postgres0", Name: "PASSWORD", Value: "hunter2"},
 			},
-			CapabilityPrefixes: map[string]string{"cap_postgres0": "PG_"},
+			CapabilityPrefixes: map[string]string{"postgres0": "PG_"},
 			UserEnv: map[string]string{
 				"DATABASE_URL": "postgres://user:{{ PG_PASSWORD }}@{{ PG_HOST }}/db",
 				"EXISTING":     "{{ secret(arn:aws:secretsmanager:us-east-1:0123456789012:secret:x) }}",
@@ -68,7 +68,7 @@ func TestResolveLayers(t *testing.T) {
 		assert.Equal(t, []string{"API_TOKEN", "DATABASE_URL", "EXISTING", "PG_PASSWORD"}, result.AllSecretKeys())
 		assert.Equal(t, "postgres://user:hunter2@db.internal/db", result.ManagedValues()["DATABASE_URL"])
 		assert.Equal(t, map[string]string{"EXISTING": "arn:aws:secretsmanager:us-east-1:0123456789012:secret:x"}, result.UnmanagedRefs())
-		assert.Equal(t, map[string]string{"PG_HOST": "cap_postgres0", "PG_PASSWORD": "cap_postgres0"}, result.Capabilities())
+		assert.Equal(t, map[string]string{"PG_HOST": "postgres0", "PG_PASSWORD": "postgres0"}, result.Capabilities())
 
 		raw, err := result.PlatformData()
 		require.NoError(t, err)
@@ -77,8 +77,8 @@ func TestResolveLayers(t *testing.T) {
 		record, err := platformdata.ParseEnvV1(json.RawMessage(raw))
 		require.NoError(t, err)
 		assert.Equal(t, platformdata.PlatformEcs, record.Platform)
-		assert.Equal(t, platformdata.EnvV1Variable{Template: "db.internal", Value: "db.internal", Source: platformdata.SourceCapability, Capability: "cap_postgres0"}, record.Variables["PG_HOST"])
-		assert.Equal(t, platformdata.EnvV1Variable{Sensitive: true, Source: platformdata.SourceCapability, Capability: "cap_postgres0"}, record.Variables["PG_PASSWORD"])
+		assert.Equal(t, platformdata.EnvV1Variable{Template: "db.internal", Value: "db.internal", Source: platformdata.SourceCapability, Capability: "postgres0"}, record.Variables["PG_HOST"])
+		assert.Equal(t, platformdata.EnvV1Variable{Sensitive: true, Source: platformdata.SourceCapability, Capability: "postgres0"}, record.Variables["PG_PASSWORD"])
 		assert.Equal(t, platformdata.EnvV1Variable{Template: "postgres://user:{{ PG_PASSWORD }}@{{ PG_HOST }}/db", Sensitive: true, Source: platformdata.SourceUser}, record.Variables["DATABASE_URL"])
 		assert.Equal(t, platformdata.EnvV1Variable{
 			Template:  "{{ secret(arn:aws:secretsmanager:us-east-1:0123456789012:secret:x) }}",
@@ -132,8 +132,8 @@ func TestResolveLayers(t *testing.T) {
 		_, diags := resolveLayers(layeredEnvInput{
 			Platform: platformdata.PlatformEcs,
 			CapabilityEnv: []capabilityEntry{
-				{CapTfId: "cap_a", Name: "HOST", Value: "a"},
-				{CapTfId: "cap_b", Name: "HOST", Value: "b"},
+				{Capability: "cap_a", Name: "HOST", Value: "a"},
+				{Capability: "cap_b", Name: "HOST", Value: "b"},
 			},
 		})
 		require.Len(t, diags, 1)

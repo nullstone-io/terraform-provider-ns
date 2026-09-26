@@ -27,7 +27,7 @@ func (*dataEnvValues) Schema(ctx context.Context) *tfprotov5.Schema {
 		&tfprotov5.SchemaAttribute{
 			Name:            "capability_secrets",
 			Type:            tftypes.List{ElementType: capabilityEnvEntryType},
-			Description:     "Secrets emitted by capabilities (`local.capabilities.secrets`). Each entry is `{ cap_tf_id, name, value }`; the final key is `capability_prefixes[cap_tf_id] + name`.",
+			Description:     "Secrets emitted by capabilities (`local.capabilities.secrets`). Each entry is `{ capability, name, value }`; the final key is `capability_prefixes[capability] + name`.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Optional:        true,
 			Sensitive:       true,

@@ -18,7 +18,7 @@ Use [`ns_env_layout`](env_layout.html) (keys only) wherever the *set* of secrets
 Resolution follows the same rules as `ns_env_layout`:
 
 1. Layers are merged in precedence order (lowest to highest): `standard` < `cloud` < `otel` < `capability_env`/`capability_secrets` < `user_env`/`user_secrets`. A later layer overrides an earlier one for the same key.
-2. Capability keys are `capability_prefixes[cap_tf_id] + name`. A duplicate final key within `capability_env` (or within `capability_secrets`) is an error.
+2. Capability keys are `capability_prefixes[capability] + name`. A duplicate final key within `capability_env` (or within `capability_secrets`) is an error.
 3. Every key is validated (letters, numbers, underscore; cannot begin with a number).
 4. `{{ VAR }}` references are interpolated with the same semantics as [`ns_env_variables`](env_variables.html) (see that page for the full template syntax).
 5. `platform` gates templates: `{{ secret(...) }}` is only allowed on platforms that support secret refs, and `{{ k8s.*(...) }}` only on Kubernetes. An unknown platform is an error.
@@ -35,7 +35,7 @@ data "ns_env_values" "this" {
   otel                = local.otel_env_vars
   capability_env      = local.capabilities.env
   capability_secrets  = local.capabilities.secrets
-  capability_prefixes = local.cap_env_prefixes
+  capability_prefixes = local.cap_prefixes
   user_env            = var.env_vars
   user_secrets        = var.secrets
 }
@@ -51,9 +51,9 @@ With inputs:
 
 ```hcl
 standard            = { NULLSTONE_ENV = "prod" }
-capability_env      = [{ cap_tf_id = "cap_postgres0", name = "HOST", value = "db.internal" }]
-capability_secrets  = [{ cap_tf_id = "cap_postgres0", name = "PASSWORD", value = "..." }]
-capability_prefixes = { cap_postgres0 = "PG_" }
+capability_env      = [{ capability = "postgres0", name = "HOST", value = "db.internal" }]
+capability_secrets  = [{ capability = "postgres0", name = "PASSWORD", value = "..." }]
+capability_prefixes = { postgres0 = "PG_" }
 user_env = {
   DATABASE_URL      = "postgres://app:{{ PG_PASSWORD }}@{{ PG_HOST }}/app"
   DATABASE_PASSWORD = "{{ secret(arn:aws:secretsmanager:us-east-1:123456789012:secret:db) }}"
@@ -68,7 +68,7 @@ the outputs are:
 - `unmanaged_secret_refs` = `{ DATABASE_PASSWORD = "arn:aws:secretsmanager:..." }`
 - `field_refs` = `{ POD_IP = { api_version = "v1", field_path = "status.podIP" } }`
 - `sources` = `{ NULLSTONE_ENV = "standard", PG_HOST = "capability", PG_PASSWORD = "capability", DATABASE_URL = "user", ... }`
-- `capabilities` = `{ PG_HOST = "cap_postgres0", PG_PASSWORD = "cap_postgres0" }`
+- `capabilities` = `{ PG_HOST = "postgres0", PG_PASSWORD = "postgres0" }`
 
 ## Arguments Reference
 
@@ -76,9 +76,9 @@ the outputs are:
 * `standard` - (Optional) Map of standard Nullstone environment variables (`NULLSTONE_*`). Lowest precedence.
 * `cloud` - (Optional) Map of cloud platform environment variables (e.g. `AWS_REGION`, `GOOGLE_CLOUD_PROJECT`).
 * `otel` - (Optional) Map of OpenTelemetry environment variables (`OTEL_*`).
-* `capability_env` - (Optional) List of `{ cap_tf_id, name, value }` objects emitted by capabilities (`local.capabilities.env`).
-* `capability_secrets` - (Optional, Sensitive) List of `{ cap_tf_id, name, value }` secret objects emitted by capabilities (`local.capabilities.secrets`).
-* `capability_prefixes` - (Optional) Map of capability `cap_tf_id` to the prefix applied to its variable and secret names.
+* `capability_env` - (Optional) List of `{ capability, name, value }` objects emitted by capabilities (`local.capabilities.env`).
+* `capability_secrets` - (Optional, Sensitive) List of `{ capability, name, value }` secret objects emitted by capabilities (`local.capabilities.secrets`).
+* `capability_prefixes` - (Optional) Map of capability `capability` to the prefix applied to its variable and secret names.
 * `user_env` - (Optional) Map of user-defined environment variables (`var.env_vars`). Highest precedence.
 * `user_secrets` - (Optional, Sensitive) Map of user-defined secrets (`var.secrets`).
 
@@ -95,5 +95,5 @@ the outputs are:
 * `unmanaged_secret_keys` - Set of keys that reference an existing cloud secret.
 * `all_secret_keys` - Union of `managed_secret_keys` and `unmanaged_secret_keys`.
 * `sources` - Map of every key to the layer that supplied it: `standard`, `cloud`, `otel`, `capability`, or `user`.
-* `capabilities` - Map of capability-sourced keys to the `cap_tf_id` of the capability that supplied them.
+* `capabilities` - Map of capability-sourced keys to the `capability` of the capability that supplied them.
 * `platform_data` - JSON-encoded `env` (version 1) platform data record. It is **not** sensitive: it carries the template, resolved value (plain variables only), sensitivity flag, ref, source, and capability of every variable, and never a secret value. Pass it to [`ns_platform_data`](platform_data.html) with `kind = "env"` and `version = 1`.

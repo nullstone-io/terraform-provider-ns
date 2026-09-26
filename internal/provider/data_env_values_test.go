@@ -48,13 +48,13 @@ data "ns_env_values" "this" {
     AWS_REGION = "us-east-1"
   }
   capability_env = [
-    { cap_tf_id = "cap_postgres0", name = "HOST", value = "db.internal" },
+    { capability = "postgres0", name = "HOST", value = "db.internal" },
   ]
   capability_secrets = [
-    { cap_tf_id = "cap_postgres0", name = "PASSWORD", value = "hunter2" },
+    { capability = "postgres0", name = "PASSWORD", value = "hunter2" },
   ]
   capability_prefixes = {
-    cap_postgres0 = "PG_"
+    postgres0 = "PG_"
   }
   user_env = {
     IDENTIFIER   = "{{ NULLSTONE_STACK }}.{{ NULLSTONE_ENV }}"
@@ -101,8 +101,8 @@ data "ns_env_values" "this" {
 						resource.TestCheckResourceAttr("data.ns_env_values.this", "sources.PG_PASSWORD", "capability"),
 						resource.TestCheckResourceAttr("data.ns_env_values.this", "sources.DATABASE_URL", "user"),
 						resource.TestCheckResourceAttr("data.ns_env_values.this", "capabilities.%", "2"),
-						resource.TestCheckResourceAttr("data.ns_env_values.this", "capabilities.PG_HOST", "cap_postgres0"),
-						resource.TestCheckResourceAttr("data.ns_env_values.this", "capabilities.PG_PASSWORD", "cap_postgres0"),
+						resource.TestCheckResourceAttr("data.ns_env_values.this", "capabilities.PG_HOST", "postgres0"),
+						resource.TestCheckResourceAttr("data.ns_env_values.this", "capabilities.PG_PASSWORD", "postgres0"),
 						// k8s refs empty
 						resource.TestCheckResourceAttr("data.ns_env_values.this", "field_refs.%", "0"),
 						resource.TestCheckResourceAttr("data.ns_env_values.this", "config_map_refs.%", "0"),
@@ -111,7 +111,7 @@ data "ns_env_values" "this" {
 						// platform_data
 						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"platform":"ecs"`)),
 						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"source":"capability"`)),
-						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"PG_PASSWORD":\{"sensitive":true,"source":"capability","capability":"cap_postgres0"\}`)),
+						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"PG_PASSWORD":\{"sensitive":true,"source":"capability","capability":"postgres0"\}`)),
 						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"IDENTIFIER":\{"template":"\{\{ NULLSTONE_STACK \}\}.\{\{ NULLSTONE_ENV \}\}","value":"primary.dev","source":"user"\}`)),
 						testCheckAttrNotContains("data.ns_env_values.this", "platform_data", "hunter2"),
 						testCheckAttrNotContains("data.ns_env_values.this", "platform_data", "tok-123"),
@@ -221,8 +221,8 @@ provider "ns" {
 data "ns_env_values" "this" {
   platform = "ecs"
   capability_env = [
-    { cap_tf_id = "cap_a", name = "HOST", value = "a" },
-    { cap_tf_id = "cap_b", name = "HOST", value = "b" },
+    { capability = "cap_a", name = "HOST", value = "a" },
+    { capability = "cap_b", name = "HOST", value = "b" },
   ]
 }
 `
@@ -235,5 +235,51 @@ data "ns_env_values" "this" {
 				},
 			},
 		})
+	})
+}
+
+// Generated capabilities.tf items carry both the legacy `cap_tf_id` and `capability`;
+// Terraform must drop the extra attribute when converting to the provider's object type
+// so modules can pass `local.capabilities.env` verbatim.
+func TestDataEnvValues_ExtraCapabilityAttributesTolerated(t *testing.T) {
+	getNsConfig, _ := mockNs(nil)
+	getTfeConfig, _ := mockTfe(nil)
+	factories := protoV5ProviderFactories(getNsConfig, getTfeConfig, nil)
+
+	config := `
+provider "ns" {
+  organization = "org0"
+}
+locals {
+  capabilities = {
+    env = [
+      { cap_tf_id = "postgres0", capability = "postgres0", name = "HOST", value = "db.internal" },
+    ]
+    secrets = [
+      { cap_tf_id = "postgres0", capability = "postgres0", name = "PASSWORD", value = "hunter2" },
+    ]
+  }
+  cap_prefixes = { postgres0 = "PG_" }
+}
+data "ns_env_values" "this" {
+  platform            = "ecs"
+  capability_env      = local.capabilities.env
+  capability_secrets  = local.capabilities.secrets
+  capability_prefixes = local.cap_prefixes
+}
+`
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: factories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.ns_env_values.this", "env_variables.PG_HOST", "db.internal"),
+					resource.TestCheckResourceAttr("data.ns_env_values.this", "capabilities.PG_HOST", "postgres0"),
+					resource.TestCheckResourceAttr("data.ns_env_values.this", "capabilities.PG_PASSWORD", "postgres0"),
+					resource.TestCheckResourceAttr("data.ns_env_values.this", "managed_secret_keys.#", "1"),
+				),
+			},
+		},
 	})
 }

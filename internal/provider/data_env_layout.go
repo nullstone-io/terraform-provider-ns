@@ -54,14 +54,14 @@ func layeredEnvSharedInputAttrs() []*tfprotov5.SchemaAttribute {
 		{
 			Name:            "capability_env",
 			Type:            tftypes.List{ElementType: capabilityEnvEntryType},
-			Description:     "Environment variables emitted by capabilities (`local.capabilities.env`). Each entry is `{ cap_tf_id, name, value }`; the final key is `capability_prefixes[cap_tf_id] + name`. Overrides `otel`.",
+			Description:     "Environment variables emitted by capabilities (`local.capabilities.env`). Each entry is `{ capability, name, value }`; the final key is `capability_prefixes[capability] + name`. Overrides `otel`.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Optional:        true,
 		},
 		{
 			Name:            "capability_prefixes",
 			Type:            tftypes.Map{ElementType: tftypes.String},
-			Description:     "Map of capability `cap_tf_id` to the prefix applied to its environment variable and secret names.",
+			Description:     "Map of capability `capability` to the prefix applied to its environment variable and secret names.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Optional:        true,
 		},
@@ -109,7 +109,7 @@ func layeredEnvSharedOutputAttrs() []*tfprotov5.SchemaAttribute {
 		{
 			Name:            "capabilities",
 			Type:            tftypes.Map{ElementType: tftypes.String},
-			Description:     "Map of capability-sourced keys to the `cap_tf_id` of the capability that supplied them.",
+			Description:     "Map of capability-sourced keys to the `capability` of the capability that supplied them.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Computed:        true,
 		},
@@ -123,7 +123,7 @@ func (*dataEnvLayout) Schema(ctx context.Context) *tfprotov5.Schema {
 		&tfprotov5.SchemaAttribute{
 			Name:            "capability_secret_keys",
 			Type:            tftypes.List{ElementType: capabilityKeyEntryType},
-			Description:     "Secret keys emitted by capabilities. Each entry is `{ cap_tf_id, name }`; the final key is `capability_prefixes[cap_tf_id] + name`.",
+			Description:     "Secret keys emitted by capabilities. Each entry is `{ capability, name }`; the final key is `capability_prefixes[capability] + name`.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Optional:        true,
 		},

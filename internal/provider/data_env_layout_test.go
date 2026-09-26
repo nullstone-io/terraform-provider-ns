@@ -24,13 +24,13 @@ data "ns_env_layout" "this" {
     NULLSTONE_ENV   = "dev"
   }
   capability_env = [
-    { cap_tf_id = "cap_postgres0", name = "HOST", value = "db.internal" },
+    { capability = "postgres0", name = "HOST", value = "db.internal" },
   ]
   capability_secret_keys = [
-    { cap_tf_id = "cap_postgres0", name = "PASSWORD" },
+    { capability = "postgres0", name = "PASSWORD" },
   ]
   capability_prefixes = {
-    cap_postgres0 = "PG_"
+    postgres0 = "PG_"
   }
   user_env = {
     DATABASE_URL = "postgres://app:{{ PG_PASSWORD }}@{{ PG_HOST }}/app"
@@ -59,7 +59,7 @@ data "ns_env_layout" "this" {
 						resource.TestCheckResourceAttr("data.ns_env_layout.this", "sources.PG_PASSWORD", "capability"),
 						resource.TestCheckResourceAttr("data.ns_env_layout.this", "sources.API_TOKEN", "user"),
 						resource.TestCheckResourceAttr("data.ns_env_layout.this", "capabilities.%", "2"),
-						resource.TestCheckResourceAttr("data.ns_env_layout.this", "capabilities.PG_PASSWORD", "cap_postgres0"),
+						resource.TestCheckResourceAttr("data.ns_env_layout.this", "capabilities.PG_PASSWORD", "postgres0"),
 					),
 				},
 			},

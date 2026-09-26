@@ -16,24 +16,24 @@ import (
 
 // capabilityEnvEntryType is the element type of `capability_env` and `capability_secrets`.
 var capabilityEnvEntryType = tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-	"cap_tf_id": tftypes.String,
-	"name":      tftypes.String,
-	"value":     tftypes.String,
+	"capability": tftypes.String,
+	"name":       tftypes.String,
+	"value":      tftypes.String,
 }}
 
 // capabilityKeyEntryType is the element type of `capability_secret_keys` (no value).
 var capabilityKeyEntryType = tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-	"cap_tf_id": tftypes.String,
-	"name":      tftypes.String,
+	"capability": tftypes.String,
+	"name":       tftypes.String,
 }}
 
 const invalidEnvKeyDetail = "An environment variable key can only contain letters, numbers, and the underscore character. It also can not begin with a number."
 
 // capabilityEntry is one env var or secret emitted by a capability module.
 type capabilityEntry struct {
-	CapTfId string
-	Name    string
-	Value   string
+	Capability string
+	Name       string
+	Value      string
 }
 
 // layeredEnvInput is the fully-known configuration of a layered env data source.
@@ -211,14 +211,14 @@ func resolveLayers(in layeredEnvInput) (layeredEnvResult, []*tfprotov5.Diagnosti
 	setCapability := func(attr string, entries []capabilityEntry, isSecret bool) {
 		seen := map[string]string{}
 		for _, e := range entries {
-			key := in.CapabilityPrefixes[e.CapTfId] + e.Name
+			key := in.CapabilityPrefixes[e.Capability] + e.Name
 			if prev, dup := seen[key]; dup {
 				addErr(fmt.Sprintf("Duplicate capability environment variable: %s", key),
-					fmt.Sprintf("%s contains %q from capabilities %q and %q; the final key (prefix + name) must be unique.", attr, key, prev, e.CapTfId))
+					fmt.Sprintf("%s contains %q from capabilities %q and %q; the final key (prefix + name) must be unique.", attr, key, prev, e.Capability))
 				continue
 			}
-			seen[key] = e.CapTfId
-			set(key, e.Value, isSecret, platformdata.SourceCapability, e.CapTfId)
+			seen[key] = e.Capability
+			set(key, e.Value, isSecret, platformdata.SourceCapability, e.Capability)
 		}
 	}
 
@@ -289,7 +289,7 @@ func sortedKeys[V any](m map[string]V) []string {
 
 // --- tftypes helpers ---
 
-// capabilityEntriesFromTfValue reads a list(object({cap_tf_id, name[, value]})) value.
+// capabilityEntriesFromTfValue reads a list(object({capability, name[, value]})) value.
 // Null/unknown lists yield no entries; null/unknown attributes yield "".
 func capabilityEntriesFromTfValue(tfVal tftypes.Value) []capabilityEntry {
 	result := make([]capabilityEntry, 0)
@@ -309,9 +309,9 @@ func capabilityEntriesFromTfValue(tfVal tftypes.Value) []capabilityEntry {
 			continue
 		}
 		result = append(result, capabilityEntry{
-			CapTfId: extractStringFromTfValue(attrs["cap_tf_id"]),
-			Name:    extractStringFromTfValue(attrs["name"]),
-			Value:   extractStringFromTfValue(attrs["value"]),
+			Capability: extractStringFromTfValue(attrs["capability"]),
+			Name:       extractStringFromTfValue(attrs["name"]),
+			Value:      extractStringFromTfValue(attrs["value"]),
 		})
 	}
 	return result
@@ -402,7 +402,7 @@ func validateLayeredEnvKeys(config map[string]tftypes.Value, mapAttrs []string, 
 			if err := elem.As(&attrs); err != nil {
 				continue
 			}
-			nameVal, capVal := attrs["name"], attrs["cap_tf_id"]
+			nameVal, capVal := attrs["name"], attrs["capability"]
 			if nameVal.IsNull() || !nameVal.IsKnown() || !capVal.IsKnown() {
 				continue
 			}
