@@ -3,6 +3,8 @@
 FEATURES:
 
 * Added `ns_platform_data` data source. It is a no-op data source that validates and persists platform data (data consumed only by Nullstone, such as the resolved `env` of an application) into Terraform state. Unrecognized `kind`/`version` values produce a warning; invalid payloads for a recognized `kind`/`version` produce an error at plan time.
+* Added `ns_env_layout` data source. It merges the layers of an application's environment (`standard`, `cloud`, `otel`, capability, user) using keys only and reports `managed_secret_keys`, `unmanaged_secret_keys`, `all_secret_keys`, `sources`, and `capabilities` so the set of secrets a module must create is known at plan time.
+* Added `ns_env_values` data source. It merges the same layers with values, interpolates them with the semantics of `ns_env_variables`, splits secrets into managed and unmanaged, extracts Kubernetes `valueFrom` refs, and emits a `platform_data` env v1 record (with a `source` per variable) ready to pass to `ns_platform_data`. Both data sources take a required `platform` that gates `{{ secret(...) }}` and `{{ k8s.*(...) }}` templates.
 
 ## 0.12.0 (Aug 11, 2026)
 
