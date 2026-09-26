@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.31.0
 	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
-	github.com/nullstone-io/module v0.2.11
+	github.com/nullstone-io/module v0.3.0
 	github.com/stretchr/testify v1.11.1
 	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20260722192731-2d8902a3639d
 	gopkg.in/nullstone-io/nullstone.v0 v0.0.192
@@ -104,5 +104,3 @@ require (
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
-
-replace github.com/nullstone-io/module => ../module
