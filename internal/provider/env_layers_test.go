@@ -12,7 +12,7 @@ import (
 func TestResolveLayers(t *testing.T) {
 	t.Run("precedence: user > capability > otel > cloud > standard", func(t *testing.T) {
 		in := layeredEnvInput{
-			Platform: platformdata.PlatformEcs,
+			Platform: platformdata.PlatformAwsEcs,
 			Standard: map[string]string{"A": "standard", "B": "standard", "C": "standard", "D": "standard", "E": "standard"},
 			Cloud:    map[string]string{"B": "cloud", "C": "cloud", "D": "cloud", "E": "cloud"},
 			Otel:     map[string]string{"C": "otel", "D": "otel", "E": "otel"},
@@ -43,7 +43,7 @@ func TestResolveLayers(t *testing.T) {
 
 	t.Run("capability prefixes, promotion and classification", func(t *testing.T) {
 		in := layeredEnvInput{
-			Platform: platformdata.PlatformEcs,
+			Platform: platformdata.PlatformAwsEcs,
 			Standard: map[string]string{"NULLSTONE_ENV": "dev"},
 			CapabilityEnv: []capabilityEntry{
 				{Capability: "postgres0", Name: "HOST", Value: "db.internal"},
@@ -76,7 +76,7 @@ func TestResolveLayers(t *testing.T) {
 		assert.NotContains(t, raw, "tok")
 		record, err := platformdata.ParseEnvV1(json.RawMessage(raw))
 		require.NoError(t, err)
-		assert.Equal(t, platformdata.PlatformEcs, record.Platform)
+		assert.Equal(t, platformdata.PlatformAwsEcs, record.Platform)
 		assert.Equal(t, platformdata.EnvV1Variable{Template: "db.internal", Value: "db.internal", Source: platformdata.SourceCapability, Capability: "postgres0"}, record.Variables["PG_HOST"])
 		assert.Equal(t, platformdata.EnvV1Variable{Sensitive: true, Source: platformdata.SourceCapability, Capability: "postgres0"}, record.Variables["PG_PASSWORD"])
 		assert.Equal(t, platformdata.EnvV1Variable{Template: "postgres://user:{{ PG_PASSWORD }}@{{ PG_HOST }}/db", Sensitive: true, Source: platformdata.SourceUser}, record.Variables["DATABASE_URL"])
@@ -91,7 +91,7 @@ func TestResolveLayers(t *testing.T) {
 
 	t.Run("k8s refs on k8s platform", func(t *testing.T) {
 		in := layeredEnvInput{
-			Platform: platformdata.PlatformK8s,
+			Platform: platformdata.PlatformGcpGke,
 			UserEnv:  map[string]string{"POD_IP": "{{ k8s.field(v1, status.podIP) }}"},
 		}
 		result, diags := resolveLayers(in)
@@ -106,7 +106,7 @@ func TestResolveLayers(t *testing.T) {
 
 	t.Run("k8s ref rejected on non-k8s platform", func(t *testing.T) {
 		_, diags := resolveLayers(layeredEnvInput{
-			Platform: platformdata.PlatformEcs,
+			Platform: platformdata.PlatformAwsEcs,
 			UserEnv:  map[string]string{"POD_IP": "{{ k8s.field(v1, status.podIP) }}"},
 		})
 		require.Len(t, diags, 1)
@@ -115,7 +115,7 @@ func TestResolveLayers(t *testing.T) {
 
 	t.Run("secret ref rejected on platform without secret refs", func(t *testing.T) {
 		_, diags := resolveLayers(layeredEnvInput{
-			Platform: platformdata.PlatformS3,
+			Platform: platformdata.PlatformAwsS3,
 			UserEnv:  map[string]string{"X": "{{ secret(some-id) }}"},
 		})
 		require.Len(t, diags, 1)
@@ -130,7 +130,7 @@ func TestResolveLayers(t *testing.T) {
 
 	t.Run("duplicate capability keys", func(t *testing.T) {
 		_, diags := resolveLayers(layeredEnvInput{
-			Platform: platformdata.PlatformEcs,
+			Platform: platformdata.PlatformAwsEcs,
 			CapabilityEnv: []capabilityEntry{
 				{Capability: "cap_a", Name: "HOST", Value: "a"},
 				{Capability: "cap_b", Name: "HOST", Value: "b"},
@@ -142,7 +142,7 @@ func TestResolveLayers(t *testing.T) {
 
 	t.Run("invalid key", func(t *testing.T) {
 		_, diags := resolveLayers(layeredEnvInput{
-			Platform: platformdata.PlatformEcs,
+			Platform: platformdata.PlatformAwsEcs,
 			UserEnv:  map[string]string{"BAD-KEY": "x"},
 		})
 		require.Len(t, diags, 1)

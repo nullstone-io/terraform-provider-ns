@@ -26,7 +26,7 @@ func layeredEnvSharedInputAttrs() []*tfprotov5.SchemaAttribute {
 		{
 			Name:            "platform",
 			Type:            tftypes.String,
-			Description:     "The runtime platform of the application (e.g. `ecs`, `k8s`, `lambda`, `cloudrun`). Gates which templates are allowed: `{{ secret(...) }}` and `{{ k8s.*(...) }}`.",
+			Description:     "The runtime platform of the application (e.g. `aws_ecs`, `gcp_gke`, `aws_lambda`, `gcp_cloudrun`; always cloud-prefixed). Gates which templates are allowed: `{{ secret(...) }}` and `{{ k8s.*(...) }}`.",
 			DescriptionKind: tfprotov5.StringKindMarkdown,
 			Required:        true,
 		},

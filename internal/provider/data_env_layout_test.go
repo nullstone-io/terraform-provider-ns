@@ -18,7 +18,7 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_env_layout" "this" {
-  platform = "ecs"
+  platform = "aws_ecs"
   standard = {
     NULLSTONE_STACK = "primary"
     NULLSTONE_ENV   = "dev"
@@ -72,7 +72,7 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_env_layout" "this" {
-  platform = "ecs"
+  platform = "aws_ecs"
   user_secret_keys = ["BAD-KEY"]
 }
 `

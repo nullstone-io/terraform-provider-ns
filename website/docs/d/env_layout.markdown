@@ -26,7 +26,7 @@ Both data sources apply the same resolution:
 
 ```hcl
 data "ns_env_layout" "this" {
-  platform               = "k8s"
+  platform               = "gcp_gke"
   standard               = local.standard_env_vars
   cloud                  = local.google_env_vars
   otel                   = local.otel_env_vars
@@ -46,7 +46,7 @@ resource "google_secret_manager_secret" "this" {
 
 ## Arguments Reference
 
-* `platform` - (Required) The runtime platform of the application: one of `ecs`, `batch`, `lambda`, `beanstalk`, `s3`, `k8s`, `cloudrun`, `cloudfunctions`, `composer`, `gce`, `gcs`, `azure_container_app`, `azure_function`, `azure_app_service`.
+* `platform` - (Required) The runtime platform of the application: one of `aws_ecs`, `aws_batch`, `aws_lambda`, `aws_beanstalk`, `aws_ec2`, `aws_s3`, `aws_eks`, `gcp_gke`, `gcp_cloudrun`, `gcp_cloudfunctions`, `gcp_composer`, `gcp_gce`, `gcp_gcs`, `azure_aks`, `azure_container_app`, `azure_function`, `azure_app_service`, `azure_static_web_app`.
 * `standard` - (Optional) Map of standard Nullstone environment variables (`NULLSTONE_*`). Lowest precedence.
 * `cloud` - (Optional) Map of cloud platform environment variables (e.g. `AWS_REGION`, `GOOGLE_CLOUD_PROJECT`).
 * `otel` - (Optional) Map of OpenTelemetry environment variables (`OTEL_*`).

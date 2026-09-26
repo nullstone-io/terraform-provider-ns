@@ -39,7 +39,7 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_env_values" "this" {
-  platform = "ecs"
+  platform = "aws_ecs"
   standard = {
     NULLSTONE_STACK = "primary"
     NULLSTONE_ENV   = "dev"
@@ -109,7 +109,7 @@ data "ns_env_values" "this" {
 						resource.TestCheckResourceAttr("data.ns_env_values.this", "resource_field_refs.%", "0"),
 						resource.TestCheckResourceAttr("data.ns_env_values.this", "file_key_refs.%", "0"),
 						// platform_data
-						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"platform":"ecs"`)),
+						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"platform":"aws_ecs"`)),
 						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"source":"capability"`)),
 						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"PG_PASSWORD":\{"sensitive":true,"source":"capability","capability":"postgres0"\}`)),
 						resource.TestMatchResourceAttr("data.ns_env_values.this", "platform_data", regexp.MustCompile(`"IDENTIFIER":\{"template":"\{\{ NULLSTONE_STACK \}\}.\{\{ NULLSTONE_ENV \}\}","value":"primary.dev","source":"user"\}`)),
@@ -127,7 +127,7 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_env_values" "this" {
-  platform = "k8s"
+  platform = "gcp_gke"
   standard = {
     NULLSTONE_ENV = "dev"
   }
@@ -173,7 +173,7 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_env_values" "this" {
-  platform = "ecs"
+  platform = "aws_ecs"
   user_env = {
     POD_IP = "{{ k8s.field(v1, status.podIP) }}"
   }
@@ -184,7 +184,7 @@ data "ns_env_values" "this" {
 			Steps: []resource.TestStep{
 				{
 					Config:      config,
-					ExpectError: regexp.MustCompile(`Unsupported\s+template\s+for\s+platform\s+ecs:\s+POD_IP`),
+					ExpectError: regexp.MustCompile(`Unsupported\s+template\s+for\s+platform\s+aws_ecs:\s+POD_IP`),
 				},
 			},
 		})
@@ -219,7 +219,7 @@ provider "ns" {
   organization = "org0"
 }
 data "ns_env_values" "this" {
-  platform = "ecs"
+  platform = "aws_ecs"
   capability_env = [
     { capability = "cap_a", name = "HOST", value = "a" },
     { capability = "cap_b", name = "HOST", value = "b" },
@@ -262,7 +262,7 @@ locals {
   cap_prefixes = { postgres0 = "PG_" }
 }
 data "ns_env_values" "this" {
-  platform            = "ecs"
+  platform            = "aws_ecs"
   capability_env      = local.capabilities.env
   capability_secrets  = local.capabilities.secrets
   capability_prefixes = local.cap_prefixes

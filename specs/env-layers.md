@@ -26,7 +26,7 @@ Source labels are `platformdata.Source*` in `github.com/nullstone-io/module/plat
 
 ## Platform
 
-`platform` (required string) is validated against `platformdata.LookupPlatform` (module repo). It gates templates:
+`platform` (required string) is validated against `platformdata.LookupPlatform` (module repo). Identifiers are always cloud-prefixed and unambiguous on their own: `aws_ecs`, `aws_batch`, `aws_lambda`, `aws_beanstalk`, `aws_ec2`, `aws_s3`, `aws_eks`, `gcp_gke`, `gcp_cloudrun`, `gcp_cloudfunctions`, `gcp_composer`, `gcp_gce`, `gcp_gcs`, `azure_aks`, `azure_container_app`, `azure_function`, `azure_app_service`, `azure_static_web_app`. Kubernetes is split per cloud (`aws_eks` / `gcp_gke` / `azure_aks`); all three support k8s refs. It gates templates:
 
 - `k8s.field/configMap/resourceField/fileKey(...)` → error unless `SupportsK8sRefs`.
 - `secret(...)` → error unless `SupportsSecretRefs`.
@@ -106,7 +106,7 @@ Use object-typed attributes (not nested blocks); all object attributes are requi
 
 ```json
 {
-  "platform": "k8s",
+  "platform": "gcp_gke",
   "variables": {
     "NULLSTONE_ENV":     { "template": "prod", "value": "prod", "source": "standard" },
     "PG_HOST":           { "template": "{{ ... }}", "value": "db.internal", "source": "capability", "capability": "postgres0" },
@@ -123,7 +123,7 @@ Rules: `template` = the pre-interpolation input value; `value` only for plain ke
 
 ```hcl
 data "ns_env_layout" "this" {
-  platform            = "k8s"
+  platform            = "gcp_gke"
   standard            = local.standard_env_vars
   cloud               = local.google_env_vars
   otel                = local.otel_env_vars
@@ -135,7 +135,7 @@ data "ns_env_layout" "this" {
 }
 
 data "ns_env_values" "this" {
-  platform            = "k8s"
+  platform            = "gcp_gke"
   standard            = local.standard_env_vars
   cloud               = local.google_env_vars
   otel                = local.otel_env_vars
