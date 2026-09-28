@@ -144,6 +144,27 @@ func (m EnvVars) SecretKeys() []string {
 	return result
 }
 
+// runtimeRefTemplateRegexes are the templates that Interpolate turns into a runtime reference
+// (an existing cloud secret or a Kubernetes valueFrom) instead of a value.
+var runtimeRefTemplateRegexes = []*regexp.Regexp{
+	secretRefRegex,
+	k8sFieldRefRegex,
+	k8sConfigMapRefRegex,
+	k8sResourceFieldRefRegex,
+	k8sFileKeyRefRegex,
+}
+
+// hasRuntimeRefTemplate reports whether value contains a `{{ secret(...) }}` or `{{ k8s.*(...) }}` template,
+// using the same patterns Interpolate uses to extract them.
+func hasRuntimeRefTemplate(value string) bool {
+	for _, re := range runtimeRefTemplateRegexes {
+		if re.MatchString(value) {
+			return true
+		}
+	}
+	return false
+}
+
 func parseTemplateArgs(raw string) []string {
 	parts := strings.Split(raw, ",")
 	args := make([]string, 0, len(parts))
@@ -305,11 +326,18 @@ func (m EnvVars) Hash() string {
 	return fmt.Sprintf("%x", sum)
 }
 
+// KeysHash hashes the sorted keys (and their sensitivity) so the result is deterministic across reads.
 func (m EnvVars) KeysHash() string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+
 	hashString := ""
-	for k, v := range m {
+	for _, k := range keys {
 		sensitive := ""
-		if v.IsSensitive {
+		if m[k].IsSensitive {
 			sensitive = "+"
 		}
 		hashString += fmt.Sprintf("%s%s;", k, sensitive)

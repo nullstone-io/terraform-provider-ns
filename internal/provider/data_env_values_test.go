@@ -224,6 +224,10 @@ data "ns_env_values" "this" {
     { capability = "cap_a", name = "HOST", value = "a" },
     { capability = "cap_b", name = "HOST", value = "b" },
   ]
+  capability_prefixes = {
+    cap_a = ""
+    cap_b = ""
+  }
 }
 `
 		resource.UnitTest(t, resource.TestCase{
@@ -232,6 +236,86 @@ data "ns_env_values" "this" {
 				{
 					Config:      config,
 					ExpectError: regexp.MustCompile(`Duplicate\s+capability\s+environment\s+variable:\s+HOST`),
+				},
+			},
+		})
+	})
+
+	t.Run("secret wins over user_env at the same key", func(t *testing.T) {
+		config := `
+provider "ns" {
+  organization = "org0"
+}
+data "ns_env_values" "this" {
+  platform = "aws_ecs"
+  capability_secrets = [
+    { capability = "postgres0", name = "PASSWORD", value = "hunter2" },
+  ]
+  capability_prefixes = {
+    postgres0 = "PG_"
+  }
+  user_env = {
+    PG_PASSWORD = "plaintext-override"
+  }
+}
+`
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: factories,
+			Steps: []resource.TestStep{
+				{
+					Config: config,
+					Check: resource.ComposeTestCheckFunc(
+						resource.TestCheckResourceAttr("data.ns_env_values.this", "env_variables.%", "0"),
+						resource.TestCheckResourceAttr("data.ns_env_values.this", "secrets.PG_PASSWORD", "hunter2"),
+						resource.TestCheckResourceAttr("data.ns_env_values.this", "sources.PG_PASSWORD", "capability"),
+						testCheckAttrNotContains("data.ns_env_values.this", "platform_data", "plaintext-override"),
+					),
+				},
+			},
+		})
+	})
+
+	t.Run("secret ref template inside user_secrets errors at plan", func(t *testing.T) {
+		config := `
+provider "ns" {
+  organization = "org0"
+}
+data "ns_env_values" "this" {
+  platform = "aws_ecs"
+  user_secrets = {
+    DB_PASSWORD = "{{ secret(arn:aws:secretsmanager:us-east-1:0123456789012:secret:db) }}"
+  }
+}
+`
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: factories,
+			Steps: []resource.TestStep{
+				{
+					Config:      config,
+					ExpectError: regexp.MustCompile(`Invalid\s+secret\s+template:\s+DB_PASSWORD`),
+				},
+			},
+		})
+	})
+
+	t.Run("capability missing from capability_prefixes errors", func(t *testing.T) {
+		config := `
+provider "ns" {
+  organization = "org0"
+}
+data "ns_env_values" "this" {
+  platform = "aws_ecs"
+  capability_env = [
+    { capability = "postgres0", name = "HOST", value = "db" },
+  ]
+}
+`
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: factories,
+			Steps: []resource.TestStep{
+				{
+					Config:      config,
+					ExpectError: regexp.MustCompile(`Unknown\s+capability:\s+postgres0`),
 				},
 			},
 		})

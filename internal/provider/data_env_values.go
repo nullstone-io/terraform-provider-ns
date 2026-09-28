@@ -21,7 +21,38 @@ func newDataEnvValues(p *provider) (*dataEnvValues, error) {
 }
 
 func (*dataEnvValues) Schema(ctx context.Context) *tfprotov5.Schema {
-	attrs := []*tfprotov5.SchemaAttribute{deprecatedIDAttribute()}
+	attrs := []*tfprotov5.SchemaAttribute{
+		deprecatedIDAttribute(),
+		layeredEnvPlatformAttr(),
+		{
+			Name:            "standard",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Description:     "Standard Nullstone environment variables (`NULLSTONE_*`). Lowest precedence.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Optional:        true,
+		},
+		{
+			Name:            "cloud",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Description:     "Cloud platform environment variables (e.g. `AWS_REGION`, `GOOGLE_CLOUD_PROJECT`). Overrides `standard`.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Optional:        true,
+		},
+		{
+			Name:            "otel",
+			Type:            tftypes.Map{ElementType: tftypes.String},
+			Description:     "OpenTelemetry environment variables (`OTEL_*`). Overrides `cloud`.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Optional:        true,
+		},
+		{
+			Name:            "capability_env",
+			Type:            tftypes.List{ElementType: capabilityEnvEntryType},
+			Description:     "Environment variables emitted by capabilities (`local.capabilities.env`). Each entry is `{ capability, name, value }`; the final key is `capability_prefixes[capability] + name`. Overrides `otel`.",
+			DescriptionKind: tfprotov5.StringKindMarkdown,
+			Optional:        true,
+		},
+	}
 	attrs = append(attrs, layeredEnvSharedInputAttrs()...)
 	attrs = append(attrs,
 		&tfprotov5.SchemaAttribute{
@@ -113,20 +144,17 @@ func (*dataEnvValues) Schema(ctx context.Context) *tfprotov5.Schema {
 }
 
 func (d *dataEnvValues) Validate(ctx context.Context, config map[string]tftypes.Value) ([]*tfprotov5.Diagnostic, error) {
-	diags := validateLayeredEnvKeys(config,
-		[]string{"standard", "cloud", "otel", "user_env", "user_secrets"},
-		[]string{"capability_env", "capability_secrets"},
-		nil,
-	)
+	diags := validateLayeredEnv(config, layeredEnvValidation{
+		MapAttrs:              []string{"standard", "cloud", "otel", "user_env", "user_secrets"},
+		CapabilityAttrs:       []string{"capability_env"},
+		SecretMapAttrs:        []string{"user_secrets"},
+		SecretCapabilityAttrs: []string{"capability_secrets"},
+	})
 	return diags, nil
 }
 
 func (d *dataEnvValues) Read(ctx context.Context, config map[string]tftypes.Value) (map[string]tftypes.Value, []*tfprotov5.Diagnostic, error) {
-	in := layeredEnvInputFromConfig(config)
-	in.CapabilitySecrets = capabilityEntriesFromTfValue(config["capability_secrets"])
-	in.UserSecrets = TfValueToMap(config["user_secrets"])
-
-	result, diags := resolveLayers(in)
+	result, diags := resolveLayers(layeredEnvValuesInputFromConfig(config))
 	if hasErrorDiagnostic(diags) {
 		return nil, diags, nil
 	}

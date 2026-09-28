@@ -16,6 +16,8 @@ Nullstone extracts platform data from state each time a state version is saved a
 
 This data source makes no API calls. It validates the payload against the schema for `kind`/`version` and echoes the inputs into state.
 
+For the `env` kind, prefer the layered data sources: [`ns_env_values`](env_values.html) emits a valid env record and [`ns_env_platform_data`](env_platform_data.html) completes it with the ids of the managed secrets. Nullstone reads `data.ns_env_platform_data.*` directly from state, so no `ns_platform_data` block is needed in that case. Use `ns_platform_data` for other kinds, or for an `env` record built by hand as below.
+
 Validation follows a forward-compatibility rule:
 - A `kind` or `version` that this version of the provider does not recognize produces a **warning** and is stored without validation, so an older provider never blocks a newer module.
 - A recognized `kind`/`version` whose `data` is invalid produces an **error** at plan time.
@@ -56,12 +58,12 @@ data "ns_platform_data" "env" {
 Every entry in `variables` is one of:
 
 * a resolved value: `{ template?, value }`
-* a sensitive value: `{ template?, sensitive = true }` (the value is never carried)
+* a sensitive value: `{ template?, sensitive = true, ref? }` (the value is never carried; `ref`, when present, is a `secret` or `k8s_secret_key` ref naming the managed secret)
 * a reference resolved at runtime: `{ template?, ref = { type, ... } }`
 
 `ref.type` is one of `secret` (`id`), `k8s_field` (`api_version?`, `field_path`), `k8s_config_map` (`name`, `key`, `optional?`),
-`k8s_resource_field` (`resource`, `container?`, `divisor?`), `k8s_file_key` (`volume_name`, `path`, `key`).
-A `secret` ref is sensitive by definition.
+`k8s_resource_field` (`resource`, `container?`, `divisor?`), `k8s_file_key` (`volume_name`, `path`, `key`), `k8s_secret_key` (`name`, `key`).
+A `secret` or `k8s_secret_key` ref is sensitive by definition. Each entry may also carry `source` (`standard`, `cloud`, `otel`, `capability`, `user`) and, for `capability`, the `capability` name.
 
 The `env` kind never carries secret values: a sensitive entry with a `value`, or an entry with both a `value` and a `ref`, is rejected at plan time.
 

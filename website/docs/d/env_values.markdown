@@ -13,15 +13,17 @@ splits secrets into managed (the module creates the cloud secret) and unmanaged 
 extracts Kubernetes `valueFrom` refs, and emits the `env` platform data record consumed by Nullstone.
 
 Because it receives secret values, Terraform may defer this data source to apply when any value is unknown at plan.
-Use [`ns_env_layout`](env_layout.html) (keys only) wherever the *set* of secrets must be known at plan, such as a `for_each` that creates cloud secrets.
+Use [`ns_env_layout`](env_layout.html) (keys only) wherever the *set* of secrets must be known at plan, such as a `for_each` that creates cloud secrets,
+and [`ns_env_platform_data`](env_platform_data.html) to record the ids of the secrets you created in the env record.
 
 Resolution follows the same rules as `ns_env_layout`:
 
 1. Layers are merged in precedence order (lowest to highest): `standard` < `cloud` < `otel` < `capability_env`/`capability_secrets` < `user_env`/`user_secrets`. A later layer overrides an earlier one for the same key.
-2. Capability keys are `capability_prefixes[capability] + name`. A duplicate final key within `capability_env` (or within `capability_secrets`) is an error.
-3. Every key is validated (letters, numbers, underscore; cannot begin with a number).
-4. `{{ VAR }}` references are interpolated with the same semantics as [`ns_env_variables`](env_variables.html) (see that page for the full template syntax).
-5. `platform` gates templates: `{{ secret(...) }}` is only allowed on platforms that support secret refs, and `{{ k8s.*(...) }}` only on Kubernetes. An unknown platform is an error.
+2. **Secrets always win.** If any secrets input (`capability_secrets`, `user_secrets`) sets a key, a plain layer at the same key never overrides it, regardless of order; the secret keeps its value, template, and source. Secret layers still override each other in order (capability < user).
+3. Capability keys are `capability_prefixes[capability] + name`. Every `capability` must have an entry in `capability_prefixes` (an explicit `""` prefix is fine) and must not be empty. A duplicate final key within `capability_env` (or within `capability_secrets`) is an error.
+4. Every key is validated (letters, numbers, underscore; cannot begin with a number).
+5. `{{ VAR }}` references are interpolated with the same semantics as [`ns_env_variables`](env_variables.html) (see that page for the full template syntax). A value inside `capability_secrets` or `user_secrets` is the secret itself and cannot be a `{{ secret(...) }}` or `{{ k8s.*(...) }}` template; move such a variable to `env_vars`.
+6. `platform` gates templates: `{{ secret(...) }}` is only allowed on platforms that support secret refs, and `{{ k8s.*(...) }}` only on Kubernetes. An unknown platform is an error.
 
 Each key is then classified as exactly one of: an **unmanaged secret** (`{{ secret(...) }}`), a **managed secret** (a secrets input, or promoted by interpolating a secret), a **Kubernetes ref**, or a **plain** variable.
 
@@ -40,10 +42,16 @@ data "ns_env_values" "this" {
   user_secrets        = var.secrets
 }
 
-data "ns_platform_data" "env" {
-  kind    = "env"
-  version = 1
-  data    = data.ns_env_values.this.platform_data
+# google_secret_manager_secret.this is created from data.ns_env_layout.this.managed_secret_keys (see ns_env_layout)
+resource "google_secret_manager_secret_version" "this" {
+  for_each    = data.ns_env_values.this.secrets
+  secret      = google_secret_manager_secret.this[each.key].id
+  secret_data = each.value
+}
+
+data "ns_env_platform_data" "this" {
+  values     = data.ns_env_values.this.platform_data
+  secret_ids = { for key, secret in google_secret_manager_secret.this : key => secret.id }
 }
 ```
 
@@ -78,12 +86,13 @@ the outputs are:
 * `otel` - (Optional) Map of OpenTelemetry environment variables (`OTEL_*`).
 * `capability_env` - (Optional) List of `{ capability, name, value }` objects emitted by capabilities (`local.capabilities.env`).
 * `capability_secrets` - (Optional, Sensitive) List of `{ capability, name, value }` secret objects emitted by capabilities (`local.capabilities.secrets`).
-* `capability_prefixes` - (Optional) Map of capability `capability` to the prefix applied to its variable and secret names.
-* `user_env` - (Optional) Map of user-defined environment variables (`var.env_vars`). Highest precedence.
+* `capability_prefixes` - (Optional) Map of capability `capability` to the prefix applied to its variable and secret names. Every capability referenced by `capability_env` or `capability_secrets` must appear here.
+* `user_env` - (Optional) Map of user-defined environment variables (`var.env_vars`). Highest precedence among plain layers; a key that any secrets input also sets stays a secret.
 * `user_secrets` - (Optional, Sensitive) Map of user-defined secrets (`var.secrets`).
 
 ## Attributes Reference
 
+* `id` - (Deprecated) A deterministic hash of the sorted keys. Present only for compatibility and should not be used.
 * `env_variables` - Map of plain environment variables after interpolation. Secrets and template refs are excluded.
 * `secrets` - (Sensitive) Map of managed secrets after interpolation.
 * `unmanaged_secret_refs` - Map of keys that reference an existing secret (`{{ secret(...) }}`) to their secret reference.
@@ -96,4 +105,4 @@ the outputs are:
 * `all_secret_keys` - Union of `managed_secret_keys` and `unmanaged_secret_keys`.
 * `sources` - Map of every key to the layer that supplied it: `standard`, `cloud`, `otel`, `capability`, or `user`.
 * `capabilities` - Map of capability-sourced keys to the `capability` of the capability that supplied them.
-* `platform_data` - JSON-encoded `env` (version 1) platform data record. It is **not** sensitive: it carries the template, resolved value (plain variables only), sensitivity flag, ref, source, and capability of every variable, and never a secret value. Pass it to [`ns_platform_data`](platform_data.html) with `kind = "env"` and `version = 1`.
+* `platform_data` - JSON-encoded `env` (version 1) platform data record. It is **not** sensitive: it carries the template, resolved value (plain variables only), sensitivity flag, ref, source, and capability of every variable, and never a secret value. Managed secrets carry no ref yet; pass it to [`ns_env_platform_data`](env_platform_data.html) with the ids of the secrets the module created.

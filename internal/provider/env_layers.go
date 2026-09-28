@@ -195,22 +195,36 @@ func resolveLayers(in layeredEnvInput) (layeredEnvResult, []*tfprotov5.Diagnosti
 		IsSecret bool
 	}
 	values := map[string]folded{}
-	set := func(key, value string, isSecret bool, source, capability string) {
+	set := func(attr, key, value string, isSecret bool, source, capability string) {
 		if !validEnvVariableKey(key) {
 			addErr(fmt.Sprintf("Invalid environment variable key: %s", key), invalidEnvKeyDetail)
+			return
+		}
+		if isSecret && hasRuntimeRefTemplate(value) {
+			// D16a: a secrets input holds the secret value itself; it cannot point at a runtime reference.
+			addErr(fmt.Sprintf("Invalid secret template: %s", key), invalidSecretTemplateDetail(attr, key))
+			return
+		}
+		// D16: secrets always win. Once any secrets layer sets a key, a plain layer at the same key
+		// never overrides it, regardless of layer order; secret layers still override each other in order.
+		if prev, exists := values[key]; exists && prev.IsSecret && !isSecret {
 			return
 		}
 		values[key] = folded{Value: value, IsSecret: isSecret}
 		result.Keys[key] = layeredEnvKey{Template: value, Source: source, Capability: capability, SecretInput: isSecret}
 	}
-	setMap := func(m map[string]string, isSecret bool, source string) {
+	setMap := func(attr string, m map[string]string, isSecret bool, source string) {
 		for _, k := range sortedKeys(m) {
-			set(k, m[k], isSecret, source, "")
+			set(attr, k, m[k], isSecret, source, "")
 		}
 	}
 	setCapability := func(attr string, entries []capabilityEntry, isSecret bool) {
 		seen := map[string]string{}
 		for _, e := range entries {
+			if diag := validateCapabilityEntry(attr, e.Capability, in.CapabilityPrefixes); diag != nil {
+				diags = append(diags, diag)
+				continue
+			}
 			key := in.CapabilityPrefixes[e.Capability] + e.Name
 			if prev, dup := seen[key]; dup {
 				addErr(fmt.Sprintf("Duplicate capability environment variable: %s", key),
@@ -218,17 +232,17 @@ func resolveLayers(in layeredEnvInput) (layeredEnvResult, []*tfprotov5.Diagnosti
 				continue
 			}
 			seen[key] = e.Capability
-			set(key, e.Value, isSecret, platformdata.SourceCapability, e.Capability)
+			set(attr, key, e.Value, isSecret, platformdata.SourceCapability, e.Capability)
 		}
 	}
 
-	setMap(in.Standard, false, platformdata.SourceStandard)
-	setMap(in.Cloud, false, platformdata.SourceCloud)
-	setMap(in.Otel, false, platformdata.SourceOtel)
+	setMap("standard", in.Standard, false, platformdata.SourceStandard)
+	setMap("cloud", in.Cloud, false, platformdata.SourceCloud)
+	setMap("otel", in.Otel, false, platformdata.SourceOtel)
 	setCapability("capability_env", in.CapabilityEnv, false)
 	setCapability("capability_secrets", in.CapabilitySecrets, true)
-	setMap(in.UserEnv, false, platformdata.SourceUser)
-	setMap(in.UserSecrets, true, platformdata.SourceUser)
+	setMap("user_env", in.UserEnv, false, platformdata.SourceUser)
+	setMap("user_secrets", in.UserSecrets, true, platformdata.SourceUser)
 	if len(diags) > 0 {
 		return result, diags
 	}
@@ -326,24 +340,92 @@ func echoInput(tfVal tftypes.Value, typ tftypes.Type) tftypes.Value {
 	return tfVal
 }
 
-// layeredEnvInputFromConfig reads the shared attributes. Secrets are read by the caller since they differ per data source.
-func layeredEnvInputFromConfig(config map[string]tftypes.Value) layeredEnvInput {
+// invalidSecretTemplateDetail explains why a secrets input cannot carry a runtime reference template (D16a).
+func invalidSecretTemplateDetail(attr, key string) string {
+	return fmt.Sprintf("%s.%s uses a `{{ secret(...) }}` or `{{ k8s.*(...) }}` template. Secrets hold the secret value itself and cannot use runtime reference templates; move %s to env_vars (user_env) instead.", attr, key, key)
+}
+
+// validateCapabilityEntry applies D16b/D16c to one capability list entry: the capability name is required and
+// must have a prefix in capability_prefixes (an explicit "" prefix is fine).
+func validateCapabilityEntry(attr, capability string, prefixes map[string]string) *tfprotov5.Diagnostic {
+	if capability == "" {
+		return &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Capability name is required",
+			Detail:   fmt.Sprintf("%s contains an entry with an empty capability; every entry must name the capability that emitted it.", attr),
+		}
+	}
+	if _, ok := prefixes[capability]; !ok {
+		return &tfprotov5.Diagnostic{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  fmt.Sprintf("Unknown capability: %s", capability),
+			Detail:   fmt.Sprintf("%s references capability %q, which has no entry in capability_prefixes. Every capability must appear in capability_prefixes (use \"\" for no prefix).", attr, capability),
+		}
+	}
+	return nil
+}
+
+// keysToEmptyMap builds a map with "" values from a key set, so key-only inputs (ns_env_layout, D15)
+// feed the same resolver as full-value inputs.
+func keysToEmptyMap(keys []string) map[string]string {
+	result := make(map[string]string, len(keys))
+	for _, k := range keys {
+		result[k] = ""
+	}
+	return result
+}
+
+// layeredEnvValuesInputFromConfig reads the full-value inputs of ns_env_values.
+func layeredEnvValuesInputFromConfig(config map[string]tftypes.Value) layeredEnvInput {
 	return layeredEnvInput{
 		Platform:           extractStringFromConfig(config, "platform"),
 		Standard:           TfValueToMap(config["standard"]),
 		Cloud:              TfValueToMap(config["cloud"]),
 		Otel:               TfValueToMap(config["otel"]),
 		CapabilityEnv:      capabilityEntriesFromTfValue(config["capability_env"]),
+		CapabilitySecrets:  capabilityEntriesFromTfValue(config["capability_secrets"]),
 		CapabilityPrefixes: TfValueToMap(config["capability_prefixes"]),
 		UserEnv:            TfValueToMap(config["user_env"]),
+		UserSecrets:        TfValueToMap(config["user_secrets"]),
 	}
 }
 
-// validateLayeredEnvKeys validates every key that is known at validation time.
-// Unknown values are skipped; Terraform calls Read once everything is known.
-func validateLayeredEnvKeys(config map[string]tftypes.Value, mapAttrs []string, listAttrs []string, setAttrs []string) []*tfprotov5.Diagnostic {
+// layeredEnvLayoutInputFromConfig reads the key-only inputs of ns_env_layout (D15) into the same shape,
+// using "" as the value of every key-only layer. `user_env` keeps its templates so secret promotion and
+// `{{ secret(...) }}` refs are detected.
+func layeredEnvLayoutInputFromConfig(config map[string]tftypes.Value) layeredEnvInput {
+	return layeredEnvInput{
+		Platform:           extractStringFromConfig(config, "platform"),
+		Standard:           keysToEmptyMap(TfSetValueToStringSlice(config["standard_keys"])),
+		Cloud:              keysToEmptyMap(TfSetValueToStringSlice(config["cloud_keys"])),
+		Otel:               keysToEmptyMap(TfSetValueToStringSlice(config["otel_keys"])),
+		CapabilityEnv:      capabilityEntriesFromTfValue(config["capability_env_keys"]),
+		CapabilitySecrets:  capabilityEntriesFromTfValue(config["capability_secret_keys"]),
+		CapabilityPrefixes: TfValueToMap(config["capability_prefixes"]),
+		UserEnv:            TfValueToMap(config["user_env"]),
+		UserSecrets:        keysToEmptyMap(TfSetValueToStringSlice(config["user_secret_keys"])),
+	}
+}
+
+// layeredEnvValidation names the config attributes validateLayeredEnv checks, by shape.
+type layeredEnvValidation struct {
+	// MapAttrs are map(string) attributes whose keys are validated.
+	MapAttrs []string
+	// SetAttrs are set(string) attributes whose elements are validated as keys.
+	SetAttrs []string
+	// CapabilityAttrs are list(object({capability, name[, value]})) attributes: capability checks (D16b/c) + key validation.
+	CapabilityAttrs []string
+	// SecretMapAttrs are map(string) secrets whose values must not be runtime reference templates (D16a).
+	SecretMapAttrs []string
+	// SecretCapabilityAttrs are capability secret lists: capability checks + key validation + D16a on values.
+	SecretCapabilityAttrs []string
+}
+
+// validateLayeredEnv validates everything that is known at validation time.
+// Unknown values are skipped; Terraform calls Read once everything is known, and Read repeats every check.
+func validateLayeredEnv(config map[string]tftypes.Value, v layeredEnvValidation) []*tfprotov5.Diagnostic {
 	diags := make([]*tfprotov5.Diagnostic, 0)
-	check := func(key string) {
+	checkKey := func(key string) {
 		if key == "" || !validEnvVariableKey(key) {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
@@ -352,13 +434,28 @@ func validateLayeredEnvKeys(config map[string]tftypes.Value, mapAttrs []string, 
 			})
 		}
 	}
+	checkSecretValue := func(attr, key string, val tftypes.Value) {
+		if val.IsNull() || !val.IsKnown() {
+			return
+		}
+		if hasRuntimeRefTemplate(extractStringFromTfValue(val)) {
+			diags = append(diags, &tfprotov5.Diagnostic{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  fmt.Sprintf("Invalid secret template: %s", key),
+				Detail:   invalidSecretTemplateDetail(attr, key),
+			})
+		}
+	}
+	// A null capability_prefixes is an empty map (every capability is then unknown); a not-fully-known one
+	// defers all capability checks to Read.
+	prefixesKnown := config["capability_prefixes"].IsFullyKnown()
 	prefixes := map[string]string{}
-	if v := config["capability_prefixes"]; !v.IsNull() && v.IsFullyKnown() {
-		prefixes = TfValueToMap(v)
+	if prefixesKnown && !config["capability_prefixes"].IsNull() {
+		prefixes = TfValueToMap(config["capability_prefixes"])
 	}
 
-	if v := config["platform"]; !v.IsNull() && v.IsKnown() {
-		name := extractStringFromTfValue(v)
+	if pv := config["platform"]; !pv.IsNull() && pv.IsKnown() {
+		name := extractStringFromTfValue(pv)
 		if _, ok := platformdata.LookupPlatform(name); !ok {
 			diags = append(diags, &tfprotov5.Diagnostic{
 				Severity: tfprotov5.DiagnosticSeverityError,
@@ -367,31 +464,49 @@ func validateLayeredEnvKeys(config map[string]tftypes.Value, mapAttrs []string, 
 			})
 		}
 	}
-	for _, attr := range mapAttrs {
-		v := config[attr]
-		if v.IsNull() || !v.IsKnown() {
+	for _, attr := range v.MapAttrs {
+		mv := config[attr]
+		if mv.IsNull() || !mv.IsKnown() {
 			continue
 		}
-		for key := range TfValueToMap(v) {
-			check(key)
+		for key := range TfValueToMap(mv) {
+			checkKey(key)
 		}
 	}
-	for _, attr := range setAttrs {
-		v := config[attr]
-		if v.IsNull() || !v.IsFullyKnown() {
+	for _, attr := range v.SetAttrs {
+		sv := config[attr]
+		if sv.IsNull() || !sv.IsFullyKnown() {
 			continue
 		}
-		for _, key := range TfSetValueToStringSlice(v) {
-			check(key)
+		for _, key := range TfSetValueToStringSlice(sv) {
+			checkKey(key)
 		}
 	}
-	for _, attr := range listAttrs {
-		v := config[attr]
-		if v.IsNull() || !v.IsKnown() {
+	for _, attr := range v.SecretMapAttrs {
+		mv := config[attr]
+		if mv.IsNull() || !mv.IsKnown() {
+			continue
+		}
+		elems := map[string]tftypes.Value{}
+		if err := mv.As(&elems); err != nil {
+			continue
+		}
+		for key, val := range elems {
+			checkSecretValue(attr, key, val)
+		}
+	}
+	isSecretList := map[string]bool{}
+	for _, attr := range v.SecretCapabilityAttrs {
+		isSecretList[attr] = true
+	}
+	capabilityAttrs := append(append([]string{}, v.CapabilityAttrs...), v.SecretCapabilityAttrs...)
+	for _, attr := range capabilityAttrs {
+		lv := config[attr]
+		if lv.IsNull() || !lv.IsKnown() {
 			continue
 		}
 		elems := make([]tftypes.Value, 0)
-		if err := v.As(&elems); err != nil {
+		if err := lv.As(&elems); err != nil {
 			continue
 		}
 		for _, elem := range elems {
@@ -403,15 +518,22 @@ func validateLayeredEnvKeys(config map[string]tftypes.Value, mapAttrs []string, 
 				continue
 			}
 			nameVal, capVal := attrs["name"], attrs["capability"]
-			if nameVal.IsNull() || !nameVal.IsKnown() || !capVal.IsKnown() {
+			if !capVal.IsKnown() || !prefixesKnown {
 				continue
 			}
-			prefix, ok := prefixes[extractStringFromTfValue(capVal)]
-			if !ok && !config["capability_prefixes"].IsNull() && !config["capability_prefixes"].IsFullyKnown() {
-				// prefix unknown at plan; validate at read
+			capability := extractStringFromTfValue(capVal)
+			if diag := validateCapabilityEntry(attr, capability, prefixes); diag != nil {
+				diags = append(diags, diag)
 				continue
 			}
-			check(prefix + extractStringFromTfValue(nameVal))
+			if nameVal.IsNull() || !nameVal.IsKnown() {
+				continue
+			}
+			key := prefixes[capability] + extractStringFromTfValue(nameVal)
+			checkKey(key)
+			if isSecretList[attr] {
+				checkSecretValue(attr, key, attrs["value"])
+			}
 		}
 	}
 	return diags
