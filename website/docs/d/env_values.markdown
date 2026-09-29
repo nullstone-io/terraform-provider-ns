@@ -42,11 +42,11 @@ data "ns_env_values" "this" {
   user_secrets        = var.secrets
 }
 
-# google_secret_manager_secret.this is created from data.ns_env_layout.this.managed_secret_keys (see ns_env_layout)
+# Iterate the plan-known keys from ns_env_layout; `secrets` is sensitive (and may be unknown at plan), so it cannot drive for_each.
 resource "google_secret_manager_secret_version" "this" {
-  for_each    = data.ns_env_values.this.secrets
+  for_each    = data.ns_env_layout.this.managed_secret_keys
   secret      = google_secret_manager_secret.this[each.key].id
-  secret_data = each.value
+  secret_data = data.ns_env_values.this.secrets[each.key]
 }
 
 data "ns_env_platform_data" "this" {

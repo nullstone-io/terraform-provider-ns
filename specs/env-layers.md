@@ -207,9 +207,9 @@ data "ns_env_values" "this" {
 }
 
 resource "google_secret_manager_secret_version" "this" {
-  for_each    = data.ns_env_values.this.secrets
+  for_each    = data.ns_env_layout.this.managed_secret_keys
   secret      = google_secret_manager_secret.this[each.key].id
-  secret_data = each.value
+  secret_data = data.ns_env_values.this.secrets[each.key]
 }
 
 data "ns_env_platform_data" "this" {
@@ -218,6 +218,8 @@ data "ns_env_platform_data" "this" {
   # or, on Kubernetes, k8s_secret_refs = { for key in data.ns_env_layout.this.managed_secret_keys : key => { name = kubernetes_secret.this.metadata[0].name, key = key } }
 }
 ```
+
+Always drive `for_each` from `data.ns_env_layout.this.managed_secret_keys`, never from `data.ns_env_values.this.secrets`: that map is sensitive and may be unknown at plan, and Terraform rejects both in `for_each`.
 
 Replaces `ns_env_variables.this`, `ns_env_variables.existing`, `ns_secret_keys.this`, `cap_env_vars`/`cap_secrets` loops and the managed/unmanaged set arithmetic. No `ns_platform_data` block is needed for the env kind.
 

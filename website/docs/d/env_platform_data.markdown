@@ -57,9 +57,9 @@ data "ns_env_values" "this" {
 }
 
 resource "aws_secretsmanager_secret_version" "this" {
-  for_each      = data.ns_env_values.this.secrets
+  for_each      = data.ns_env_layout.this.managed_secret_keys
   secret_id     = aws_secretsmanager_secret.this[each.key].id
-  secret_string = each.value
+  secret_string = data.ns_env_values.this.secrets[each.key]
 }
 
 data "ns_env_platform_data" "this" {
