@@ -1,3 +1,22 @@
+## 0.13.0 (Sep 29, 2026)
+
+FEATURES:
+
+* Added `ns_env_layout` data source. It merges the layers of an application's environment (`standard`, `cloud`, `otel`, capability, user) and reports `managed_secret_keys`, `unmanaged_secret_keys`, `all_secret_keys`, `sources`, and `capabilities`. Non-user layers are passed as keys only (`standard_keys`, `cloud_keys`, `otel_keys`, `capability_env_keys`), so the set of secrets a module must create is always known at plan time; `user_env` keeps its templates so secret promotion and `{{ secret(...) }}` refs are detected.
+* Added `ns_env_values` data source. It merges the same layers with values, interpolates them with the semantics of `ns_env_variables`, splits secrets into managed and unmanaged, extracts Kubernetes `valueFrom` refs, and emits a `platform_data` env record with the `source` (and capability) of every variable.
+* Added `ns_env_platform_data` data source. It completes the record from `ns_env_values` with the ids of the managed secrets the module created (`secret_ids` for cloud secret ids, `k8s_secret_refs` for Kubernetes `secretKeyRef`s) and errors when any managed secret is left without an id. Nullstone reads its `platform_data` from state to show resolved environment variables.
+* Added `ns_platform_data` data source, a generic envelope that validates and persists platform data (`kind`, `version`, `data`) into state. Unrecognized `kind`/`version` values produce a warning; invalid payloads for a recognized `kind`/`version` produce an error at plan time.
+* Both env data sources take a required `platform` (e.g. `aws_ecs`, `gcp_gke`, `azure_aks`) that gates `{{ secret(...) }}` and `{{ k8s.*(...) }}` templates. Secrets always win: a key set by any secrets input is never overridden by a plain layer. Plan-time errors are reported for a capability missing from `capability_prefixes`, an empty capability name, and a runtime reference template inside `capability_secrets` or `user_secrets`.
+* `ns_env_variables` and `ns_secret_keys` are unchanged; modules can adopt the new data sources one at a time.
+
+BUG FIXES:
+
+* `ns_secret_keys` now computes `id` from sorted keys, so the id no longer changes between reads of the same configuration.
+
+INTERNAL UPDATES:
+
+* Upgraded `github.com/nullstone-io/module` to `v0.3.1` (platform data schemas).
+
 ## 0.12.0 (Aug 11, 2026)
 
 INTERNAL UPDATES:
