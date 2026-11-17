@@ -46,6 +46,14 @@ func TfSetValueToStringSlice(tfVal tftypes.Value) []string {
 	return result
 }
 
+func SliceToTfList(s []string) tftypes.Value {
+	tfSlice := make([]tftypes.Value, 0)
+	for _, v := range s {
+		tfSlice = append(tfSlice, tftypes.NewValue(tftypes.String, v))
+	}
+	return tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, tfSlice)
+}
+
 func SliceToTfSet(s []string) tftypes.Value {
 	tfSlice := make([]tftypes.Value, 0)
 	for _, v := range s {
