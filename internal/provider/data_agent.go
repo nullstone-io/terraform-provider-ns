@@ -63,6 +63,13 @@ func (*dataAgent) Schema(ctx context.Context) *tfprotov5.Schema {
 					Computed:        true,
 					DescriptionKind: tfprotov5.StringKindMarkdown,
 				},
+				{
+					Name:            "ip_addresses",
+					Type:            tftypes.List{ElementType: tftypes.String},
+					Description:     "The public IP addresses that the Nullstone Agent connects from. Use these to allow the agent through security groups and firewall rules.",
+					Computed:        true,
+					DescriptionKind: tfprotov5.StringKindMarkdown,
+				},
 			},
 		},
 	}
@@ -80,6 +87,7 @@ func (d *dataAgent) Read(ctx context.Context, config map[string]tftypes.Value) (
 
 	var awsAccountId, awsUserName, awsUserArn string
 	var gcpProjectId, gcpServiceAccountEmail string
+	ipAddresses := make([]string, 0)
 	agentInfo, err := nsClient.NullstoneAgent().Get(ctx)
 	if err != nil {
 		diags = append(diags, &tfprotov5.Diagnostic{
@@ -93,6 +101,7 @@ func (d *dataAgent) Read(ctx context.Context, config map[string]tftypes.Value) (
 		awsUserArn = agentInfo.Aws.UserArn
 		gcpServiceAccountEmail = agentInfo.Gcp.ServiceAccountEmail
 		gcpProjectId = agentInfo.Gcp.ProjectId
+		ipAddresses = append(ipAddresses, agentInfo.IpAddresses...)
 	} else {
 		diags = append(diags, &tfprotov5.Diagnostic{
 			Severity: tfprotov5.DiagnosticSeverityError,
@@ -107,5 +116,6 @@ func (d *dataAgent) Read(ctx context.Context, config map[string]tftypes.Value) (
 		"aws_user_arn":              tftypes.NewValue(tftypes.String, &awsUserArn),
 		"gcp_project_id":            tftypes.NewValue(tftypes.String, &gcpProjectId),
 		"gcp_service_account_email": tftypes.NewValue(tftypes.String, &gcpServiceAccountEmail),
+		"ip_addresses":              SliceToTfList(ipAddresses),
 	}, diags, nil
 }

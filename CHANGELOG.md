@@ -1,3 +1,9 @@
+## Unreleased
+
+FEATURES:
+
+* `ns_agent` has a new computed `ip_addresses` attribute (`list(string)`): the public IP addresses the Nullstone Agent connects from, for allowing the agent through security groups and firewall rules (for example, a private-only EKS control plane).
+
 ## 0.13.0 (Sep 29, 2026)
 
 FEATURES:
