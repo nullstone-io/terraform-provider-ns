@@ -14,7 +14,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/nullstone-io/module v0.3.1
 	github.com/stretchr/testify v1.12.1
-	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20261117155546-db66ff72c322
+	gopkg.in/nullstone-io/go-api-client.v0 v0.0.0-20261123145612-6af280ee5887
 	gopkg.in/nullstone-io/nullstone.v0 v0.0.192
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -88,8 +88,6 @@ require (
 	go.opentelemetry.io/otel v1.47.0 // indirect
 	go.opentelemetry.io/otel/log v1.47.0 // indirect
 	go.opentelemetry.io/otel/metric v1.47.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
